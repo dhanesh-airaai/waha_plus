@@ -1,7 +1,7 @@
 import {Body, Controller, Get, Post} from '@nestjs/common';
 import {ApiTags} from "@nestjs/swagger";
-import {WhatsappSessionManager} from "../whatsapp.service";
 import {SessionRequest} from "../scructures/requests";
+import {WhatsappSessionManager} from "../core/manager";
 
 
 @Controller('api')
@@ -14,43 +14,43 @@ export class DeviceController {
 
     @Post('/killServiceWorker')
     killServiceWorker(@Body() request: SessionRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        const whatsapp = this.whatsappSessionManager.getInstance(request.sessionName)
         return whatsapp.killServiceWorker()
     }
 
     @Post('/restartService')
     restartService(@Body() request: SessionRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        const whatsapp = this.whatsappSessionManager.getInstance(request.sessionName)
         return whatsapp.restartService()
     }
 
     @Get('/getHostDevice')
     getHostDevice(@Body() request: SessionRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        const whatsapp = this.whatsappSessionManager.getInstance(request.sessionName)
         return whatsapp.getHostDevice()
     }
 
     @Get('/getConnectionState')
     getConnectionState(@Body() request: SessionRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        const whatsapp = this.whatsappSessionManager.getInstance(request.sessionName)
         return whatsapp.getConnectionState()
     }
 
     @Get('/getBatteryLevel')
     getBatteryLevel(@Body() request: SessionRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        const whatsapp = this.whatsappSessionManager.getInstance(request.sessionName)
         return whatsapp.getBatteryLevel()
     }
 
     @Get('/isConnected')
     isConnected(@Body() request: SessionRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        const whatsapp = this.whatsappSessionManager.getInstance(request.sessionName)
         return whatsapp.isConnected()
     }
 
     @Get('/getWAVersion')
     getWAVersion(@Body() request: SessionRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        const whatsapp = this.whatsappSessionManager.getInstance(request.sessionName)
         return whatsapp.getWAVersion()
     }
 

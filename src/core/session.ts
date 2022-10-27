@@ -1,12 +1,11 @@
 import {create, Message, Whatsapp} from "venom-bot";
-import {ConsoleLogger, Injectable, NotFoundException, OnApplicationShutdown} from "@nestjs/common";
+import {ConsoleLogger} from "@nestjs/common";
 import * as path from "path";
-import {WhatsappConfigService} from "./config.service";
+import {WhatsappConfigService} from "../config.service";
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
 import request = require('requestretry');
 import mime = require('mime-types');
 import fs = require('fs');
-import del = require("del");
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const {promisify} = require('util')
@@ -36,7 +35,7 @@ export enum WhatsappStatus {
     FAILED = "FAILED",
 }
 
-export class WhatsappService {
+export class WhatsappSession {
     public status: WhatsappStatus;
     private qrCodeBase64: string;
     readonly filesFolder: string
@@ -213,89 +212,3 @@ export class WhatsappService {
     }
 }
 
-@Injectable()
-export class WhatsappSessionManager implements OnApplicationShutdown {
-    private readonly sessions: Record<string, WhatsappService>;
-
-    constructor(
-        private config: WhatsappConfigService,
-        private log: ConsoleLogger,
-    ) {
-        this.log.setContext('WhatsappSessionManager')
-        this.cleanDownloadsFolder(this.config.filesFolder)
-        this.sessions = {}
-        if (config.startSession) {
-            this.startSession(config.startSession)
-        }
-    }
-
-    startSession(name: string) {
-        this.log.log(`Starting ${name} session...`)
-        const session = new WhatsappService(this.config, name)
-        session.start()
-        this.sessions[name] = session
-    }
-
-    getService(name: string): WhatsappService {
-        const session = this.sessions[name]
-        if (!session) {
-            throw new NotFoundException(
-                `We didn't find a session with name "${name}". Please start it first by using POST /sessions/start request`,
-            );
-        }
-        return session
-    }
-
-    getSession(name: string): Whatsapp {
-        const service = this.getService(name)
-        return service.getWhatsapp()
-    }
-
-    async stopSession(name: string) {
-        this.log.log(`Stopping ${name} session...`)
-        const service = this.getService(name)
-        if (service.whatsapp) {
-            await service.whatsapp.close()
-        }
-        this.log.log(`"${name}" has been stopped.`)
-        delete this.sessions[name]
-    }
-
-    getAllSessions() {
-        const result = Object.values(this.sessions).map((session) => {
-            return {name: session.name, status: session.status}
-        })
-        return result
-    }
-
-    async onApplicationShutdown(signal ?: string) {
-        this.log.log('Stop all sessions...')
-        for (const sessionName of Object.keys(this.sessions)) {
-            await this.stopSession(sessionName)
-        }
-    }
-
-    private cleanDownloadsFolder(filesFolder) {
-        if (fs.existsSync(filesFolder)) {
-            del([`${filesFolder}/*`], {force: true}).then((paths) =>
-                console.log('Deleted files and directories:\n', paths.join('\n'))
-            )
-        } else {
-            fs.mkdirSync(filesFolder)
-            this.log.log(`Directory '${filesFolder}' created from scratch`)
-        }
-    }
-}
-
-const SUFFIX_DIRECT_MESSAGE = "@c.us"
-
-/**
- * Add WhatsApp suffix (@c.us) to the phone number if it doesn't have it yet
- * @param phone
- */
-export function ensureSuffix(phone) {
-    if (phone.includes("@")) {
-        return phone
-    }
-    return phone + SUFFIX_DIRECT_MESSAGE
-}

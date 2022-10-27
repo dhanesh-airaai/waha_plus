@@ -2,8 +2,8 @@ import {Controller, Get, Query, Res} from '@nestjs/common';
 import {ApiTags} from "@nestjs/swagger";
 import {Readable} from "stream";
 import {Response} from 'express';
-import {WhatsappSessionManager} from "../whatsapp.service";
 import {SessionQuery} from "../scructures/queries";
+import {WhatsappSessionManager} from "../core/manager";
 
 
 @Controller('api')
