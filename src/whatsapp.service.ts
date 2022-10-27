@@ -229,7 +229,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         }
     }
 
-    async startSession(name: string) {
+    startSession(name: string) {
         this.log.log(`Starting ${name} session...`)
         const session = new WhatsappService(this.config, name)
         session.start()

@@ -13,7 +13,6 @@ export class SessionsController {
 
     @Post('/start/')
     async start(@Body() request: SessionRequest) {
-        // Do not wait it, because we get venom instance only after scanning QR code
         this.whatsappSessionManager.startSession(request.sessionName)
     }
 
