@@ -1,8 +1,9 @@
 import {Body, Controller, Get, NotImplementedException, Post, Query} from '@nestjs/common';
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
+import {ensureSuffix, WhatsappSessionManager} from "../whatsapp.service";
+import {CheckNumberStatusQuery, MessageTextQuery} from "../scructures/queries";
 import {
     ChatRequest,
-    CheckNumberStatusQuery,
     MessageContactVcard,
     MessageFile,
     MessageImage,
@@ -10,10 +11,8 @@ import {
     MessageLocation,
     MessageReply,
     MessageText,
-    MessageTextButtons,
-    MessageTextQuery
-} from "./all.dto";
-import {ensureSuffix, WhatsappSessionManager} from "../whatsapp.service";
+    MessageTextButtons
+} from "../scructures/requests";
 
 @Controller('api')
 @ApiTags('chatting')
