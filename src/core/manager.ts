@@ -2,7 +2,6 @@ import fs = require('fs');
 import del = require("del");
 import {ConsoleLogger, Injectable, NotFoundException, OnApplicationShutdown} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
-import {Whatsapp} from "venom-bot";
 import {WhatsappSession} from "./session";
 
 @Injectable()
@@ -38,7 +37,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         return session
     }
 
-    getInstance(name: string): Whatsapp {
+    getInstance(name: string): any {
         const service = this.getService(name)
         return service.getWhatsapp()
     }
@@ -47,7 +46,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         this.log.log(`Stopping ${name} session...`)
         const service = this.getService(name)
         if (service.whatsapp) {
-            await service.whatsapp.close()
+            // await service.whatsapp.close()
         }
         this.log.log(`"${name}" has been stopped.`)
         delete this.sessions[name]

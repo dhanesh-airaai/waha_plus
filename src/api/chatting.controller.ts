@@ -1,6 +1,6 @@
 import {Body, Controller, Get, NotImplementedException, Post, Query} from '@nestjs/common';
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
-import {CheckNumberStatusQuery, MessageTextQuery} from "../scructures/queries";
+import {CheckNumberStatusQuery, MessageTextQuery} from "./scructures/queries";
 import {
     ChatRequest,
     MessageContactVcard,
@@ -11,7 +11,7 @@ import {
     MessageReply,
     MessageText,
     MessageTextButtons
-} from "../scructures/requests";
+} from "./scructures/requests";
 import {ensureSuffix} from "../utils";
 import {WhatsappSessionManager} from "../core/manager";
 
@@ -51,14 +51,14 @@ export class ChattingController {
         @Query() message: MessageTextQuery,
     ) {
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
-        return whatsapp.sendText(ensureSuffix(message.phone), message.text)
+        return whatsapp.sendMessage(ensureSuffix(message.phone), message.text)
     }
 
     @Post('/sendText')
     @ApiOperation({summary: 'Send a text message'})
     sendText(@Body() message: MessageText) {
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
-        return whatsapp.sendText(ensureSuffix(message.chatId), message.text)
+        return whatsapp.sendMessage(ensureSuffix(message.chatId), message.text)
     }
 
     @Post('/sendTextButtons')

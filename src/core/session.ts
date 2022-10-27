@@ -1,12 +1,12 @@
-import {create, Message, Whatsapp} from "venom-bot";
+import {Message} from "venom-bot";
 import {ConsoleLogger} from "@nestjs/common";
-import * as path from "path";
 import {WhatsappConfigService} from "../config.service";
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
+import {Client, LocalAuth} from "whatsapp-web.js";
 import request = require('requestretry');
-import mime = require('mime-types');
 import fs = require('fs');
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const qrcode = require('qrcode-terminal');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const {promisify} = require('util')
 const writeFileAsync = promisify(fs.writeFile)
@@ -44,7 +44,7 @@ export class WhatsappSession {
     private RETRY_DELAY = 15
     private RETRY_ATTEMPTS = 3;
     private log: ConsoleLogger;
-    public whatsapp: Whatsapp;
+    public whatsapp: Client;
 
     constructor(
         private config: WhatsappConfigService,
@@ -59,40 +59,32 @@ export class WhatsappSession {
         this.filesLifetime = this.config.filesLifetime * SECOND
     }
 
-    public async start() {
-        try {
-            this.whatsapp = await create('sessionName',
-                (base64Qrimg, asciiQR, attempts, urlCode) => {
-                    this.saveQRCode(base64Qrimg)
-                    this.status = WhatsappStatus.SCAN_QR_CODE
-                    console.log('Number of attempts to read the qrcode: ', attempts);
-                    console.log('Terminal qrcode:');
-                    console.log(asciiQR);
-                },
-                undefined,
-                {
-                    headless: true,
-                    devtools: false,
-                    useChrome: true,
-                    debug: false,
-                    logQR: true,
-                    browserArgs: ["--no-sandbox"],
-                    autoClose: 60000,
-                    createPathFileToken: true,
-                    puppeteerOptions: {},
-                    multidevice: false,
-                }
-            )
-        } catch (error) {
+    async start() {
+        this.whatsapp = new Client({
+            authStrategy: new LocalAuth(),
+            puppeteer: {headless: true}
+        });
+
+        this.whatsapp.initialize().catch(error => {
             this.status = WhatsappStatus.FAILED
             this.log.error(error)
-            this.saveQRCode("")
+            // this.saveQRCode("")
             return
-        }
+        });
 
-        this.saveQRCode("")
-        this.configureWebhooks();
-        this.status = WhatsappStatus.WORKING
+        // Connect events
+        this.whatsapp.on('qr', (qr) => {
+            // NOTE: This event will not be fired if a session is specified.
+            qrcode.generate(qr, {small: true});
+            this.status = WhatsappStatus.SCAN_QR_CODE
+        });
+
+        this.whatsapp.on('authenticated', () => {
+            this.status = WhatsappStatus.WORKING
+            // this.configureWebhooks();
+            // this.saveQRCode("")
+        });
+
     }
 
     public async getScreenshotOrQRCode(): Promise<Buffer | string> {
@@ -101,11 +93,11 @@ export class WhatsappSession {
         } else if (this.status === WhatsappStatus.SCAN_QR_CODE) {
             return this.getQRCode()
         } else if (this.status === WhatsappStatus.WORKING) {
-            return await this.whatsapp.page.screenshot()
+            return
+            // return await this.whatsapp.page.screenshot()
         } else {
             throw new UnprocessableEntityException(`Unknown status - ${this.status}`);
         }
-
     }
 
     private callWebhook(data, url) {
@@ -142,25 +134,25 @@ export class WhatsappSession {
     }
 
     private async downloadAndDecryptMedia(message: Message) {
-        return this.whatsapp.decryptFile(message).then(async (buffer) => {
-            // Download only certain mimetypes
-            if (this.mimetypes !== null && !this.mimetypes.some((type) => message.mimetype.startsWith(type))) {
-                this.log.log(`The message ${message.id} has ${message.mimetype} media, skip it.`);
-                message.clientUrl = ""
-                return message
-            }
-
-            this.log.log(`The message ${message.id} has media, downloading it...`);
-            const fileName = `${message.id}.${mime.extension(message.mimetype)}`;
-            const filePath = path.resolve(`${this.filesFolder}/${fileName}`)
-            this.log.verbose(`Writing file to ${filePath}...`)
-            await writeFileAsync(filePath, buffer);
-            this.log.log(`The file from ${message.id} has been saved to ${filePath}`);
-
-            message.clientUrl = this.config.filesURL + fileName
-            this.removeFile(filePath)
-            return message
-        });
+        // return this.whatsapp.decryptFile(message).then(async (buffer) => {
+        //     // Download only certain mimetypes
+        //     if (this.mimetypes !== null && !this.mimetypes.some((type) => message.mimetype.startsWith(type))) {
+        //         this.log.log(`The message ${message.id} has ${message.mimetype} media, skip it.`);
+        //         message.clientUrl = ""
+        //         return message
+        //     }
+        //
+        //     this.log.log(`The message ${message.id} has media, downloading it...`);
+        //     const fileName = `${message.id}.${mime.extension(message.mimetype)}`;
+        //     const filePath = path.resolve(`${this.filesFolder}/${fileName}`)
+        //     this.log.verbose(`Writing file to ${filePath}...`)
+        //     await writeFileAsync(filePath, buffer);
+        //     this.log.log(`The file from ${message.id} has been saved to ${filePath}`);
+        //
+        //     message.clientUrl = this.config.filesURL + fileName
+        //     this.removeFile(filePath)
+        //     return message
+        // });
     }
 
     private removeFile(file: string) {

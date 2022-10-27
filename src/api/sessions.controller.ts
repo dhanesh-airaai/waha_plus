@@ -1,6 +1,6 @@
 import {Body, Controller, Get, Post} from '@nestjs/common';
 import {ApiTags} from "@nestjs/swagger";
-import {SessionRequest} from "../scructures/requests";
+import {SessionRequest} from "./scructures/requests";
 import {WhatsappSessionManager} from "../core/manager";
 
 
