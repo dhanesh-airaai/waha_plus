@@ -2,7 +2,7 @@ import {Message} from "venom-bot";
 import {ConsoleLogger} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Client, LocalAuth} from "whatsapp-web.js";
+import {Client, Events, LocalAuth} from "whatsapp-web.js";
 import request = require('requestretry');
 import fs = require('fs');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -73,31 +73,24 @@ export class WhatsappSession {
         });
 
         // Connect events
-        this.whatsapp.on('qr', (qr) => {
+        this.whatsapp.on(Events.QR_RECEIVED, (qr) => {
             // NOTE: This event will not be fired if a session is specified.
             qrcode.generate(qr, {small: true});
             this.status = WhatsappStatus.SCAN_QR_CODE
         });
 
-        this.whatsapp.on('authenticated', () => {
+        this.whatsapp.on(Events.AUTHENTICATED, () => {
             this.status = WhatsappStatus.WORKING
             // this.configureWebhooks();
             // this.saveQRCode("")
         });
-
     }
 
-    public async getScreenshotOrQRCode(): Promise<Buffer | string> {
-        if (this.status === WhatsappStatus.STARTING) {
-            throw new UnprocessableEntityException(`The session is starting, please try again after few seconds`);
-        } else if (this.status === WhatsappStatus.SCAN_QR_CODE) {
-            return this.getQRCode()
-        } else if (this.status === WhatsappStatus.WORKING) {
-            return
-            // return await this.whatsapp.page.screenshot()
-        } else {
-            throw new UnprocessableEntityException(`Unknown status - ${this.status}`);
+    public async getScreenshot(): Promise<Buffer | string> {
+        if (this.status === WhatsappStatus.FAILED) {
+            throw new UnprocessableEntityException(`The session under FAILED status. Please try to restart it.`);
         }
+        return await this.whatsapp.pupPage.screenshot()
     }
 
     private callWebhook(data, url) {
