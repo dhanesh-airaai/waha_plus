@@ -97,7 +97,6 @@ export class WhatsappSession {
         this.log.log(`Sending POST to ${url}...`)
         this.log.debug(`POST DATA: ${JSON.stringify(data)}`)
 
-        // TODO: Use HttpModule with retry
         request.post(
             url,
             {
