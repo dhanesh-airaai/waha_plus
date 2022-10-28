@@ -4,6 +4,7 @@ import {ConsoleLogger, Injectable, NotFoundException, OnApplicationShutdown} fro
 import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "./session";
 import {WebhookConductor} from "./webhooks";
+import {WhatsappSessionWebJS} from "./session.webjs";
 
 @Injectable()
 export class WhatsappSessionManager implements OnApplicationShutdown {
@@ -26,13 +27,13 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
 
     startSession(name: string) {
         this.log.log(`Starting ${name} session...`)
-        const session = new WhatsappSession(this.config, name)
+        const session = new WhatsappSessionWebJS(this.config, name)
         session.start()
         this.sessions[name] = session
         this.webhook.configure(session)
     }
 
-    getService(name: string): WhatsappSession {
+    getSession(name: string): WhatsappSession {
         const session = this.sessions[name]
         if (!session) {
             throw new NotFoundException(
@@ -44,16 +45,14 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
     }
 
     getInstance(name: string): any {
-        const service = this.getService(name)
+        const service = this.getSession(name)
         return service.getWhatsapp()
     }
 
     async stopSession(name: string) {
         this.log.log(`Stopping ${name} session...`)
-        const service = this.getService(name)
-        if (service.whatsapp) {
-            await service.whatsapp.pupPage.close()
-        }
+        const session = this.getSession(name)
+        await session.stop()
         this.log.log(`"${name}" has been stopped.`)
         delete this.sessions[name]
     }

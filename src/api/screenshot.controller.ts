@@ -17,7 +17,7 @@ export class ScreenshotController {
         @Res() res: Response,
         @Query() sessionQuery: SessionQuery,
     ) {
-        const whatsappService = this.whatsappSessionManager.getService(sessionQuery.sessionName)
+        const whatsappService = this.whatsappSessionManager.getSession(sessionQuery.sessionName)
         const buffer = await whatsappService.getScreenshot();
         const stream = new Readable();
         stream.push(buffer);
