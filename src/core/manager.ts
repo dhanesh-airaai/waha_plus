@@ -1,22 +1,27 @@
-import fs = require('fs');
-import del = require("del");
 import {ConsoleLogger, Injectable, NotFoundException, OnApplicationShutdown} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "./session";
 import {WebhookConductor} from "./webhooks";
 import {WhatsappSessionWebJS} from "./session.webjs";
+import {LocalMediaStorage} from "./storage";
 
 @Injectable()
 export class WhatsappSessionManager implements OnApplicationShutdown {
     private readonly sessions: Record<string, WhatsappSession>;
     private webhook: WebhookConductor
+    private readonly storage: LocalMediaStorage;
 
     constructor(
         private config: WhatsappConfigService,
         private log: ConsoleLogger,
     ) {
         this.log.setContext('WhatsappSessionManager')
-        this.cleanDownloadsFolder(this.config.filesFolder)
+        this.storage = new LocalMediaStorage(
+            this.config.filesFolder,
+            this.config.filesURL,
+            this.config.filesLifetime,
+            this.config.mimetypes,
+        )
         this.sessions = {}
         this.webhook = new WebhookConductor(this.config)
 
@@ -27,7 +32,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
 
     startSession(name: string) {
         this.log.log(`Starting ${name} session...`)
-        const session = new WhatsappSessionWebJS(this.config, name)
+        const session = new WhatsappSessionWebJS(name, this.storage)
         session.start()
         this.sessions[name] = session
         this.webhook.configure(session)
@@ -70,14 +75,4 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         }
     }
 
-    private cleanDownloadsFolder(filesFolder) {
-        if (fs.existsSync(filesFolder)) {
-            del([`${filesFolder}/*`], {force: true}).then((paths) =>
-                console.log('Deleted files and directories:\n', paths.join('\n'))
-            )
-        } else {
-            fs.mkdirSync(filesFolder)
-            this.log.log(`Directory '${filesFolder}' created from scratch`)
-        }
-    }
 }

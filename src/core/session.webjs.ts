@@ -1,34 +1,15 @@
-import {WhatsappConfigService} from "../config.service";
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Client, Events, LocalAuth, Message} from "whatsapp-web.js";
+import {Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
 import {Hooks, WhatsappStatus} from "./enums";
 import {WhatsappSession} from "./session";
-import fs = require('fs');
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const {promisify} = require('util')
-const writeFileAsync = promisify(fs.writeFile)
 
-
-const SECOND = 1000;
 
 export class WhatsappSessionWebJS extends WhatsappSession {
     private qrCodeBase64: string;
-    readonly filesFolder: string
-    readonly mimetypes: string[] | null
-    readonly filesLifetime: number
     public whatsapp: Client;
-
-    constructor(
-        private config: WhatsappConfigService,
-        public name: string,
-    ) {
-        super(name)
-        this.filesFolder = this.config.filesFolder
-        this.mimetypes = this.config.mimetypes
-        this.filesLifetime = this.config.filesLifetime * SECOND
-    }
 
     start() {
         this.whatsapp = new Client({
@@ -52,6 +33,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
 
         this.whatsapp.on(Events.AUTHENTICATED, () => {
             this.status = WhatsappStatus.WORKING
+            this.log.log(`Session '${this.name}' has been authenticated!`)
             // this.saveQRCode("")
         });
     }
@@ -69,33 +51,25 @@ export class WhatsappSessionWebJS extends WhatsappSession {
 
 
     private async downloadAndDecryptMedia(message: Message) {
-        return message
-        // return this.whatsapp.decryptFile(message).then(async (buffer) => {
-        //     // Download only certain mimetypes
-        //     if (this.mimetypes !== null && !this.mimetypes.some((type) => message.mimetype.startsWith(type))) {
-        //         this.log.log(`The message ${message.id} has ${message.mimetype} media, skip it.`);
-        //         message.clientUrl = ""
-        //         return message
-        //     }
-        //
-        //     this.log.log(`The message ${message.id} has media, downloading it...`);
-        //     const fileName = `${message.id}.${mime.extension(message.mimetype)}`;
-        //     const filePath = path.resolve(`${this.filesFolder}/${fileName}`)
-        //     this.log.verbose(`Writing file to ${filePath}...`)
-        //     await writeFileAsync(filePath, buffer);
-        //     this.log.log(`The file from ${message.id} has been saved to ${filePath}`);
-        //
-        //     message.clientUrl = this.config.filesURL + fileName
-        //     this.removeFile(filePath)
-        //     return message
-        // });
+        if (!message.hasMedia) {
+            return message
+        }
+
+        this.log.log(`The message ${message.id} has media, downloading it...`);
+        return message.downloadMedia().then(async (media: MessageMedia) => {
+            this.log.verbose(`Writing file from the message ${message.id}...`)
+            const buffer = Buffer.from(media.data, "base64")
+            const url =  await this.storage.save(message.id, media.mimetype, buffer)
+            this.log.log(`The file from ${message.id} has been saved to ${url}`);
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            message.clientUrl = url
+            return message
+        })
+
     }
 
-    private removeFile(file: string) {
-        setTimeout(() => fs.unlink(file, () => {
-            this.log.log(`File ${file} was removed`)
-        }), this.filesLifetime)
-    }
 
     /**
      * Get venom instance if it's working (with no QR code required)
@@ -121,11 +95,14 @@ export class WhatsappSessionWebJS extends WhatsappSession {
 
     public subscribe(hook, handler) {
         if (hook === Hooks.ON_MESSAGE) {
-            this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.downloadAndDecryptMedia(message).then(handler))
+            this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processMessage(message).then(handler))
         } else if (hook === Hooks.ON_ANY_MESSAGE_HOOK) {
-            this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.downloadAndDecryptMedia(message).then(handler))
+            this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processMessage(message).then(handler))
         }
     }
 
+    private processMessage(message: Message) {
+        return this.downloadAndDecryptMedia(message)
+    }
 }
 

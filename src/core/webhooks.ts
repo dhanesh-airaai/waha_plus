@@ -2,10 +2,8 @@ import request = require('requestretry');
 import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "./session";
 import {ConsoleLogger} from "@nestjs/common";
-import {Hooks} from "./enums";
+import {Hooks, SECOND} from "./enums";
 
-
-const SECOND = 1000;
 
 export class WebhookConductor {
     private log: ConsoleLogger;

@@ -1,3 +1,5 @@
+export const SECOND = 1000;
+
 export enum Hooks {
     ON_ANY_MESSAGE_HOOK = "ONANYMESSAGE",
     ON_MESSAGE = "ONMESSAGE",
