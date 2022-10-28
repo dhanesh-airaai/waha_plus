@@ -1,0 +1,14 @@
+export enum Hooks {
+    ON_ANY_MESSAGE_HOOK = "ONANYMESSAGE",
+    ON_MESSAGE = "ONMESSAGE",
+    ON_STATE_CHANGE = "ONSTATECHANGE",
+    ON_ACK = "ONACK",
+    ON_ADDED_TO_GROUP = "ONADDEDTOGROUP",
+}
+
+export enum WhatsappStatus {
+    STARTING = "STARTING",
+    SCAN_QR_CODE = "SCAN_QR_CODE",
+    WORKING = "WORKING",
+    FAILED = "FAILED",
+}

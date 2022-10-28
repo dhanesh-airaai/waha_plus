@@ -3,10 +3,12 @@ import del = require("del");
 import {ConsoleLogger, Injectable, NotFoundException, OnApplicationShutdown} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "./session";
+import {WebhookConductor} from "./webhooks";
 
 @Injectable()
 export class WhatsappSessionManager implements OnApplicationShutdown {
     private readonly sessions: Record<string, WhatsappSession>;
+    private webhook: WebhookConductor
 
     constructor(
         private config: WhatsappConfigService,
@@ -15,6 +17,8 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         this.log.setContext('WhatsappSessionManager')
         this.cleanDownloadsFolder(this.config.filesFolder)
         this.sessions = {}
+        this.webhook = new WebhookConductor(this.config)
+
         if (config.startSession) {
             this.startSession(config.startSession)
         }
@@ -25,13 +29,15 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         const session = new WhatsappSession(this.config, name)
         session.start()
         this.sessions[name] = session
+        this.webhook.configure(session)
     }
 
     getService(name: string): WhatsappSession {
         const session = this.sessions[name]
         if (!session) {
             throw new NotFoundException(
-                `We didn't find a session with name "${name}". Please start it first by using POST /sessions/start request`,
+                `We didn't find a session with name "${name}". 
+                Please start it first by using POST /sessions/start request`,
             );
         }
         return session

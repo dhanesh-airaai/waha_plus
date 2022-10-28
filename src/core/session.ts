@@ -1,9 +1,8 @@
-import {Message} from "venom-bot";
 import {ConsoleLogger} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Client, Events, LocalAuth} from "whatsapp-web.js";
-import request = require('requestretry');
+import {Client, Events, LocalAuth, Message} from "whatsapp-web.js";
+import {Hooks, WhatsappStatus} from "./enums";
 import fs = require('fs');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
@@ -14,35 +13,12 @@ const writeFileAsync = promisify(fs.writeFile)
 
 const SECOND = 1000;
 
-const ON_ANY_MESSAGE_HOOK = "onAnyMessage"
-const ON_MESSAGE_HOOK = "onMessage"
-const HOOKS = [
-    ON_ANY_MESSAGE_HOOK,
-    ON_MESSAGE_HOOK,
-    "onStateChange",
-    "onAck",
-    // TODO: IMPLEMENTED THESE TOO
-    // "onLiveLocation",
-    // "onParticipantsChanged",
-    "onAddedToGroup"
-]
-const ENV_PREFIX = "WHATSAPP_HOOK_"
-
-export enum WhatsappStatus {
-    STARTING = "STARTING",
-    SCAN_QR_CODE = "SCAN_QR_CODE",
-    WORKING = "WORKING",
-    FAILED = "FAILED",
-}
-
 export class WhatsappSession {
     public status: WhatsappStatus;
     private qrCodeBase64: string;
     readonly filesFolder: string
     readonly mimetypes: string[] | null
     readonly filesLifetime: number
-    private RETRY_DELAY = 15
-    private RETRY_ATTEMPTS = 3;
     private log: ConsoleLogger;
     public whatsapp: Client;
 
@@ -81,7 +57,6 @@ export class WhatsappSession {
 
         this.whatsapp.on(Events.AUTHENTICATED, () => {
             this.status = WhatsappStatus.WORKING
-            // this.configureWebhooks();
             // this.saveQRCode("")
         });
     }
@@ -93,39 +68,9 @@ export class WhatsappSession {
         return await this.whatsapp.pupPage.screenshot()
     }
 
-    private callWebhook(data, url) {
-        this.log.log(`Sending POST to ${url}...`)
-        this.log.debug(`POST DATA: ${JSON.stringify(data)}`)
-
-        request.post(
-            url,
-            {
-                json: data,
-                maxAttempts: this.RETRY_ATTEMPTS,
-                retryDelay: this.RETRY_DELAY * SECOND,
-                retryStrategy: request.RetryStrategies.HTTPOrNetworkError
-            },
-            (error, res, body) => {
-                if (error) {
-                    this.log.error(error)
-                    return
-                }
-                this.log.log(`POST request was sent with status code: ${res.statusCode}`)
-                this.log.verbose(`Response: ${JSON.stringify(body)}`)
-            })
-    }
-
-    private async onMessageHook(message: Message, url: string) {
-        if (message.isMMS || message.isMedia) {
-            this.downloadAndDecryptMedia(message).then(
-                (data) => this.callWebhook(data, url)
-            );
-        } else {
-            this.callWebhook(message, url);
-        }
-    }
 
     private async downloadAndDecryptMedia(message: Message) {
+        return message
         // return this.whatsapp.decryptFile(message).then(async (buffer) => {
         //     // Download only certain mimetypes
         //     if (this.mimetypes !== null && !this.mimetypes.some((type) => message.mimetype.startsWith(type))) {
@@ -166,26 +111,6 @@ export class WhatsappSession {
 
     }
 
-    private configureWebhooks() {
-        this.log.log('Configuring webhooks...')
-        for (const hook of HOOKS) {
-            const env_name = ENV_PREFIX + hook.toUpperCase()
-            const url = this.config.get(env_name)
-            if (!url) {
-                this.log.log(`Hook '${hook}' is disabled. Set ${env_name} environment variable to url if you want to enabled it.`)
-                continue
-            }
-
-            if (hook === ON_MESSAGE_HOOK || hook == ON_ANY_MESSAGE_HOOK) {
-                this.whatsapp[hook](data => this.onMessageHook(data, url))
-            } else {
-                this.whatsapp[hook](data => this.callWebhook(data, url))
-            }
-            this.log.log(`Hook '${hook}' was enabled to url: ${url}`)
-        }
-        this.log.log('Webhooks were configured.')
-    }
-
     private saveQRCode(base64Qrimg) {
         base64Qrimg = base64Qrimg.replace(/^data:image\/png;base64,/, '');
         this.qrCodeBase64 = base64Qrimg
@@ -194,5 +119,14 @@ export class WhatsappSession {
     private getQRCode() {
         return Buffer.from(this.qrCodeBase64, "base64")
     }
+
+    public subscribe(hook, handler) {
+        if (hook === Hooks.ON_MESSAGE) {
+            this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.downloadAndDecryptMedia(message).then(handler))
+        } else if (hook === Hooks.ON_ANY_MESSAGE_HOOK) {
+            this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.downloadAndDecryptMedia(message).then(handler))
+        }
+    }
+
 }
 
