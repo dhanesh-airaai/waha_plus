@@ -2,10 +2,6 @@ import {Hooks, WhatsappStatus} from "./enums";
 import {ConsoleLogger} from "@nestjs/common";
 import {LocalMediaStorage} from "./storage";
 
-type MessageHandlerFunction = {
-    message: any
-}
-
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
     protected log: ConsoleLogger;

@@ -8,7 +8,6 @@ const qrcode = require('qrcode-terminal');
 
 
 export class WhatsappSessionWebJS extends WhatsappSession {
-    private qrCodeBase64: string;
     public whatsapp: Client;
 
     start() {
@@ -20,13 +19,11 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         this.whatsapp.initialize().catch(error => {
             this.status = WhatsappStatus.FAILED
             this.log.error(error)
-            // this.saveQRCode("")
             return
         });
 
         // Connect events
         this.whatsapp.on(Events.QR_RECEIVED, (qr) => {
-            // NOTE: This event will not be fired if a session is specified.
             qrcode.generate(qr, {small: true});
             this.status = WhatsappStatus.SCAN_QR_CODE
         });
@@ -34,7 +31,6 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         this.whatsapp.on(Events.AUTHENTICATED, () => {
             this.status = WhatsappStatus.WORKING
             this.log.log(`Session '${this.name}' has been authenticated!`)
-            // this.saveQRCode("")
         });
     }
 
@@ -82,15 +78,6 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         }
         return this.whatsapp
 
-    }
-
-    private saveQRCode(base64Qrimg) {
-        base64Qrimg = base64Qrimg.replace(/^data:image\/png;base64,/, '');
-        this.qrCodeBase64 = base64Qrimg
-    }
-
-    private getQRCode() {
-        return Buffer.from(this.qrCodeBase64, "base64")
     }
 
     public subscribe(hook, handler) {
