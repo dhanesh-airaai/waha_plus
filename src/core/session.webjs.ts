@@ -118,7 +118,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
      */
 
     /**
-      Get venom instance if it's working (with no QR code required)
+     Get venom instance if it's working (with no QR code required)
      */
     getWhatsapp() {
         if (this.status != WhatsappStatus.WORKING) {
@@ -135,6 +135,15 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processMessage(message).then(handler))
         } else if (hook === Hooks.ON_ANY_MESSAGE_HOOK) {
             this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processMessage(message).then(handler))
+        } else if (hook === Hooks.ON_STATE_CHANGE) {
+            this.whatsapp.on(Events.STATE_CHANGED, handler)
+        } else if (hook === Hooks.ON_ACK) {
+            // We do not download media here
+            this.whatsapp.on(Events.MESSAGE_ACK, (message) => this.toWAMessage(message).then(handler))
+        } else if (hook === Hooks.ON_ADDED_TO_GROUP) {
+            this.whatsapp.on(Events.GROUP_JOIN, handler)
+        } else if (hook === Hooks.ON_REMOVED_FROM_GROUP) {
+            this.whatsapp.on(Events.GROUP_LEAVE, handler)
         }
     }
 
@@ -142,8 +151,10 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         return this.downloadAndDecryptMedia(message).then(this.toWAMessage)
     }
 
-    protected toWAMessage(message: Message): WAMessage {
-        return {
+    protected toWAMessage(message: Message): Promise<WAMessage> {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        return Promise.resolve({
             id: message.id._serialized,
             timestamp: message.timestamp,
             from: message.from,
@@ -162,7 +173,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             location: message.location,
             vCards: message.vCards,
             _data: message.rawData,
-        }
+        })
     }
 
     private async downloadAndDecryptMedia(message: Message) {

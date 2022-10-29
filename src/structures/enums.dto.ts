@@ -6,6 +6,7 @@ export enum Hooks {
     ON_STATE_CHANGE = "ONSTATECHANGE",
     ON_ACK = "ONACK",
     ON_ADDED_TO_GROUP = "ONADDEDTOGROUP",
+    ON_REMOVED_FROM_GROUP = "ONREMOVEDFROMGROUP",
 }
 
 export enum WhatsappStatus {

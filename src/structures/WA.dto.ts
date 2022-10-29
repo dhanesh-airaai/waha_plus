@@ -3,6 +3,38 @@ import {ApiProperty} from "@nestjs/swagger";
 export class WANumberExistResult {
     numberExists: boolean
 }
+export class WAGroupNotification {
+    @ApiProperty({
+        description: "ID that represents the groupNotification",
+    })
+     id: any
+
+    @ApiProperty({
+        description: "Unix timestamp for when the groupNotification was created",
+    })
+    timestamp: number
+
+    @ApiProperty({
+        description: "ID for the Chat that this groupNotification was sent for",
+    })
+    chatId: string
+
+
+    @ApiProperty({
+        description: "ContactId for the user that produced the GroupNotification",
+    })
+    author: string
+
+    @ApiProperty({
+        description: "Extra content",
+    })
+    body: string
+
+    @ApiProperty({
+        description: "Contact IDs for the users that were affected by this GroupNotification",
+    })
+    recipientIds: string[]
+}
 
 export enum WAMessageAck {
     ACK_ERROR = -1,
