@@ -20,9 +20,9 @@ export class LocalMediaStorage {
     /**
      *  Check that we need to download files with the mimetype
      */
-    private needToDownload(mimetype){
+    private needToDownload(mimetype) {
         // No specific mimetypes provided - always download
-        if (!this.mimetypes){
+        if (!this.mimetypes) {
             return true
         }
         // Found "right" mimetype in the list of allowed mimetypes  - download it
@@ -31,7 +31,7 @@ export class LocalMediaStorage {
     }
 
     public async save(messageId, mimetype, buffer): Promise<string> {
-        if (!this.needToDownload(mimetype)){
+        if (!this.needToDownload(mimetype)) {
             console.log(`The message ${messageId} has ${mimetype} media, skip it.`);
             return ""
         }
@@ -51,8 +51,12 @@ export class LocalMediaStorage {
 
     private cleanFolder() {
         if (fs.existsSync(this.filesFolder)) {
-            del([`${this.filesFolder}/*`], {force: true}).then((paths) =>
-                console.log('Deleted files and directories:\n', paths.join('\n'))
+            del([`${this.filesFolder}/*`], {force: true}).then((paths) => {
+                    if (paths.length === 0) {
+                        return
+                    }
+                    console.log('Deleted files and directories:\n', paths.join('\n'))
+                }
             )
         } else {
             fs.mkdirSync(this.filesFolder)

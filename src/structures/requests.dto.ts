@@ -29,7 +29,7 @@ const sessionNameProperty = ApiProperty({
 
 export class SessionRequest {
     @sessionNameProperty
-    sessionName: string;
+    sessionName = "default"
 }
 
 export class ChatRequest extends SessionRequest {

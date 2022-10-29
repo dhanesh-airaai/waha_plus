@@ -52,15 +52,18 @@ export class ChattingController {
     sendTextGet(
         @Query() message: MessageTextQuery,
     ) {
-        const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
-        return whatsapp.sendMessage(ensureSuffix(message.phone), message.text)
+        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
+        const msg = new MessageTextRequest()
+        msg.chatId = message.phone
+        msg.text = message.text
+        return whatsapp.sendText(new MessageTextRequest())
     }
 
     @Post('/sendText')
     @ApiOperation({summary: 'Send a text message'})
-    sendText(@Body() message: MessageTextRequest): WAMessage {
-        const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
-        return whatsapp.sendMessage(ensureSuffix(message.chatId), message.text)
+    sendText(@Body() message: MessageTextRequest): Promise<WAMessage> {
+        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
+        return whatsapp.sendText(message)
     }
 
     @Post('/sendTextButtons')

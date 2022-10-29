@@ -55,11 +55,11 @@ export class WAMessage {
     author?: string;
 
     /** Location information contained in the message, if the message is type "location" */
-    location: Location
+    location?: Location
 
     /** List of vCards contained in the message */
-    vCards: string[]
+    vCards?: string[]
 
     /** Returns message in a raw format */
-    _data: any
+    _data?: any
 }

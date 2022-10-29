@@ -2,13 +2,16 @@ import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessa
 import {Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
 import {Hooks, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./session";
+import {WAMessage} from "../structures/WA.dto";
+import {ensureSuffix} from "../utils";
+import {MessageTextRequest} from "../structures/requests.dto";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
 
 
 export class WhatsappSessionWebJS extends WhatsappSession {
-    public whatsapp: Client;
+    whatsapp: Client;
 
     start() {
         this.whatsapp = new Client({
@@ -38,13 +41,68 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         return this.whatsapp.pupPage.close()
     }
 
-    public async getScreenshot(): Promise<Buffer | string> {
+    /**
+     * START - Methods for API
+     */
+    async getScreenshot(): Promise<Buffer | string> {
         if (this.status === WhatsappStatus.FAILED) {
             throw new UnprocessableEntityException(`The session under FAILED status. Please try to restart it.`);
         }
         return await this.whatsapp.pupPage.screenshot()
     }
 
+    sendText(message: MessageTextRequest): Promise<WAMessage> {
+        return this.whatsapp.sendMessage(ensureSuffix(message.chatId), message.text).then(this.toWAMessage)
+    }
+    /**
+     * STOP - Methods for API
+     */
+
+    /**
+      Get venom instance if it's working (with no QR code required)
+     */
+    getWhatsapp() {
+        if (this.status != WhatsappStatus.WORKING) {
+            throw new UnprocessableEntityException(
+                `The session status is "${this.status}". Please scan QR code first by using GET /screenshot method.`,
+            );
+        }
+        return this.whatsapp
+
+    }
+
+    subscribe(hook, handler) {
+        if (hook === Hooks.ON_MESSAGE) {
+            this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processMessage(message).then(handler))
+        } else if (hook === Hooks.ON_ANY_MESSAGE_HOOK) {
+            this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processMessage(message).then(handler))
+        }
+    }
+
+    private processMessage(message: Message) {
+        return this.downloadAndDecryptMedia(message).then(this.toWAMessage)
+    }
+
+    protected toWAMessage(message: Message): WAMessage {
+        return {
+            id: message.id._serialized,
+            timestamp: message.timestamp,
+            from: message.from,
+            fromMe: message.fromMe,
+            to: message.to,
+            body: message.body,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            hasMedia: Boolean(message.mediaUrl),
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            mediaUrl: message.mediaUrl,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            ack: message.ack,
+            _data: message.rawData,
+        }
+    }
 
     private async downloadAndDecryptMedia(message: Message) {
         if (!message.hasMedia) {
@@ -64,32 +122,6 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             return message
         })
 
-    }
-
-
-    /**
-     * Get venom instance if it's working (with no QR code required)
-     */
-    public getWhatsapp() {
-        if (this.status != WhatsappStatus.WORKING) {
-            throw new UnprocessableEntityException(
-                `The session status is "${this.status}". Please scan QR code first by using GET /screenshot method.`,
-            );
-        }
-        return this.whatsapp
-
-    }
-
-    public subscribe(hook, handler) {
-        if (hook === Hooks.ON_MESSAGE) {
-            this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processMessage(message).then(handler))
-        } else if (hook === Hooks.ON_ANY_MESSAGE_HOOK) {
-            this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processMessage(message).then(handler))
-        }
-    }
-
-    private processMessage(message: Message) {
-        return this.downloadAndDecryptMedia(message)
     }
 }
 

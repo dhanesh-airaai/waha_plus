@@ -25,7 +25,7 @@ export class WebhookConductor {
                 this.log.log(`Hook '${name}' is disabled. Set ${env_name} environment variable to url if you want to enabled it.`)
                 continue
             }
-            session.subscribe(value, (message) => this.callWebhook(message, url))
+            session.subscribe(value, (data: any) => this.callWebhook(data, url))
             this.log.log(`Hook '${name}' was enabled to url: ${url}`)
         }
         this.log.log('Webhooks were configured.')

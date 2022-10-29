@@ -1,6 +1,8 @@
 import {Hooks, WhatsappStatus} from "../structures/enums.dto";
 import {ConsoleLogger} from "@nestjs/common";
 import {LocalMediaStorage} from "./storage";
+import {WAMessage} from "../structures/WA.dto";
+import {MessageTextRequest} from "../structures/requests.dto";
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
@@ -13,35 +15,30 @@ export abstract class WhatsappSession {
         this.log.setContext(`WhatsappService - ${this.name}`)
     }
 
-    /**
-     * Start the session
-     */
+    /** Start the session */
     abstract start()
 
-    /**
-     * Stop the session
-     */
+    /** Stop the session */
     abstract stop()
 
+
+    /** Subscribe the handler to specific hook */
+    abstract subscribe(hook: Hooks | string, handler: (message) => void)
+
+    /** Get actual whatsapp instance */
+    // TODO: Remove it in order to add more functions
+    abstract getWhatsapp()
+
     /**
-     * Get screenshot
+     * START - Methods for API
      */
     abstract getScreenshot(): Promise<Buffer | string>
 
+    abstract sendText(message: MessageTextRequest): Promise<WAMessage>
     /**
-     * Subscribe the handler to specific hook
-     * @param hook
-     * @param handler
+     * STOP - Methods for API
      */
-    abstract subscribe(hook: Hooks | string, handler: (message) => void)
 
-    // abstract toWAMessage(message: any): WAMessage
-
-    /**
-     * Get actual whatsapp instance
-     */
-    // TODO: Remove it in order to add more functions
-    abstract getWhatsapp()
 }
 
 
