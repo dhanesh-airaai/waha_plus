@@ -15,7 +15,7 @@ import {WANumberExistResult} from "../structures/WA.dto";
 import {ensureSuffix} from "../utils";
 import {Whatsapp} from "venom-bot";
 import {Hooks} from "../structures/enums.dto";
-import {NotImplementedByEngine} from "./exceptions";
+import {NotImplementedByEngineError} from "./exceptions";
 
 
 export class WhatsappSessionVenom extends WhatsappSession {
@@ -70,11 +70,11 @@ export class WhatsappSessionVenom extends WhatsappSession {
     }
 
     sendFile(message: MessageFileRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendImage(message: MessageImageRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendLinkPreview(message: MessageLinkPreviewRequest) {

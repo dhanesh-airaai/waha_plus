@@ -16,7 +16,7 @@ import {
     MessageTextButtonsRequest,
     MessageTextRequest
 } from "../structures/requests.dto";
-import {NotImplementedByEngine} from "./exceptions";
+import {NotImplementedByEngineError} from "./exceptions";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
@@ -64,7 +64,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     checkNumberStatus(request: CheckNumberStatusQuery): Promise<WANumberExistResult> {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendText(message: MessageTextRequest): Promise<WAMessage> {
@@ -72,31 +72,31 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     sendTextButtons(message: MessageTextButtonsRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendContactVCard(message: MessageContactVcardRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     reply(message: MessageReplyRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendFile(message: MessageFileRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendImage(message: MessageImageRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendLinkPreview(message: MessageLinkPreviewRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     sendLocation(message: MessageLocationRequest) {
-        throw new NotImplementedByEngine()
+        throw new NotImplementedByEngineError()
     }
 
     async sendSeen(request: ChatRequest) {
