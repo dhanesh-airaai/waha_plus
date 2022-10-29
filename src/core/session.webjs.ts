@@ -99,8 +99,9 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         throw new NotImplementedByEngine()
     }
 
-    sendSeen(chat: ChatRequest) {
-        throw new NotImplementedByEngine()
+    async sendSeen(request: ChatRequest) {
+        const chat: Chat = await this.whatsapp.getChatById(request.chatId)
+        await chat.sendSeen()
     }
 
     async startTyping(request: ChatRequest) {
