@@ -37,7 +37,7 @@ export class ChatRequest extends SessionRequest {
     chatId: string;
 }
 
-export class MessageContactVcard extends ChatRequest {
+export class MessageContactVcardRequest extends ChatRequest {
     contactsId: string;
     name: string
 }

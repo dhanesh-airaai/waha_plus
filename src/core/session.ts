@@ -1,8 +1,18 @@
 import {Hooks, WhatsappStatus} from "../structures/enums.dto";
 import {ConsoleLogger} from "@nestjs/common";
 import {LocalMediaStorage} from "./storage";
-import {WAMessage} from "../structures/WA.dto";
-import {MessageTextRequest} from "../structures/requests.dto";
+import {
+    ChatRequest,
+    CheckNumberStatusQuery,
+    MessageContactVcardRequest,
+    MessageFileRequest,
+    MessageImageRequest,
+    MessageLinkPreviewRequest,
+    MessageLocationRequest,
+    MessageReplyRequest,
+    MessageTextButtonsRequest,
+    MessageTextRequest
+} from "../structures/requests.dto";
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
@@ -34,7 +44,29 @@ export abstract class WhatsappSession {
      */
     abstract getScreenshot(): Promise<Buffer | string>
 
-    abstract sendText(message: MessageTextRequest): Promise<WAMessage>
+    abstract checkNumberStatus(request: CheckNumberStatusQuery)
+
+    abstract sendText(message: MessageTextRequest)
+
+    abstract sendContactVCard(message: MessageContactVcardRequest)
+
+    abstract sendTextButtons(message: MessageTextButtonsRequest)
+
+    abstract sendLocation(message: MessageLocationRequest)
+
+    abstract sendLinkPreview(message: MessageLinkPreviewRequest)
+
+    abstract sendImage(message: MessageImageRequest)
+
+    abstract sendFile(message: MessageFileRequest)
+
+    abstract reply(message: MessageReplyRequest)
+
+    abstract sendSeen(chat: ChatRequest)
+
+    abstract startTyping(chat: ChatRequest)
+
+    abstract stopTyping(chat: ChatRequest)
     /**
      * STOP - Methods for API
      */

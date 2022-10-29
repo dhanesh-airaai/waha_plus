@@ -49,11 +49,6 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         return session
     }
 
-    getInstance(name: string): any {
-        const service = this.getSession(name)
-        return service.getWhatsapp()
-    }
-
     async stopSession(name: string) {
         this.log.log(`Stopping ${name} session...`)
         const session = this.getSession(name)

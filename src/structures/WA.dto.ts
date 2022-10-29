@@ -1,5 +1,9 @@
 import {ApiProperty} from "@nestjs/swagger";
 
+export class WANumberExistResult {
+    numberExists: boolean
+}
+
 export enum WAMessageAck {
     ACK_ERROR = -1,
     ACK_PENDING = 0,

@@ -5,7 +5,6 @@ import {WhatsappConfigService} from "./config.service";
 import {ServeStaticModule} from "@nestjs/serve-static";
 import {SessionsController} from "./api/sessions.controller";
 import {ChattingController} from "./api/chatting.controller";
-import {DeviceController} from "./api/device.controller";
 import {WhatsappSessionManager} from "./core/manager";
 
 @Module({
@@ -28,7 +27,6 @@ import {WhatsappSessionManager} from "./core/manager";
     controllers: [
         SessionsController,
         ChattingController,
-        DeviceController,
         ScreenshotController,
     ],
     providers: [WhatsappSessionManager, ConsoleLogger, WhatsappConfigService],

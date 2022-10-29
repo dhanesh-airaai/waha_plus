@@ -1,10 +1,22 @@
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
+import {Chat, Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
 import {Hooks, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./session";
-import {WAMessage} from "../structures/WA.dto";
+import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
 import {ensureSuffix} from "../utils";
-import {MessageTextRequest} from "../structures/requests.dto";
+import {
+    ChatRequest,
+    CheckNumberStatusQuery,
+    MessageContactVcardRequest,
+    MessageFileRequest,
+    MessageImageRequest,
+    MessageLinkPreviewRequest,
+    MessageLocationRequest,
+    MessageReplyRequest,
+    MessageTextButtonsRequest,
+    MessageTextRequest
+} from "../structures/requests.dto";
+import {NotImplementedByEngine} from "./exceptions";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
@@ -51,9 +63,56 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         return await this.whatsapp.pupPage.screenshot()
     }
 
+    checkNumberStatus(request: CheckNumberStatusQuery): Promise<WANumberExistResult> {
+        throw new NotImplementedByEngine()
+    }
+
     sendText(message: MessageTextRequest): Promise<WAMessage> {
         return this.whatsapp.sendMessage(ensureSuffix(message.chatId), message.text).then(this.toWAMessage)
     }
+
+    sendTextButtons(message: MessageTextButtonsRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    sendContactVCard(message: MessageContactVcardRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    reply(message: MessageReplyRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    sendFile(message: MessageFileRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    sendImage(message: MessageImageRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    sendLinkPreview(message: MessageLinkPreviewRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    sendLocation(message: MessageLocationRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    sendSeen(chat: ChatRequest) {
+        throw new NotImplementedByEngine()
+    }
+
+    async startTyping(request: ChatRequest) {
+        const chat: Chat = await this.whatsapp.getChatById(request.chatId)
+        await chat.sendStateTyping()
+    }
+
+    async stopTyping(request: ChatRequest) {
+        const chat: Chat = await this.whatsapp.getChatById(request.chatId)
+        await chat.clearState()
+    }
+
     /**
      * STOP - Methods for API
      */
@@ -125,5 +184,6 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         })
 
     }
+
 }
 
