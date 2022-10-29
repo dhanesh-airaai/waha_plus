@@ -100,6 +100,8 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             ack: message.ack,
+            location: message.location,
+            vCards: message.vCards,
             _data: message.rawData,
         }
     }
