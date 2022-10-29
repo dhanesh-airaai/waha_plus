@@ -1,6 +1,6 @@
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
 import {Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
-import {Hooks, WhatsappStatus} from "./enums";
+import {Hooks, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./session";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -55,12 +55,12 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         return message.downloadMedia().then(async (media: MessageMedia) => {
             this.log.verbose(`Writing file from the message ${message.id}...`)
             const buffer = Buffer.from(media.data, "base64")
-            const url =  await this.storage.save(message.id, media.mimetype, buffer)
+            const url = await this.storage.save(message.id, media.mimetype, buffer)
             this.log.log(`The file from ${message.id} has been saved to ${url}`);
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            message.clientUrl = url
+            message.mediaUrl = url
             return message
         })
 

@@ -1,7 +1,7 @@
 import fs = require('fs');
 import del = require("del");
 import {promisify} from "util";
-import {SECOND} from "./enums";
+import {SECOND} from "../structures/enums.dto";
 import * as path from "path";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');

@@ -3,7 +3,7 @@ import {ApiTags} from "@nestjs/swagger";
 import {Readable} from "stream";
 import {Response} from 'express';
 import {WhatsappSessionManager} from "../core/manager";
-import {SessionQuery} from "./all.dto";
+import {SessionQuery} from "../structures/requests.dto";
 
 
 @Controller('api')

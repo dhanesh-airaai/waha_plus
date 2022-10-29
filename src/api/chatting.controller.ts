@@ -6,15 +6,16 @@ import {
     ChatRequest,
     CheckNumberStatusQuery,
     MessageContactVcard,
-    MessageFile,
-    MessageImage,
-    MessageLinkPreview,
-    MessageLocation,
-    MessageReply,
-    MessageText,
-    MessageTextButtons,
-    MessageTextQuery
-} from "./all.dto";
+    MessageFileRequest,
+    MessageImageRequest,
+    MessageLinkPreviewRequest,
+    MessageLocationRequest,
+    MessageReplyRequest,
+    MessageTextButtonsRequest,
+    MessageTextQuery,
+    MessageTextRequest
+} from "../structures/requests.dto";
+import {WAMessage} from "../structures/WA.dto";
 
 @Controller('api')
 @ApiTags('chatting')
@@ -57,33 +58,33 @@ export class ChattingController {
 
     @Post('/sendText')
     @ApiOperation({summary: 'Send a text message'})
-    sendText(@Body() message: MessageText) {
+    sendText(@Body() message: MessageTextRequest): WAMessage {
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
         return whatsapp.sendMessage(ensureSuffix(message.chatId), message.text)
     }
 
     @Post('/sendTextButtons')
     @ApiOperation({summary: 'Send a text message with buttons'})
-    sendTextButtons(@Body() message: MessageTextButtons) {
+    sendTextButtons(@Body() message: MessageTextButtonsRequest) {
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
         return whatsapp.sendButtons(ensureSuffix(message.chatId), message.title, message.buttons, message.text)
     }
 
     @Post('/sendLocation')
-    sendLocation(@Body() message: MessageLocation) {
+    sendLocation(@Body() message: MessageLocationRequest) {
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
         return whatsapp.sendLocation(message.chatId, message.latitude, message.longitude, message.title)
     }
 
     @Post('/sendLinkPreview')
-    sendLinkPreview(@Body() message: MessageLinkPreview) {
+    sendLinkPreview(@Body() message: MessageLinkPreviewRequest) {
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
         return whatsapp.sendLinkPreview(message.chatId, message.url, message.title)
     }
 
     @Post('/sendImage')
     @ApiOperation({summary: 'NOT IMPLEMENTED YET'})
-    sendImage(@Body() message: MessageImage) {
+    sendImage(@Body() message: MessageImageRequest) {
         throw new NotImplementedException();
         // TODO: Accept image URL, download it and then send with path
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
@@ -92,7 +93,7 @@ export class ChattingController {
 
     @Post('/sendFile')
     @ApiOperation({summary: 'NOT IMPLEMENTED YET'})
-    sendFile(@Body() message: MessageFile) {
+    sendFile(@Body() message: MessageFileRequest) {
         throw new NotImplementedException();
         // TODO: Accept File URL, download it and then send with path
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
@@ -101,7 +102,7 @@ export class ChattingController {
 
     @Post('/reply')
     @ApiOperation({summary: 'Reply to a text message'})
-    reply(@Body() message: MessageReply) {
+    reply(@Body() message: MessageReplyRequest) {
         const whatsapp = this.whatsappSessionManager.getInstance(message.sessionName)
         return whatsapp.reply(message.chatId, message.text, message.reply_to)
     }

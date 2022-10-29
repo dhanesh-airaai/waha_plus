@@ -42,17 +42,17 @@ export class MessageContactVcard extends ChatRequest {
     name: string
 }
 
-export class MessageText extends ChatRequest {
+export class MessageTextRequest extends ChatRequest {
     text: string;
 }
 
-export class MessageTextButtons extends ChatRequest {
+export class MessageTextButtonsRequest extends ChatRequest {
     text: string;
     title: string;
     buttons: any[];
 }
 
-export class MessageReply extends ChatRequest {
+export class MessageReplyRequest extends ChatRequest {
     text: string;
     @ApiProperty({
         example: 'message.id',
@@ -60,28 +60,25 @@ export class MessageReply extends ChatRequest {
     reply_to: string;
 }
 
-export class MessageLocation extends ChatRequest {
+export class MessageLocationRequest extends ChatRequest {
     latitude: string;
     longitude: string;
     title: string;
 }
 
-export class MessageImage extends ChatRequest {
+export class MessageImageRequest extends ChatRequest {
     path: string;
     filename: string;
     caption: string;
 }
 
-export class MessageFile extends ChatRequest {
+export class MessageFileRequest extends ChatRequest {
     path: string;
     filename: string;
     caption: string;
 }
 
-/**
- * POST body requests
- */
-export class MessageLinkPreview extends ChatRequest {
+export class MessageLinkPreviewRequest extends ChatRequest {
     url: string;
     title: string;
 }
