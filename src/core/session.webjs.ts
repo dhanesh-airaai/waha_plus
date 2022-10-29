@@ -109,11 +109,11 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             return message
         }
 
-        this.log.log(`The message ${message.id} has media, downloading it...`);
+        this.log.log(`The message ${message.id._serialized} has media, downloading it...`);
         return message.downloadMedia().then(async (media: MessageMedia) => {
             this.log.verbose(`Writing file from the message ${message.id}...`)
             const buffer = Buffer.from(media.data, "base64")
-            const url = await this.storage.save(message.id, media.mimetype, buffer)
+            const url = await this.storage.save(message.id._serialized, media.mimetype, buffer)
             this.log.log(`The file from ${message.id} has been saved to ${url}`);
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
