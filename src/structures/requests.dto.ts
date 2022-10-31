@@ -33,7 +33,17 @@ export class SessionRequest {
 }
 
 export class ChatRequest extends SessionRequest {
-    chatId = '71111111111@c.us'
+    @ApiProperty({
+        example: 'false_71111111111@c.us',
+    })
+    chatId: string
+}
+
+export class MessageRequest extends SessionRequest{
+    @ApiProperty({
+        example: "false_71111111111@c.us_AAAAAAAAAAAAAAAAAAAA",
+    })
+    messageId: string
 }
 
 export class MessageContactVcardRequest extends ChatRequest {
@@ -177,4 +187,12 @@ export class MessageVoiceRequest extends ChatRequest {
 export class MessageLinkPreviewRequest extends ChatRequest {
     url: string;
     title: string;
+}
+
+export class MessageReactionRequest extends MessageRequest {
+    @ApiProperty({
+        description: "Emoji to react with. Send an empty string to remove the reaction",
+        example: '👍',
+    })
+    reaction: string
 }

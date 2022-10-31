@@ -8,6 +8,7 @@ import {
     MessageImageRequest,
     MessageLinkPreviewRequest,
     MessageLocationRequest,
+    MessageReactionRequest,
     MessageReplyRequest,
     MessageTextButtonsRequest,
     MessageTextRequest
@@ -109,6 +110,10 @@ export class WhatsappSessionVenom extends WhatsappSession {
 
     stopTyping(chat: ChatRequest) {
         return this.whatsapp.stopTyping(chat.chatId)
+    }
+
+    setReaction(request: MessageReactionRequest) {
+        throw new NotImplementedByEngineError()
     }
 
     /**

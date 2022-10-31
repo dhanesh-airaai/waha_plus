@@ -1,5 +1,6 @@
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Buttons, Chat, Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
+import {Buttons, Chat, Client, Events, LocalAuth, Message, MessageId, MessageMedia} from "whatsapp-web.js";
+import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
 import {Hooks, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./session";
 import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
@@ -13,6 +14,7 @@ import {
     MessageImageRequest,
     MessageLinkPreviewRequest,
     MessageLocationRequest,
+    MessageReactionRequest,
     MessageReplyRequest,
     MessageTextButtonsRequest,
     MessageTextRequest,
@@ -23,17 +25,6 @@ import {NotImplementedByEngineError} from "./exceptions";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
 
-async function fileToMedia(file: BinaryFile | RemoteFile) {
-    if ("url" in file) {
-        const mediaOptions = {unsafeMime: true}
-        const media = await MessageMedia.fromUrl(file.url, mediaOptions)
-        console.log(media.mimetype)
-        media.mimetype = file.mimetype || media.mimetype
-        return media
-    }
-    return new MessageMedia(file.mimetype, file.data, file.filename)
-
-}
 
 export class WhatsappSessionWebJS extends WhatsappSession {
     whatsapp: Client;
@@ -101,19 +92,19 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     async sendFile(request: MessageFileRequest) {
-        const media = await fileToMedia(request.file)
+        const media = await this.fileToMedia(request.file)
         const options = {sendMediaAsDocument: true}
         return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
     }
 
     async sendImage(request: MessageImageRequest) {
-        const media = await fileToMedia(request.file)
+        const media = await this.fileToMedia(request.file)
         const options = {media: media}
         return this.whatsapp.sendMessage(request.chatId, request.caption, options).then(this.toWAMessage)
     }
 
     async sendVoice(request) {
-        const media = await fileToMedia(request.file)
+        const media = await this.fileToMedia(request.file)
         const options = {sendAudioAsVoice: true}
         return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
     }
@@ -139,6 +130,18 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     async stopTyping(request: ChatRequest) {
         const chat: Chat = await this.whatsapp.getChatById(request.chatId)
         await chat.clearState()
+    }
+
+    async setReaction(request: MessageReactionRequest) {
+        const messageId = this.deserializeId(request.messageId)
+        console.log(messageId)
+
+        // Recreate instance to react on it
+        const message = new MessageInstance(this.whatsapp)
+        message.id = messageId
+        message._data = {id: messageId}
+
+        return message.react(request.reaction)
     }
 
     /**
@@ -209,6 +212,27 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             return message
         })
 
+    }
+
+    private async fileToMedia(file: BinaryFile | RemoteFile) {
+        if ("url" in file) {
+            const mediaOptions = {unsafeMime: true}
+            const media = await MessageMedia.fromUrl(file.url, mediaOptions)
+            console.log(media.mimetype)
+            media.mimetype = file.mimetype || media.mimetype
+            return media
+        }
+        return new MessageMedia(file.mimetype, file.data, file.filename)
+    }
+
+    private deserializeId(messageId: string): MessageId {
+        const parts = messageId.split("_")
+        return {
+            "fromMe": parts[0] === "true",
+            "remote": parts[1],
+            "id": parts[2],
+            "_serialized": messageId
+        }
     }
 
 }

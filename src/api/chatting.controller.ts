@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, Query} from '@nestjs/common';
+import {Body, Controller, Get, Post, Put, Query} from '@nestjs/common';
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
 import {WhatsappSessionManager} from "../core/manager";
 import {
@@ -9,6 +9,7 @@ import {
     MessageImageRequest,
     MessageLinkPreviewRequest,
     MessageLocationRequest,
+    MessageReactionRequest,
     MessageReplyRequest,
     MessageTextButtonsRequest,
     MessageTextQuery,
@@ -123,5 +124,12 @@ export class ChattingController {
         const whatsapp = this.whatsappSessionManager.getSession(chat.sessionName)
         await whatsapp.stopTyping(chat)
         return {result: true}
+    }
+
+    @Put('/reaction')
+    @ApiOperation({summary: 'React to a message with an emoji'})
+    setReaction(@Body() request: MessageReactionRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.setReaction(request)
     }
 }

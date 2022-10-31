@@ -2,6 +2,7 @@ tokens
 files
 venv
 .wwebjs_auth
+test.js
 
 # compiled output
 /dist

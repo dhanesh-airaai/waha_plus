@@ -9,6 +9,7 @@ import {
     MessageImageRequest,
     MessageLinkPreviewRequest,
     MessageLocationRequest,
+    MessageReactionRequest,
     MessageReplyRequest,
     MessageTextButtonsRequest,
     MessageTextRequest,
@@ -65,6 +66,8 @@ export abstract class WhatsappSession {
     abstract startTyping(chat: ChatRequest)
 
     abstract stopTyping(chat: ChatRequest)
+
+    abstract setReaction(request: MessageReactionRequest)
     /**
      * STOP - Methods for API
      */
