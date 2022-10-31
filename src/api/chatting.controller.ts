@@ -83,7 +83,7 @@ export class ChattingController {
     }
 
     @Post('/sendFile')
-    @ApiOperation({})
+    @ApiOperation({summary: "Send a file. Either from an URL or base64 data - look at the request schemas for details."})
     sendFile(@Body() request: MessageFileRequest) {
         const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
         return whatsapp.sendFile(request)

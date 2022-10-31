@@ -5,6 +5,7 @@ import {WhatsappSession} from "./session";
 import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
 import {ensureSuffix} from "../utils";
 import {
+    BinaryFile,
     ChatRequest,
     CheckNumberStatusQuery,
     MessageContactVcardRequest,
@@ -14,13 +15,25 @@ import {
     MessageLocationRequest,
     MessageReplyRequest,
     MessageTextButtonsRequest,
-    MessageTextRequest
+    MessageTextRequest,
+    RemoteFile
 } from "../structures/requests.dto";
 import {NotImplementedByEngineError} from "./exceptions";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
 
+async function fileToMedia(file: BinaryFile | RemoteFile) {
+    if ("url" in file) {
+        const mediaOptions = {unsafeMime: true}
+        const media = await MessageMedia.fromUrl(file.url, mediaOptions)
+        console.log(media.mimetype)
+        media.mimetype = file.mimetype || media.mimetype
+        return media
+    }
+    return new MessageMedia(file.mimetype, file.data, file.filename)
+
+}
 
 export class WhatsappSessionWebJS extends WhatsappSession {
     whatsapp: Client;
@@ -87,26 +100,15 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         return this.whatsapp.sendMessage(request.chatId, request.text, options).then(this.toWAMessage)
     }
 
-    sendFile(request: MessageFileRequest) {
-        throw new NotImplementedByEngineError()
+    async sendFile(request: MessageFileRequest) {
+        const media = await fileToMedia(request.file)
+        const options = {sendMediaAsDocument: true}
+        return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
     }
 
     async sendImage(request: MessageImageRequest) {
-        let media
-        const file = request.file
-
-        if ("url" in file) {
-            const mediaOptions = {unsafeMime: true}
-            media = await MessageMedia.fromUrl(file.url, mediaOptions)
-            console.log(media.mimetype)
-            media.mimetype = file.mimetype || media.mimetype
-        } else {
-            media = new MessageMedia(file.mimetype, file.data, file.filename)
-        }
-        const options = {
-            media: media
-        }
-
+        const media = await fileToMedia(request.file)
+        const options = {media: media}
         return this.whatsapp.sendMessage(request.chatId, request.caption, options).then(this.toWAMessage)
     }
 
