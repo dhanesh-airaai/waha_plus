@@ -46,21 +46,21 @@ export abstract class WhatsappSession {
 
     abstract checkNumberStatus(request: CheckNumberStatusQuery)
 
-    abstract sendText(message: MessageTextRequest)
+    abstract sendText(request: MessageTextRequest)
 
-    abstract sendContactVCard(message: MessageContactVcardRequest)
+    abstract sendContactVCard(request: MessageContactVcardRequest)
 
-    abstract sendTextButtons(message: MessageTextButtonsRequest)
+    abstract sendTextButtons(request: MessageTextButtonsRequest)
 
-    abstract sendLocation(message: MessageLocationRequest)
+    abstract sendLocation(request: MessageLocationRequest)
 
-    abstract sendLinkPreview(message: MessageLinkPreviewRequest)
+    abstract sendLinkPreview(request: MessageLinkPreviewRequest)
 
-    abstract sendImage(message: MessageImageRequest)
+    abstract sendImage(request: MessageImageRequest)
 
-    abstract sendFile(message: MessageFileRequest)
+    abstract sendFile(request: MessageFileRequest)
 
-    abstract reply(message: MessageReplyRequest)
+    abstract reply(request: MessageReplyRequest)
 
     abstract sendSeen(chat: ChatRequest)
 

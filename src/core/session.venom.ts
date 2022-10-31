@@ -57,40 +57,40 @@ export class WhatsappSessionVenom extends WhatsappSession {
         }
     }
 
-    sendContactVCard(message: MessageContactVcardRequest) {
-        return this.whatsapp.sendContactVcard(message.chatId, message.contactsId, message.name)
+    sendContactVCard(request: MessageContactVcardRequest) {
+        return this.whatsapp.sendContactVcard(request.chatId, request.contactsId, request.name)
     }
 
-    sendText(message: MessageTextRequest) {
+    sendText(request: MessageTextRequest) {
         return Promise.resolve(undefined);
     }
 
-    reply(message: MessageReplyRequest) {
-        return this.whatsapp.reply(message.chatId, message.text, message.reply_to)
+    reply(request: MessageReplyRequest) {
+        return this.whatsapp.reply(request.chatId, request.text, request.reply_to)
     }
 
-    sendFile(message: MessageFileRequest) {
+    sendFile(request: MessageFileRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    sendImage(message: MessageImageRequest) {
+    sendImage(request: MessageImageRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    sendLinkPreview(message: MessageLinkPreviewRequest) {
-        return this.whatsapp.sendLinkPreview(message.chatId, message.url, message.title)
+    sendLinkPreview(request: MessageLinkPreviewRequest) {
+        return this.whatsapp.sendLinkPreview(request.chatId, request.url, request.title)
     }
 
-    sendLocation(message: MessageLocationRequest) {
-        return this.whatsapp.sendLocation(message.chatId, message.latitude, message.longitude, message.title)
+    sendLocation(request: MessageLocationRequest) {
+        return this.whatsapp.sendLocation(request.chatId, request.latitude, request.longitude, request.title)
     }
 
     sendSeen(chat: ChatRequest) {
         return this.whatsapp.sendSeen(chat.chatId)
     }
 
-    sendTextButtons(message: MessageTextButtonsRequest) {
-        return this.whatsapp.sendButtons(ensureSuffix(message.chatId), message.title, message.buttons, message.text)
+    sendTextButtons(request: MessageTextButtonsRequest) {
+        return this.whatsapp.sendButtons(ensureSuffix(request.chatId), request.title, request.buttons, request.text)
     }
 
     startTyping(chat: ChatRequest) {

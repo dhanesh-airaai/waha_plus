@@ -32,68 +32,68 @@ export class ChattingController {
     }
 
     @Post('/sendContactVcard')
-    sendContactVcard(@Body() message: MessageContactVcardRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.sendContactVCard(message)
+    sendContactVcard(@Body() request: MessageContactVcardRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendContactVCard(request)
     }
 
     @Get('/sendText')
     @ApiOperation({summary: 'Send a text message'})
     sendTextGet(
-        @Query() message: MessageTextQuery,
+        @Query() query: MessageTextQuery,
     ) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
+        const whatsapp = this.whatsappSessionManager.getSession(query.sessionName)
         const msg = new MessageTextRequest()
-        msg.chatId = message.phone
-        msg.text = message.text
+        msg.chatId = query.phone
+        msg.text = query.text
         return whatsapp.sendText(new MessageTextRequest())
     }
 
     @Post('/sendText')
     @ApiOperation({summary: 'Send a text message'})
-    sendText(@Body() message: MessageTextRequest): Promise<WAMessage> {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.sendText(message)
+    sendText(@Body() request: MessageTextRequest): Promise<WAMessage> {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendText(request)
     }
 
     @Post('/sendTextButtons')
     @ApiOperation({summary: 'Send a text message with buttons'})
-    sendTextButtons(@Body() message: MessageTextButtonsRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.sendTextButtons(message)
+    sendTextButtons(@Body() request: MessageTextButtonsRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendTextButtons(request)
     }
 
     @Post('/sendLocation')
-    sendLocation(@Body() message: MessageLocationRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.sendLocation(message)
+    sendLocation(@Body() request: MessageLocationRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendLocation(request)
     }
 
     @Post('/sendLinkPreview')
-    sendLinkPreview(@Body() message: MessageLinkPreviewRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.sendLinkPreview(message)
+    sendLinkPreview(@Body() request: MessageLinkPreviewRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendLinkPreview(request)
     }
 
     @Post('/sendImage')
     @ApiOperation({})
-    sendImage(@Body() message: MessageImageRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.sendImage(message)
+    sendImage(@Body() request: MessageImageRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendImage(request)
     }
 
     @Post('/sendFile')
     @ApiOperation({})
-    sendFile(@Body() message: MessageFileRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.sendFile(message)
+    sendFile(@Body() request: MessageFileRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendFile(request)
     }
 
     @Post('/reply')
     @ApiOperation({summary: 'Reply to a text message'})
-    reply(@Body() message: MessageReplyRequest) {
-        const whatsapp = this.whatsappSessionManager.getSession(message.sessionName)
-        return whatsapp.reply(message)
+    reply(@Body() request: MessageReplyRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.reply(request)
     }
 
     @Post('/sendSeen')

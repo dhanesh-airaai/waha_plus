@@ -67,35 +67,35 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         throw new NotImplementedByEngineError()
     }
 
-    sendText(message: MessageTextRequest): Promise<WAMessage> {
-        return this.whatsapp.sendMessage(ensureSuffix(message.chatId), message.text).then(this.toWAMessage)
+    sendText(request: MessageTextRequest): Promise<WAMessage> {
+        return this.whatsapp.sendMessage(ensureSuffix(request.chatId), request.text).then(this.toWAMessage)
     }
 
-    sendTextButtons(message: MessageTextButtonsRequest) {
+    sendTextButtons(request: MessageTextButtonsRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    sendContactVCard(message: MessageContactVcardRequest) {
+    sendContactVCard(request: MessageContactVcardRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    reply(message: MessageReplyRequest) {
+    reply(request: MessageReplyRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    sendFile(message: MessageFileRequest) {
+    sendFile(request: MessageFileRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    sendImage(message: MessageImageRequest) {
+    sendImage(request: MessageImageRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    sendLinkPreview(message: MessageLinkPreviewRequest) {
+    sendLinkPreview(request: MessageLinkPreviewRequest) {
         throw new NotImplementedByEngineError()
     }
 
-    sendLocation(message: MessageLocationRequest) {
+    sendLocation(request: MessageLocationRequest) {
         throw new NotImplementedByEngineError()
     }
 
