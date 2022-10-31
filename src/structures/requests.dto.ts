@@ -78,7 +78,7 @@ export class RemoteFile {
     url: string
 
     @ApiProperty({
-        description: "MIME type of the attachment. Use 'audio/ogg; codecs=opus' for a voice message",
+        description: "MIME type of the attachment.",
         example: 'image/jpeg',
     })
     mimetype: string
@@ -98,7 +98,7 @@ export class BinaryFile {
     data: string
 
     @ApiProperty({
-        description: "MIME type of the attachment. Use 'audio/ogg; codecs=opus' for a voice message",
+        description: "MIME type of the attachment.",
         example: 'image/svg+xml',
     })
     mimetype: string
