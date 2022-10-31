@@ -42,8 +42,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         const session = this.sessions[name]
         if (!session) {
             throw new NotFoundException(
-                `We didn't find a session with name "${name}". 
-                Please start it first by using POST /sessions/start request`,
+                `We didn't find a session with name "${name}". Please start it first by using POST /sessions/start request`,
             );
         }
         return session
