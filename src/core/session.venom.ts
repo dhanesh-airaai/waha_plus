@@ -34,9 +34,6 @@ export class WhatsappSessionVenom extends WhatsappSession {
         return
     }
 
-    getWhatsapp() {
-        return this.whatsapp
-    }
 
     /**
      * START - Methods for API

@@ -84,7 +84,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         const options = {
             quotedMessageId: request.reply_to,
         };
-        return this.whatsapp.sendMessage(request.chatId, request.text, options);
+        return this.whatsapp.sendMessage(request.chatId, request.text, options).then(this.toWAMessage)
     }
 
     sendFile(request: MessageFileRequest) {
@@ -107,7 +107,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             media: media
         }
 
-        return this.whatsapp.sendMessage(request.chatId, request.caption, options)
+        return this.whatsapp.sendMessage(request.chatId, request.caption, options).then(this.toWAMessage)
     }
 
     sendLinkPreview(request: MessageLinkPreviewRequest) {
@@ -136,19 +136,6 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     /**
      * STOP - Methods for API
      */
-
-    /**
-     Get venom instance if it's working (with no QR code required)
-     */
-    getWhatsapp() {
-        if (this.status != WhatsappStatus.WORKING) {
-            throw new UnprocessableEntityException(
-                `The session status is "${this.status}". Please scan QR code first by using GET /screenshot method.`,
-            );
-        }
-        return this.whatsapp
-
-    }
 
     subscribe(hook, handler) {
         if (hook === Hooks.ON_MESSAGE) {

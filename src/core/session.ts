@@ -31,13 +31,8 @@ export abstract class WhatsappSession {
     /** Stop the session */
     abstract stop()
 
-
     /** Subscribe the handler to specific hook */
     abstract subscribe(hook: Hooks | string, handler: (message) => void)
-
-    /** Get actual whatsapp instance */
-    // TODO: Remove it in order to add more functions
-    abstract getWhatsapp()
 
     /**
      * START - Methods for API
