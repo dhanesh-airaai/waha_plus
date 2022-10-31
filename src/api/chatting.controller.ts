@@ -76,7 +76,7 @@ export class ChattingController {
     }
 
     @Post('/sendImage')
-    @ApiOperation({})
+    @ApiOperation({summary: "Send an image. Either from an URL or base64 data - look at the request schemas for details."})
     sendImage(@Body() request: MessageImageRequest) {
         const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
         return whatsapp.sendImage(request)

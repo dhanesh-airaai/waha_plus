@@ -91,8 +91,23 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         throw new NotImplementedByEngineError()
     }
 
-    sendImage(request: MessageImageRequest) {
-        throw new NotImplementedByEngineError()
+    async sendImage(request: MessageImageRequest) {
+        let media
+        const file = request.file
+
+        if ("url" in file) {
+            const mediaOptions = {unsafeMime: true}
+            media = await MessageMedia.fromUrl(file.url, mediaOptions)
+            console.log(media.mimetype)
+            media.mimetype = file.mimetype || media.mimetype
+        } else {
+            media = new MessageMedia(file.mimetype, file.data, file.filename)
+        }
+        const options = {
+            media: media
+        }
+
+        return this.whatsapp.sendMessage(request.chatId, request.caption, options)
     }
 
     sendLinkPreview(request: MessageLinkPreviewRequest) {
