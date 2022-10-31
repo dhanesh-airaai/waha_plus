@@ -1,5 +1,6 @@
 import {WhatsappSession} from "./session";
 import {
+    Button,
     ChatRequest,
     CheckNumberStatusQuery,
     MessageContactVcardRequest,
@@ -90,7 +91,15 @@ export class WhatsappSessionVenom extends WhatsappSession {
     }
 
     sendTextButtons(request: MessageTextButtonsRequest) {
-        return this.whatsapp.sendButtons(ensureSuffix(request.chatId), request.title, request.buttons, request.text)
+        const buttons = request.buttons.map((button: Button) => {
+            return {
+                buttonId: button.id,
+                buttonText: {
+                    displayText: button.body
+                }
+            }
+        })
+        return this.whatsapp.sendButtons(ensureSuffix(request.chatId), request.title, buttons, request.text)
     }
 
     startTyping(chat: ChatRequest) {
@@ -98,7 +107,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
     }
 
     stopTyping(chat: ChatRequest) {
-        return  this.whatsapp.stopTyping(chat.chatId)
+        return this.whatsapp.stopTyping(chat.chatId)
     }
 
     /**

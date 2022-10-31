@@ -46,10 +46,15 @@ export class MessageTextRequest extends ChatRequest {
     text: string;
 }
 
+export class Button {
+    id: string
+    body: string
+}
+
 export class MessageTextButtonsRequest extends ChatRequest {
-    text: string;
     title: string;
-    buttons: any[];
+    text: string;
+    buttons?: Array<Button>;
 }
 
 export class MessageReplyRequest extends ChatRequest {

@@ -1,5 +1,5 @@
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Chat, Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
+import {Buttons, Chat, Client, Events, LocalAuth, Message, MessageMedia} from "whatsapp-web.js";
 import {Hooks, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./session";
 import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
@@ -72,7 +72,8 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     sendTextButtons(request: MessageTextButtonsRequest) {
-        throw new NotImplementedByEngineError()
+        const message = new Buttons("", request.buttons, request.title, request.text)
+        return this.whatsapp.sendMessage(ensureSuffix(request.chatId), message).then(this.toWAMessage)
     }
 
     sendContactVCard(request: MessageContactVcardRequest) {
