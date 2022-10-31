@@ -1,9 +1,22 @@
 import {ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus,} from '@nestjs/common';
 import {Request, Response} from 'express';
 
+/**
+ * Serializer error to JSON.
+ * Because it's not possible to just pass Error class to JSON.stringify in the nestjs response
+ * Credits: https://stackoverflow.com/a/72707578/6753144
+ */
+export function serializeError(err: unknown) {
+    const properties = Object.getOwnPropertyNames(err)
+    // getOwnPropertyNames does not get 'name', like "ReferenceError"
+    properties.push('name')
+    return JSON.parse(JSON.stringify(err, properties))
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
     catch(exception: HttpException | Error, host: ArgumentsHost): void {
+
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
@@ -22,7 +35,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 statusCode: httpStatus,
                 timestamp: new Date().toISOString(),
                 path: request.url,
-                exception: exception,
+                exception: serializeError(exception),
             });
 
     }
