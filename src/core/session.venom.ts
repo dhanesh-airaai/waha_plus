@@ -75,6 +75,10 @@ export class WhatsappSessionVenom extends WhatsappSession {
         throw new NotImplementedByEngineError()
     }
 
+    async sendVoice(request) {
+        throw new NotImplementedByEngineError()
+    }
+
     sendLinkPreview(request: MessageLinkPreviewRequest) {
         return this.whatsapp.sendLinkPreview(request.chatId, request.url, request.title)
     }

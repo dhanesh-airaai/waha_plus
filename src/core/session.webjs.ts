@@ -112,6 +112,12 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         return this.whatsapp.sendMessage(request.chatId, request.caption, options).then(this.toWAMessage)
     }
 
+    async sendVoice(request) {
+        const media = await fileToMedia(request.file)
+        const options = {sendAudioAsVoice: true}
+        return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
+    }
+
     sendLinkPreview(request: MessageLinkPreviewRequest) {
         throw new NotImplementedByEngineError()
     }

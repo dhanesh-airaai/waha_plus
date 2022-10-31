@@ -12,7 +12,8 @@ import {
     MessageReplyRequest,
     MessageTextButtonsRequest,
     MessageTextQuery,
-    MessageTextRequest
+    MessageTextRequest,
+    MessageVoiceRequest
 } from "../structures/requests.dto";
 import {WAMessage} from "../structures/WA.dto";
 
@@ -87,6 +88,13 @@ export class ChattingController {
     sendFile(@Body() request: MessageFileRequest) {
         const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
         return whatsapp.sendFile(request)
+    }
+
+    @Post('/sendVoice')
+    @ApiOperation({summary: "Send an voice message. Either from an URL or base64 data - look at the request schemas for details."})
+    sendVoice(@Body() request: MessageVoiceRequest) {
+        const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
+        return whatsapp.sendVoice(request)
     }
 
     @Post('/reply')

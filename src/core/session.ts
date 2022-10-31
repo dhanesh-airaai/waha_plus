@@ -11,7 +11,8 @@ import {
     MessageLocationRequest,
     MessageReplyRequest,
     MessageTextButtonsRequest,
-    MessageTextRequest
+    MessageTextRequest,
+    MessageVoiceRequest
 } from "../structures/requests.dto";
 
 export abstract class WhatsappSession {
@@ -54,6 +55,8 @@ export abstract class WhatsappSession {
     abstract sendImage(request: MessageImageRequest)
 
     abstract sendFile(request: MessageFileRequest)
+
+    abstract sendVoice(request: MessageVoiceRequest)
 
     abstract reply(request: MessageReplyRequest)
 
