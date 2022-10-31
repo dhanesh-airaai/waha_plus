@@ -110,6 +110,7 @@ export class BinaryFile {
         example: 'image/jpeg',
     })
     mimetype: string
+
     @ApiProperty({
         description: "Document file name. Value can be null",
         example: 'filename.jpeg',
@@ -144,7 +145,7 @@ export class VoiceBinaryFile {
 
     @ApiProperty({
         description: "MIME type of the attachment.",
-        example: 'mimetype": "audio/ogg; codecs=opus',
+        example: 'audio/ogg; codecs=opus',
     })
     mimetype = "audio/ogg; codecs=opus"
 }
@@ -157,7 +158,7 @@ export class VoiceRemoteFile {
 
     @ApiProperty({
         description: "MIME type of the attachment.",
-        example: 'mimetype": "audio/ogg; codecs=opus',
+        example: 'audio/ogg; codecs=opus',
     })
     mimetype = "audio/ogg; codecs=opus"
 }
