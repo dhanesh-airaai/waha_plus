@@ -34,8 +34,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
             .json({
                 statusCode: httpStatus,
                 timestamp: new Date().toISOString(),
-                path: request.url,
                 exception: serializeError(exception),
+                request: {
+                    path: request.url,
+                    method: request.method,
+                    body: request.body,
+                    query: request.query,
+                },
             });
 
     }
