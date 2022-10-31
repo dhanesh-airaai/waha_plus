@@ -81,7 +81,10 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     reply(request: MessageReplyRequest) {
-        throw new NotImplementedByEngineError()
+        const options = {
+            quotedMessageId: request.reply_to,
+        };
+        return this.whatsapp.sendMessage(request.chatId, request.text, options);
     }
 
     sendFile(request: MessageFileRequest) {
