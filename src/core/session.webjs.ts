@@ -139,9 +139,9 @@ export class WhatsappSessionWebJS extends WhatsappSession {
 
     subscribe(hook, handler) {
         if (hook === Hooks.ON_MESSAGE) {
-            this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processMessage(message).then(handler))
+            this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processIncomingMessage(message).then(handler))
         } else if (hook === Hooks.ON_ANY_MESSAGE_HOOK) {
-            this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processMessage(message).then(handler))
+            this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processIncomingMessage(message).then(handler))
         } else if (hook === Hooks.ON_STATE_CHANGE) {
             this.whatsapp.on(Events.STATE_CHANGED, handler)
         } else if (hook === Hooks.ON_ACK) {
@@ -154,7 +154,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
         }
     }
 
-    private processMessage(message: Message) {
+    private processIncomingMessage(message: Message) {
         return this.downloadAndDecryptMedia(message).then(this.toWAMessage)
     }
 
