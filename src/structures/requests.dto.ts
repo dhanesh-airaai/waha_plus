@@ -3,6 +3,17 @@ import {ApiExtraModels, ApiProperty, getSchemaPath} from "@nestjs/swagger";
 
 export const WHATSAPP_DEFAULT_SESSION_NAME = "default"
 
+const chatIdProperty = ApiProperty({
+    example: '791231234567@c.us'
+})
+const sessionNameProperty = ApiProperty({
+    default: WHATSAPP_DEFAULT_SESSION_NAME,
+})
+
+
+/**
+ * Queries
+ */
 export class SessionQuery {
     @IsNotEmpty()
     sessionName: string = WHATSAPP_DEFAULT_SESSION_NAME;
@@ -20,13 +31,10 @@ export class MessageTextQuery extends SessionQuery {
     text: string
 }
 
-const chatIdProperty = ApiProperty({
-    example: '791231234567@c.us'
-})
-const sessionNameProperty = ApiProperty({
-    default: WHATSAPP_DEFAULT_SESSION_NAME,
-})
 
+/**
+ * Requests
+ */
 export class SessionRequest {
     @sessionNameProperty
     sessionName = "default"
@@ -121,10 +129,7 @@ export class MessageImageRequest extends ChatRequest {
     caption: string;
 }
 
-export class MessageFileRequest extends ChatRequest {
-    path: string;
-    filename: string;
-    caption: string;
+export class MessageFileRequest extends MessageImageRequest {
 }
 
 export class MessageLinkPreviewRequest extends ChatRequest {
