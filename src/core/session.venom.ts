@@ -15,20 +15,73 @@ import {
 } from "../structures/requests.dto";
 import {WANumberExistResult} from "../structures/WA.dto";
 import {ensureSuffix} from "../utils";
-import {Whatsapp} from "venom-bot";
-import {WAEvents} from "../structures/enums.dto";
+import {create, Whatsapp} from "venom-bot";
+import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {NotImplementedByEngineError} from "./exceptions";
+import {LocalMediaStorage} from "./storage";
+import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
 
+class QR {
+    private base64: string;
+
+    save(base64) {
+        this.base64 = base64.replace(/^data:image\/png;base64,/, '');
+    }
+
+    get(): Buffer {
+        return Buffer.from(this.base64, "base64")
+    }
+
+}
 
 export class WhatsappSessionVenom extends WhatsappSession {
     whatsapp: Whatsapp;
+    private qr: QR
 
-    start() {
-        return
+    public constructor(public name: string, protected storage: LocalMediaStorage) {
+        super(name, storage);
+        this.qr = new QR()
     }
 
+    start() {
+        create('sessionName',
+            (base64Qrimg, asciiQR, attempts, urlCode) => {
+                this.qr.save(base64Qrimg)
+                this.status = WhatsappStatus.SCAN_QR_CODE
+                this.log.debug('Number of attempts to read the qrcode: ', attempts);
+                this.log.log('Terminal qrcode:');
+                // Log QR image in console without this.log to make it pretty
+                console.log(asciiQR);
+            },
+            undefined,
+            {
+                headless: true,
+                devtools: false,
+                useChrome: true,
+                debug: false,
+                logQR: true,
+                browserArgs: ["--no-sandbox"],
+                autoClose: 60000,
+                createPathFileToken: true,
+                puppeteerOptions: {},
+                multidevice: false,
+            }
+        )
+            .then(client => {
+                this.whatsapp = client
+                this.status = WhatsappStatus.WORKING
+            })
+            .catch((error) => {
+                this.status = WhatsappStatus.FAILED
+                this.log.error(error)
+                this.qr.save("")
+                return
+            })
+    }
+
+
     stop() {
-        return
+        return this.whatsapp.close()
     }
 
     subscribe(hook: WAEvents | string, handler: (message) => void) {
@@ -40,7 +93,15 @@ export class WhatsappSessionVenom extends WhatsappSession {
      * START - Methods for API
      */
     getScreenshot(): Promise<Buffer | string> {
-        return Promise.resolve(undefined);
+        if (this.status === WhatsappStatus.STARTING) {
+            throw new UnprocessableEntityException(`The session is starting, please try again after few seconds`);
+        } else if (this.status === WhatsappStatus.SCAN_QR_CODE) {
+            return Promise.resolve(this.qr.get())
+        } else if (this.status === WhatsappStatus.WORKING) {
+            return this.whatsapp.page.screenshot()
+        } else {
+            throw new UnprocessableEntityException(`Unknown status - ${this.status}`);
+        }
     }
 
     async checkNumberStatus(request: CheckNumberStatusQuery): Promise<WANumberExistResult> {
