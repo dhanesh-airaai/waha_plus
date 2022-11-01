@@ -148,20 +148,22 @@ export class WhatsappSessionWebJS extends WhatsappSession {
      * STOP - Methods for API
      */
 
-    subscribe(hook, handler) {
-        if (hook === WAEvents.MESSAGE) {
+    subscribe(event, handler) {
+        if (event === WAEvents.MESSAGE) {
             this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processIncomingMessage(message).then(handler))
-        } else if (hook === WAEvents.MESSAGE_ANY) {
+        } else if (event === WAEvents.MESSAGE_ANY) {
             this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processIncomingMessage(message).then(handler))
-        } else if (hook === WAEvents.STATE_CHANGE) {
+        } else if (event === WAEvents.STATE_CHANGE) {
             this.whatsapp.on(Events.STATE_CHANGED, handler)
-        } else if (hook === WAEvents.MESSAGE_ACK) {
+        } else if (event === WAEvents.MESSAGE_ACK) {
             // We do not download media here
             this.whatsapp.on(Events.MESSAGE_ACK, (message) => this.toWAMessage(message).then(handler))
-        } else if (hook === WAEvents.GROUP_JOIN) {
+        } else if (event === WAEvents.GROUP_JOIN) {
             this.whatsapp.on(Events.GROUP_JOIN, handler)
-        } else if (hook === WAEvents.GROUP_LEAVE) {
+        } else if (event === WAEvents.GROUP_LEAVE) {
             this.whatsapp.on(Events.GROUP_LEAVE, handler)
+        } else {
+            throw new NotImplementedByEngineError(`Engine does not support webhook event: ${event}`)
         }
     }
 

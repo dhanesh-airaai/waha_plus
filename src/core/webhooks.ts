@@ -3,6 +3,7 @@ import {WhatsappSession} from "./session";
 import {ConsoleLogger} from "@nestjs/common";
 import {SECOND, WAEvents} from "../structures/enums.dto";
 import {WAWebhook} from "../structures/WA.dto";
+import {NotImplementedByEngineError} from "./exceptions";
 
 
 export class WebhookConductor {
@@ -41,7 +42,15 @@ export class WebhookConductor {
     public configure(session: WhatsappSession) {
         this.log.log('Configuring webhooks...')
         for (const event of this.events) {
-            session.subscribe(event, (data: any) => this.callWebhook(event, data, this.url))
+            try {
+                session.subscribe(event, (data: any) => this.callWebhook(event, data, this.url))
+            } catch (error) {
+                if (error instanceof NotImplementedByEngineError){
+                    this.log.error(error)
+                } else{
+                    throw error
+                }
+            }
             this.log.log(`Event '${event}' is enabled for url: ${this.url}`)
         }
         this.log.log('Webhooks were configured.')

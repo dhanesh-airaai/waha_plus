@@ -13,9 +13,9 @@ import {
     MessageTextButtonsRequest,
     MessageTextRequest
 } from "../structures/requests.dto";
-import {WANumberExistResult} from "../structures/WA.dto";
+import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
 import {ensureSuffix} from "../utils";
-import {create, Whatsapp} from "venom-bot";
+import {create, Message, Whatsapp} from "venom-bot";
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {NotImplementedByEngineError} from "./exceptions";
 import {LocalMediaStorage} from "./storage";
@@ -83,8 +83,20 @@ export class WhatsappSessionVenom extends WhatsappSession {
         return this.whatsapp.close()
     }
 
-    subscribe(hook: WAEvents | string, handler: (message) => void) {
-        return
+    subscribe(event: WAEvents | string, handler: (message) => void) {
+        if (event === WAEvents.MESSAGE) {
+            return this.whatsapp.onMessage((message: Message) => this.processIncomingMessage(message).then(handler))
+        } else if (event === WAEvents.MESSAGE_ANY) {
+            return this.whatsapp.onAnyMessage((message: Message) => this.processIncomingMessage(message).then(handler))
+        } else if (event === WAEvents.STATE_CHANGE) {
+            return this.whatsapp.onStateChange(handler)
+        } else if (event === WAEvents.MESSAGE_ACK) {
+            return this.whatsapp.onAck(handler)
+        } else if (event === WAEvents.GROUP_JOIN) {
+            return this.whatsapp.onAddedToGroup(handler)
+        } else {
+            throw new NotImplementedByEngineError(`Engine does not support webhook event: ${event}`)
+        }
     }
 
 
@@ -180,4 +192,45 @@ export class WhatsappSessionVenom extends WhatsappSession {
      * STOP - Methods for API
      */
 
+    private async downloadAndDecryptMedia(message: Message) {
+        if (!message.isMMS || !message.isMedia) {
+            return message
+        }
+
+        this.log.log(`The message ${message.id} has media, downloading it...`);
+        return this.whatsapp.decryptFile(message).then(async (buffer) => {
+            this.log.verbose(`Writing file from the message ${message.id}...`)
+            const url = await this.storage.save(message.id, message.mimetype, buffer)
+            this.log.log(`The file from ${message.id} has been saved to ${url}`);
+
+            // @ts-ignore
+            message.mediaUrl = url
+            return message
+        });
+    }
+
+    private processIncomingMessage(message: Message) {
+        return this.downloadAndDecryptMedia(message).then(this.toWAMessage)
+    }
+
+    protected toWAMessage(message: Message): Promise<WAMessage> {
+        // @ts-ignore
+        return Promise.resolve({
+            id: message.id,
+            timestamp: message.timestamp,
+            from: message.from,
+            fromMe: message.fromMe,
+            to: message.to,
+            body: message.body,
+            // @ts-ignore
+            hasMedia: Boolean(message.mediaUrl),
+            // @ts-ignore
+            mediaUrl: message.mediaUrl,
+            // @ts-ignore
+            ack: message.ack,
+            location: undefined,
+            vCards: undefined,
+            _data: message,
+        })
+    }
 }
