@@ -121,7 +121,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
     }
 
     sendText(request: MessageTextRequest) {
-        return Promise.resolve(undefined);
+        return this.whatsapp.sendText(ensureSuffix(request.chatId), request.text)
     }
 
     reply(request: MessageReplyRequest) {
