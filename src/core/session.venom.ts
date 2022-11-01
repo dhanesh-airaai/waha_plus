@@ -43,40 +43,40 @@ export class WhatsappSessionVenom extends WhatsappSession {
         this.qr = new QR()
     }
 
-    start() {
-        create('sessionName',
-            (base64Qrimg, asciiQR, attempts, urlCode) => {
-                this.qr.save(base64Qrimg)
-                this.status = WhatsappStatus.SCAN_QR_CODE
-                this.log.debug('Number of attempts to read the qrcode: ', attempts);
-                this.log.log('Terminal qrcode:');
-                // Log QR image in console without this.log to make it pretty
-                console.log(asciiQR);
-            },
-            undefined,
-            {
-                headless: true,
-                devtools: false,
-                useChrome: true,
-                debug: false,
-                logQR: true,
-                browserArgs: ["--no-sandbox"],
-                autoClose: 60000,
-                createPathFileToken: true,
-                puppeteerOptions: {},
-                multidevice: false,
-            }
-        )
-            .then(client => {
-                this.whatsapp = client
-                this.status = WhatsappStatus.WORKING
-            })
-            .catch((error) => {
-                this.status = WhatsappStatus.FAILED
-                this.log.error(error)
-                this.qr.save("")
-                return
-            })
+    async start() {
+        try {
+            this.whatsapp = await create('sessionName',
+                (base64Qrimg, asciiQR, attempts, urlCode) => {
+                    this.qr.save(base64Qrimg)
+                    this.status = WhatsappStatus.SCAN_QR_CODE
+                    this.log.debug('Number of attempts to read the qrcode: ', attempts);
+                    this.log.log('Terminal qrcode:');
+                    // Log QR image in console without this.log to make it pretty
+                    console.log(asciiQR);
+                },
+                undefined,
+                {
+                    headless: true,
+                    devtools: false,
+                    useChrome: true,
+                    debug: false,
+                    logQR: true,
+                    browserArgs: ["--no-sandbox"],
+                    autoClose: 60000,
+                    createPathFileToken: true,
+                    puppeteerOptions: {},
+                    multidevice: false,
+                }
+            )
+        } catch (error) {
+            this.status = WhatsappStatus.FAILED
+            this.log.error(error)
+            this.qr.save("")
+            return
+
+        }
+
+        this.status = WhatsappStatus.WORKING
     }
 
 
