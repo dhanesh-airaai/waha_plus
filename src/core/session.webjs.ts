@@ -31,7 +31,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
 
     start() {
         this.whatsapp = new Client({
-            authStrategy: new LocalAuth(),
+            authStrategy: new LocalAuth({clientId: this.name}),
             puppeteer: {headless: true}
         });
 
