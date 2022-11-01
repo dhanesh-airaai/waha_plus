@@ -73,7 +73,6 @@ export class WhatsappSessionVenom extends WhatsappSession {
             this.log.error(error)
             this.qr.save("")
             return
-
         }
 
         this.status = WhatsappStatus.WORKING

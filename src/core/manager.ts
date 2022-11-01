@@ -46,12 +46,13 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
     }
 
     startSession(name: string) {
-        this.log.log(`Starting '${name}' session...`)
+        this.log.log(`'${name}' - staring session...`)
         // @ts-ignore
         const session = new this.defaultEngine(name, this.storage)
-        session.start()
         this.sessions[name] = session
-        this.webhook.configure(session)
+        session.start().then(() => {
+            this.webhook.configure(session)
+        })
     }
 
     getSession(name: string): WhatsappSession {
