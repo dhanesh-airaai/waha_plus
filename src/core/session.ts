@@ -1,4 +1,4 @@
-import {Hooks, WhatsappStatus} from "../structures/enums.dto";
+import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {ConsoleLogger} from "@nestjs/common";
 import {LocalMediaStorage} from "./storage";
 import {
@@ -34,7 +34,7 @@ export abstract class WhatsappSession {
     abstract stop()
 
     /** Subscribe the handler to specific hook */
-    abstract subscribe(hook: Hooks | string, handler: (message) => void)
+    abstract subscribe(hook: WAEvents | string, handler: (message) => void)
 
     /**
      * START - Methods for API

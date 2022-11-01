@@ -16,7 +16,7 @@ import {
 import {WANumberExistResult} from "../structures/WA.dto";
 import {ensureSuffix} from "../utils";
 import {Whatsapp} from "venom-bot";
-import {Hooks} from "../structures/enums.dto";
+import {WAEvents} from "../structures/enums.dto";
 import {NotImplementedByEngineError} from "./exceptions";
 
 
@@ -31,7 +31,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
         return
     }
 
-    subscribe(hook: Hooks | string, handler: (message) => void) {
+    subscribe(hook: WAEvents | string, handler: (message) => void) {
         return
     }
 

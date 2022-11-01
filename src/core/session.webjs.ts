@@ -1,7 +1,7 @@
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
 import {Buttons, Chat, Client, Events, LocalAuth, Message, MessageId, MessageMedia} from "whatsapp-web.js";
 import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
-import {Hooks, WhatsappStatus} from "../structures/enums.dto";
+import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./session";
 import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
 import {ensureSuffix} from "../utils";
@@ -149,18 +149,18 @@ export class WhatsappSessionWebJS extends WhatsappSession {
      */
 
     subscribe(hook, handler) {
-        if (hook === Hooks.ON_MESSAGE) {
+        if (hook === WAEvents.MESSAGE) {
             this.whatsapp.on(Events.MESSAGE_RECEIVED, (message) => this.processIncomingMessage(message).then(handler))
-        } else if (hook === Hooks.ON_ANY_MESSAGE_HOOK) {
+        } else if (hook === WAEvents.MESSAGE_ANY) {
             this.whatsapp.on(Events.MESSAGE_CREATE, (message) => this.processIncomingMessage(message).then(handler))
-        } else if (hook === Hooks.ON_STATE_CHANGE) {
+        } else if (hook === WAEvents.STATE_CHANGE) {
             this.whatsapp.on(Events.STATE_CHANGED, handler)
-        } else if (hook === Hooks.ON_ACK) {
+        } else if (hook === WAEvents.MESSAGE_ACK) {
             // We do not download media here
             this.whatsapp.on(Events.MESSAGE_ACK, (message) => this.toWAMessage(message).then(handler))
-        } else if (hook === Hooks.ON_ADDED_TO_GROUP) {
+        } else if (hook === WAEvents.GROUP_JOIN) {
             this.whatsapp.on(Events.GROUP_JOIN, handler)
-        } else if (hook === Hooks.ON_REMOVED_FROM_GROUP) {
+        } else if (hook === WAEvents.GROUP_LEAVE) {
             this.whatsapp.on(Events.GROUP_LEAVE, handler)
         }
     }
@@ -170,7 +170,6 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     protected toWAMessage(message: Message): Promise<WAMessage> {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         return Promise.resolve({
             id: message.id._serialized,
@@ -179,13 +178,10 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             fromMe: message.fromMe,
             to: message.to,
             body: message.body,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             hasMedia: Boolean(message.mediaUrl),
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             mediaUrl: message.mediaUrl,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             ack: message.ack,
             location: message.location,
@@ -206,7 +202,6 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             const url = await this.storage.save(message.id._serialized, media.mimetype, buffer)
             this.log.log(`The file from ${message.id} has been saved to ${url}`);
 
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             message.mediaUrl = url
             return message

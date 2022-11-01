@@ -1,12 +1,12 @@
 export const SECOND = 1000;
 
-export enum Hooks {
-    ON_ANY_MESSAGE_HOOK = "ONANYMESSAGE",
-    ON_MESSAGE = "ONMESSAGE",
-    ON_STATE_CHANGE = "ONSTATECHANGE",
-    ON_ACK = "ONACK",
-    ON_ADDED_TO_GROUP = "ONADDEDTOGROUP",
-    ON_REMOVED_FROM_GROUP = "ONREMOVEDFROMGROUP",
+export enum WAEvents {
+    MESSAGE = "message",
+    MESSAGE_ANY = "message.any",
+    MESSAGE_ACK = "message.ack",
+    STATE_CHANGE = "state.change",
+    GROUP_JOIN = "group.join",
+    GROUP_LEAVE = "group.leave",
 }
 
 export enum WhatsappStatus {

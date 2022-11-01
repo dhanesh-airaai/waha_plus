@@ -50,7 +50,16 @@ export class WhatsappConfigService {
         return this.configService.get('WHATSAPP_START_SESSION', undefined)
     }
 
-    get(name: string): any {
-        return this.configService.get(name)
+    getWebhookUrl(): string | undefined {
+        return this.get('WHATSAPP_HOOK_URL')
+    }
+
+    getWebhookEvents(): string[] {
+        const value = this.get('WHATSAPP_HOOK_EVENTS', "")
+        return value.split(',')
+    }
+
+    get(name: string, defaultValue = undefined): any {
+        return this.configService.get(name, defaultValue)
     }
 }

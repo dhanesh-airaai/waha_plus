@@ -23,7 +23,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
             this.config.mimetypes,
         )
         this.sessions = {}
-        this.webhook = new WebhookConductor(this.config)
+        this.webhook = new WebhookConductor(this.config.getWebhookUrl(), this.config.getWebhookEvents())
 
         if (config.startSession) {
             this.startSession(config.startSession)

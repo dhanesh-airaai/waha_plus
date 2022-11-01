@@ -1,13 +1,21 @@
 import {ApiProperty} from "@nestjs/swagger";
+import {WAEvents} from "./enums.dto";
 
 export class WANumberExistResult {
     numberExists: boolean
 }
+
+export class WAWebhook {
+    event: WAEvents
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    payload: object
+}
+
 export class WAGroupNotification {
     @ApiProperty({
         description: "ID that represents the groupNotification",
     })
-     id: any
+    id: any
 
     @ApiProperty({
         description: "Unix timestamp for when the groupNotification was created",

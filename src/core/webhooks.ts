@@ -1,44 +1,64 @@
 import request = require('requestretry');
-import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "./session";
 import {ConsoleLogger} from "@nestjs/common";
-import {Hooks, SECOND} from "../structures/enums.dto";
+import {SECOND, WAEvents} from "../structures/enums.dto";
+import {WAWebhook} from "../structures/WA.dto";
 
 
 export class WebhookConductor {
     private log: ConsoleLogger;
     private RETRY_DELAY = 15
     private RETRY_ATTEMPTS = 3;
-    ENV_PREFIX = "WHATSAPP_HOOK_"
 
-    constructor(private config: WhatsappConfigService,) {
-        this.config = config
+    constructor(private readonly url, private readonly events: WAEvents[] | string[]) {
         this.log = new ConsoleLogger()
+        this.url = url
+        this.events = this.getSuitableEvents(events)
+    }
+
+    private getSuitableEvents(events: WAEvents[] | string[]) {
+        const allEvents = Object.values(WAEvents)
+
+        // Enable all events if * in the events
+        // @ts-ignore
+        if (events.includes("*")) {
+            return allEvents
+        }
+
+        // Get only known events, log and ignore others
+        const rightEvents = []
+        for (const event of events) {
+            // @ts-ignore
+            if (!allEvents.includes(event)) {
+                this.log.error(`Unknown event for webhook: '${event}'`)
+                continue
+            }
+            rightEvents.push(event)
+        }
+        return rightEvents
     }
 
     public configure(session: WhatsappSession) {
         this.log.log('Configuring webhooks...')
-        for (const [name, value] of Object.entries(Hooks)) {
-            const env_name = this.ENV_PREFIX + value
-            const url = this.config.get(env_name)
-            if (!url) {
-                this.log.log(`Hook '${name}' is disabled. Set ${env_name} environment variable to url if you want to enabled it.`)
-                continue
-            }
-            session.subscribe(value, (data: any) => this.callWebhook(data, url))
-            this.log.log(`Hook '${name}' was enabled to url: ${url}`)
+        for (const event of this.events) {
+            session.subscribe(event, (data: any) => this.callWebhook(event, data, this.url))
+            this.log.log(`Event '${event}' is enabled for url: ${this.url}`)
         }
         this.log.log('Webhooks were configured.')
     }
 
-    public callWebhook(data: any, url) {
+    public callWebhook(event, data: any, url) {
+        const json: WAWebhook = {event: event, payload: data}
         this.log.log(`Sending POST to ${url}...`)
-        this.log.debug(`POST DATA: ${JSON.stringify(data)}`)
+        this.log.debug(`POST DATA: ${JSON.stringify(json)}`)
+        this.post(json, url)
+    }
 
+    protected post(json, url) {
         request.post(
             url,
             {
-                json: data,
+                json: json,
                 maxAttempts: this.RETRY_ATTEMPTS,
                 retryDelay: this.RETRY_DELAY * SECOND,
                 retryStrategy: request.RetryStrategies.HTTPOrNetworkError
@@ -51,6 +71,5 @@ export class WebhookConductor {
                 this.log.log(`POST request was sent with status code: ${res.statusCode}`)
                 this.log.verbose(`Response: ${JSON.stringify(body)}`)
             })
-
     }
 }

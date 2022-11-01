@@ -139,16 +139,12 @@ If you try to send an image the "echo server" will send a path to the downloaded
 - `WHATSAPP_START_SESSION` - start session with that name right after launching the app
 
 ## Webhooks
+To receive incoming messages or other events from WhatsApp - we use [Webhooks](https://www.mparticle.com/blog/apis-vs-webhooks/). 
 
-The description of [webhooks you can in Venom README.md, section Events](https://github.com/orkestral/venom#events)
-
-All webhooks are disabled by default:
-
-- `WHATSAPP_HOOK_ONANYMESSAGE=http://localhost/uri`
-- `WHATSAPP_HOOK_ONMESSAGE=http://localhost/uri`
-- `WHATSAPP_HOOK_ONSTATECHANGE=http://localhost/uri`
-- `WHATSAPP_HOOK_ONACK=http://localhost/uri`
-- `WHATSAPP_HOOK_ONADDEDTOGROUP=http://localhost/uri`
+You can configure where you want to receive events in environment variables:
+- `WHATSAPP_HOOK_URL=https://httpbin.org/post`  - to set up a URL for the webhook
+- `WHATSAPP_HOOK_EVENTS=message,message.any,state.change,group.join,group.leave` - specify events. DO NOT specify all of them, it's too heavy payload, choose the right for you.
+- `WHATSAPP_HOOK_EVENTS=*` - subscribe to all events. Not recommended but fine for development
 
 If you want to look at the payload of the webhooks - use the url for that `https://httpbin.org/post`.
 
