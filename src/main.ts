@@ -20,7 +20,7 @@ async function bootstrap() {
         .addTag('sessions', 'Control your WhatsApp sessions')
         .addTag('screenshot', 'Get screenshot of WhatsApp and show QR code')
         .addTag('chatting', 'Chat methods')
-        .addTag('device', 'Device information')
+        .addTag('other', 'Other endpoints')
         .addApiKey({
                 type: 'apiKey',
                 description: 'Your secret key',

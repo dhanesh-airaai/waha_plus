@@ -1,5 +1,6 @@
 import {ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus,} from '@nestjs/common';
 import {Request, Response} from 'express';
+import {VERSION} from "../version";
 
 /**
  * Serializer error to JSON.
@@ -41,6 +42,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                     body: request.body,
                     query: request.query,
                 },
+                version: VERSION,
             });
 
     }
