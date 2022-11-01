@@ -15,3 +15,8 @@ export enum WhatsappStatus {
     WORKING = "WORKING",
     FAILED = "FAILED",
 }
+
+export enum WhatsappEngine {
+    VENOM = "VENOM",
+    WEBJS = "WEBJS"
+}

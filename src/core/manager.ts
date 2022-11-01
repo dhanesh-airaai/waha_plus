@@ -4,12 +4,15 @@ import {WhatsappSession} from "./session";
 import {WebhookConductor} from "./webhooks";
 import {WhatsappSessionWebJS} from "./session.webjs";
 import {LocalMediaStorage} from "./storage";
+import {WhatsappEngine} from "../structures/enums.dto";
+import {WhatsappSessionVenom} from "./session.venom";
 
 @Injectable()
 export class WhatsappSessionManager implements OnApplicationShutdown {
     private readonly sessions: Record<string, WhatsappSession>;
     private webhook: WebhookConductor
     private readonly storage: LocalMediaStorage;
+    private readonly defaultEngine: typeof WhatsappSession;
 
     constructor(
         private config: WhatsappConfigService,
@@ -24,15 +27,28 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         )
         this.sessions = {}
         this.webhook = new WebhookConductor(this.config.getWebhookUrl(), this.config.getWebhookEvents())
+        this.defaultEngine = this.getEngine(this.config.getDefaultEngineName())
 
         if (config.startSession) {
             this.startSession(config.startSession)
         }
     }
 
+    private getEngine(engine: WhatsappEngine): typeof WhatsappSession {
+        if (engine === WhatsappEngine.WEBJS) {
+            return WhatsappSessionWebJS
+        } else if (engine === WhatsappEngine.VENOM) {
+            return WhatsappSessionVenom
+        } else {
+            throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`)
+        }
+
+    }
+
     startSession(name: string) {
-        this.log.log(`Starting ${name} session...`)
-        const session = new WhatsappSessionWebJS(name, this.storage)
+        this.log.log(`Starting '${name}' session...`)
+        // @ts-ignore
+        const session = new this.defaultEngine(name, this.storage)
         session.start()
         this.sessions[name] = session
         this.webhook.configure(session)

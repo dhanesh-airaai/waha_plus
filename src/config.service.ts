@@ -1,5 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
+import {WhatsappEngine} from "./structures/enums.dto";
 
 @Injectable()
 export class WhatsappConfigService {
@@ -57,6 +58,15 @@ export class WhatsappConfigService {
     getWebhookEvents(): string[] {
         const value = this.get('WHATSAPP_HOOK_EVENTS', "")
         return value.split(',')
+    }
+
+    getDefaultEngineName(): WhatsappEngine {
+        const value =  this.get("WHATSAPP_DEFAULT_ENGINE", WhatsappEngine.WEBJS)
+        if (value in WhatsappEngine){
+            return WhatsappEngine[value]
+        }
+        console.log(`Unknown WhatsApp default engine, using WEBJS. WHATSAPP_DEFAULT_ENGINE=${value}`)
+
     }
 
     get(name: string, defaultValue = undefined): any {
