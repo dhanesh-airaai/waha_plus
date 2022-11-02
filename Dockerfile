@@ -1,4 +1,4 @@
-FROM node:15
+FROM node:18
 # Chrome
 RUN apt-get update \
     && apt-get install -y wget gnupg \

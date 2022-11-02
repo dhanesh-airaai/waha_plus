@@ -2,6 +2,11 @@ Dockerfile
 tokens
 files
 venv
+.wwebjs_auth
+docs
+examples
+.github
+.git
 
 # compiled output
 /dist
