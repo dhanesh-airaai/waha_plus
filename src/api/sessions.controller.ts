@@ -1,7 +1,7 @@
 import {Body, Controller, Get, Post} from '@nestjs/common';
 import {ApiTags} from "@nestjs/swagger";
 import {WhatsappSessionManager} from "../core/manager";
-import {SessionRequest} from "../structures/chatting.dto";
+import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 
 
 @Controller('api/sessions')
@@ -12,18 +12,18 @@ export class SessionsController {
 
 
     @Post('/start/')
-    async start(@Body() request: SessionRequest) {
-        this.whatsappSessionManager.startSession(request.sessionName)
+    start(@Body() request: SessionStartRequest): SessionDTO {
+        return this.whatsappSessionManager.start(request)
     }
 
     @Post('/stop/')
-    async stop(@Body() request: SessionRequest) {
-        await this.whatsappSessionManager.stopSession(request.sessionName)
+    stop(@Body() request: SessionStopRequest): Promise<void> {
+        return this.whatsappSessionManager.stop(request)
     }
 
     @Get('/')
-    async list() {
-        return this.whatsappSessionManager.getAllSessions()
+    list(): SessionDTO[] {
+        return this.whatsappSessionManager.getSessions()
     }
 }
 

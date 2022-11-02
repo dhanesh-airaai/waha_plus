@@ -6,6 +6,7 @@ import {WhatsappSessionWebJS} from "./session.webjs";
 import {LocalMediaStorage} from "./storage";
 import {WhatsappEngine} from "../structures/enums.dto";
 import {WhatsappSessionVenom} from "./session.venom";
+import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 
 @Injectable()
 export class WhatsappSessionManager implements OnApplicationShutdown {
@@ -30,7 +31,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         this.defaultEngine = this.getEngine(this.config.getDefaultEngineName())
 
         if (config.startSession) {
-            this.startSession(config.startSession)
+            this.start({name: config.startSession})
         }
     }
 
@@ -42,10 +43,10 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         } else {
             throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`)
         }
-
     }
 
-    startSession(name: string) {
+    start(request: SessionStartRequest) {
+        const name = request.name
         this.log.log(`'${name}' - staring session...`)
         // @ts-ignore
         const session = new this.defaultEngine(name, this.storage)
@@ -53,6 +54,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         session.start().then(() => {
             this.webhook.configure(session)
         })
+        return {name: session.name, status: session.status}
     }
 
     getSession(name: string): WhatsappSession {
@@ -65,7 +67,8 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         return session
     }
 
-    async stopSession(name: string) {
+    async stop(request: SessionStopRequest) {
+        const name = request.name
         this.log.log(`Stopping ${name} session...`)
         const session = this.getSession(name)
         await session.stop()
@@ -73,7 +76,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         delete this.sessions[name]
     }
 
-    getAllSessions() {
+    getSessions(): SessionDTO[] {
         return Object.values(this.sessions).map((session) => {
             return {name: session.name, status: session.status}
         })
@@ -81,8 +84,8 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
 
     async onApplicationShutdown(signal ?: string) {
         this.log.log('Stop all sessions...')
-        for (const sessionName of Object.keys(this.sessions)) {
-            await this.stopSession(sessionName)
+        for (const name of Object.keys(this.sessions)) {
+            await this.stop({name: name})
         }
     }
 

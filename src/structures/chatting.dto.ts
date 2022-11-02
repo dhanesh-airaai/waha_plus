@@ -28,18 +28,19 @@ export class MessageTextQuery extends SessionQuery {
 /**
  * Requests
  */
-export class SessionRequest {
-    sessionName = WHATSAPP_DEFAULT_SESSION_NAME
+
+export class SessionBaseRequest {
+    session = WHATSAPP_DEFAULT_SESSION_NAME
 }
 
-export class ChatRequest extends SessionRequest {
+export class ChatRequest extends SessionBaseRequest {
     @ApiProperty({
         example: 'false_71111111111@c.us',
     })
     chatId: string
 }
 
-export class MessageRequest extends SessionRequest{
+export class MessageRequest extends SessionBaseRequest{
     @ApiProperty({
         example: "false_71111111111@c.us_AAAAAAAAAAAAAAAAAAAA",
     })
