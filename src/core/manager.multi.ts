@@ -1,15 +1,16 @@
-import {ConsoleLogger, Injectable, NotFoundException, OnApplicationShutdown} from "@nestjs/common";
+import {ConsoleLogger, Injectable, NotFoundException} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
-import {WhatsappSession} from "./session";
+import {WhatsappSession} from "./abc/session.abc";
 import {WebhookConductor} from "./webhooks";
 import {WhatsappSessionWebJS} from "./session.webjs";
 import {LocalMediaStorage} from "./storage";
 import {WhatsappEngine} from "../structures/enums.dto";
 import {WhatsappSessionVenom} from "./session.venom";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
+import {SessionManager} from "./abc/manager.abc";
 
 @Injectable()
-export class WhatsappSessionManager implements OnApplicationShutdown {
+export class MultiSessionManager implements SessionManager {
     private readonly sessions: Record<string, WhatsappSession>;
     private webhook: WebhookConductor
     private readonly storage: LocalMediaStorage;
@@ -19,7 +20,7 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
         private config: WhatsappConfigService,
         private log: ConsoleLogger,
     ) {
-        this.log.setContext('WhatsappSessionManager')
+        this.log.setContext('MultiSessionManager')
         this.storage = new LocalMediaStorage(
             this.config.filesFolder,
             this.config.filesURL,
@@ -88,5 +89,4 @@ export class WhatsappSessionManager implements OnApplicationShutdown {
             await this.stop({name: name})
         }
     }
-
 }

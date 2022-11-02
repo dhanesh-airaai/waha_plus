@@ -2,7 +2,7 @@ import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessa
 import {Buttons, Chat, Client, Events, LocalAuth, Message, MessageId, MessageMedia} from "whatsapp-web.js";
 import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
-import {WhatsappSession} from "./session";
+import {WhatsappSession} from "./abc/session.abc";
 import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
 import {ensureSuffix} from "../utils";
 import {

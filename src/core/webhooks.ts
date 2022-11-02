@@ -1,5 +1,5 @@
 import request = require('requestretry');
-import {WhatsappSession} from "./session";
+import {WhatsappSession} from "./abc/session.abc";
 import {ConsoleLogger} from "@nestjs/common";
 import {SECOND, WAEvents} from "../structures/enums.dto";
 import {WAWebhook} from "../structures/responses.dto";

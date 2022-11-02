@@ -1,6 +1,6 @@
 import {Body, Controller, Get, Post, Put, Query} from '@nestjs/common';
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
-import {WhatsappSessionManager} from "../core/manager";
+import {MultiSessionManager} from "../core/manager.multi";
 import {
     ChatRequest,
     CheckNumberStatusQuery,
@@ -21,7 +21,7 @@ import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
 @Controller('api')
 @ApiTags('chatting')
 export class ChattingController {
-    constructor(private whatsappSessionManager: WhatsappSessionManager) {
+    constructor(private whatsappSessionManager: MultiSessionManager) {
     }
 
     @Get('/checkNumberStatus')

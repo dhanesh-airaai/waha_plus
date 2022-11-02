@@ -1,4 +1,4 @@
-import {WhatsappSession} from "./session";
+import {WhatsappSession} from "./abc/session.abc";
 import {
     Button,
     ChatRequest,

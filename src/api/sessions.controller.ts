@@ -1,13 +1,13 @@
 import {Body, Controller, Get, Post} from '@nestjs/common';
 import {ApiTags} from "@nestjs/swagger";
-import {WhatsappSessionManager} from "../core/manager";
+import {MultiSessionManager} from "../core/manager.multi";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 
 
 @Controller('api/sessions')
 @ApiTags('sessions')
 export class SessionsController {
-    constructor(private whatsappSessionManager: WhatsappSessionManager) {
+    constructor(private whatsappSessionManager: MultiSessionManager) {
     }
 
 

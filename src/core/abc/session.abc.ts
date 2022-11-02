@@ -1,6 +1,6 @@
-import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
+import {WAEvents, WhatsappStatus} from "../../structures/enums.dto";
 import {ConsoleLogger} from "@nestjs/common";
-import {LocalMediaStorage} from "./storage";
+import {LocalMediaStorage} from "../storage";
 import {
     ChatRequest,
     CheckNumberStatusQuery,
@@ -14,7 +14,7 @@ import {
     MessageTextButtonsRequest,
     MessageTextRequest,
     MessageVoiceRequest
-} from "../structures/chatting.dto";
+} from "../../structures/chatting.dto";
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
