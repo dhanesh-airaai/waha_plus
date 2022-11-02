@@ -31,7 +31,7 @@ export class LocalMediaStorage {
 
     public async save(messageId, mimetype, buffer): Promise<string> {
         if (!this.needToDownload(mimetype)) {
-            console.log(`The message ${messageId} has ${mimetype} media, skip it.`);
+            this.log.log(`The message ${messageId} has ${mimetype} media, skip it.`);
             return ""
         }
 
@@ -44,7 +44,7 @@ export class LocalMediaStorage {
 
     private postponeRemoval(filepath: string) {
         setTimeout(() => fs.unlink(filepath, () => {
-            console.log(`File ${filepath} was removed`)
+            this.log.log(`File ${filepath} was removed`)
         }), this.lifetime)
     }
 
@@ -54,12 +54,12 @@ export class LocalMediaStorage {
                     if (paths.length === 0) {
                         return
                     }
-                    console.log('Deleted files and directories:\n', paths.join('\n'))
+                    this.log.log('Deleted files and directories:\n', paths.join('\n'))
                 }
             )
         } else {
             fs.mkdirSync(this.filesFolder)
-            console.log(`Directory '${this.filesFolder}' created from scratch`)
+            this.log.log(`Directory '${this.filesFolder}' created from scratch`)
         }
     }
 }

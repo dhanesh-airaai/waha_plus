@@ -77,6 +77,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
         }
 
         this.status = WhatsappStatus.WORKING
+        return this
     }
 
 

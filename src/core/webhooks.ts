@@ -7,14 +7,13 @@ import {NotImplementedByEngineError} from "./exceptions";
 
 
 export class WebhookConductor {
-    private log: ConsoleLogger;
     private RETRY_DELAY = 15
     private RETRY_ATTEMPTS = 3;
 
-    constructor(private readonly url, private readonly events: WAEvents[] | string[]) {
-        this.log = new ConsoleLogger()
+    constructor(protected log: ConsoleLogger, private readonly url, private readonly events: WAEvents[] | string[]) {
         this.url = url
         this.events = this.getSuitableEvents(events)
+        this.log = log
     }
 
     private getSuitableEvents(events: WAEvents[] | string[]) {
@@ -45,9 +44,9 @@ export class WebhookConductor {
             try {
                 session.subscribe(event, (data: any) => this.callWebhook(event, data, this.url))
             } catch (error) {
-                if (error instanceof NotImplementedByEngineError){
+                if (error instanceof NotImplementedByEngineError) {
                     this.log.error(error)
-                } else{
+                } else {
                     throw error
                 }
             }

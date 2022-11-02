@@ -29,7 +29,7 @@ const qrcode = require('qrcode-terminal');
 export class WhatsappSessionWebJS extends WhatsappSession {
     whatsapp: Client;
 
-    start() {
+    async start() {
         this.whatsapp = new Client({
             authStrategy: new LocalAuth({clientId: this.name}),
             puppeteer: {headless: true}
@@ -51,6 +51,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
             this.status = WhatsappStatus.WORKING
             this.log.log(`Session '${this.name}' has been authenticated!`)
         });
+        return this
     }
 
     stop() {

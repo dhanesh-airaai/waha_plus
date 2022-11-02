@@ -12,7 +12,6 @@ import {SessionManager} from "./abc/manager.abc";
 @Injectable()
 export class MultiSessionManager implements SessionManager {
     private readonly sessions: Record<string, WhatsappSession>;
-    private webhook: WebhookConductor
     private readonly defaultEngine: typeof WhatsappSession;
 
     constructor(
@@ -21,7 +20,6 @@ export class MultiSessionManager implements SessionManager {
     ) {
         this.log.setContext('SessionManager')
         this.sessions = {}
-        this.webhook = new WebhookConductor(this.config.getWebhookUrl(), this.config.getWebhookEvents())
         this.defaultEngine = this.getEngine(this.config.getDefaultEngineName())
 
         this.clearStorage()
@@ -31,7 +29,8 @@ export class MultiSessionManager implements SessionManager {
             this.start({name: config.startSession})
         }
     }
-    private clearStorage(){
+
+    private clearStorage() {
         /* We need to clear the local storage just once */
         const storage = new LocalMediaStorage(
             new ConsoleLogger(`Storage`),
@@ -65,13 +64,18 @@ export class MultiSessionManager implements SessionManager {
             this.config.filesLifetime,
             this.config.mimetypes,
         )
+        const webhookLog = new ConsoleLogger(`Webhook - ${name}`)
+        const webhook = new WebhookConductor(
+            webhookLog,
+            this.config.getWebhookUrl(),
+            this.config.getWebhookEvents()
+        )
+
         // @ts-ignore
         const session = new this.defaultEngine(name, storage, log)
         this.sessions[name] = session
 
-        session.start().then(() => {
-            this.webhook.configure(session)
-        })
+        session.start().then(() => webhook.configure(session))
         return {name: session.name, status: session.status}
     }
 

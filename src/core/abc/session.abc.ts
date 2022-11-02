@@ -22,13 +22,14 @@ export abstract class WhatsappSession {
     public constructor(public name: string, protected storage: LocalMediaStorage, protected log: ConsoleLogger) {
         this.name = name
         this.status = WhatsappStatus.STARTING
+        this.log = log
     }
 
     /** Start the session */
     abstract start()
 
     /** Stop the session */
-    abstract stop()
+    abstract stop(): void
 
     /** Subscribe the handler to specific hook */
     abstract subscribe(hook: WAEvents | string, handler: (message) => void)
