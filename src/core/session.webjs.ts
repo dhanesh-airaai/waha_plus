@@ -32,7 +32,11 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     async start() {
         this.whatsapp = new Client({
             authStrategy: new LocalAuth({clientId: this.name}),
-            puppeteer: {headless: true}
+            puppeteer: {
+                headless: true,
+                executablePath: "/usr/bin/google-chrome-stable",
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            }
         });
 
         this.whatsapp.initialize().catch(error => {

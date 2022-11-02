@@ -1,7 +1,7 @@
 import {WhatsappStatus} from "./enums.dto";
 
 export class SessionStartRequest {
-    name: string
+    name = "default"
 }
 
 export class SessionStopRequest {
