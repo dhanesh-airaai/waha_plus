@@ -4,7 +4,7 @@ import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./abc/session.abc";
 import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
-import {ensureSuffix} from "../utils";
+import {ensureSuffix} from "./utils";
 import {
     BinaryFile,
     ChatRequest,
