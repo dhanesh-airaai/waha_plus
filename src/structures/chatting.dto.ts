@@ -21,7 +21,7 @@ export class MessageTextQuery extends SessionQuery {
     @IsString()
     phone: string
     @IsString()
-    text: string
+    text = "Hi there!"
 }
 
 
@@ -35,14 +35,14 @@ export class SessionBaseRequest {
 
 export class ChatRequest extends SessionBaseRequest {
     @ApiProperty({
-        example: 'false_71111111111@c.us',
+        example: '11111111111@c.us',
     })
     chatId: string
 }
 
 export class MessageRequest extends SessionBaseRequest{
     @ApiProperty({
-        example: "false_71111111111@c.us_AAAAAAAAAAAAAAAAAAAA",
+        example: "false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA",
     })
     messageId: string
 }
@@ -53,7 +53,7 @@ export class MessageContactVcardRequest extends ChatRequest {
 }
 
 export class MessageTextRequest extends ChatRequest {
-    text: string;
+    text = "Hi there!"
 }
 
 export class Button {
@@ -68,9 +68,9 @@ export class MessageTextButtonsRequest extends ChatRequest {
 }
 
 export class MessageReplyRequest extends ChatRequest {
-    text: string;
+    text = "Reply text"
     @ApiProperty({
-        example: 'false_71111111111@c.us_AAAAAAAAAAAAAAAAAAAA',
+        example: 'false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA',
     })
     reply_to: string;
 }

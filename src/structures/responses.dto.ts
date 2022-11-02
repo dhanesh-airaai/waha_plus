@@ -58,7 +58,7 @@ export class WALocation {
 export class WAMessage {
     @ApiProperty({
         description: "Message ID",
-        example: "false_71111111111@c.us_AAAAAAAAAAAAAAAAAAAA"
+        example: "false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA"
     })
     id: string
 
@@ -100,7 +100,7 @@ export class WAMessage {
 
     @ApiProperty({
         description: "The URL for the media in the message if any",
-        example: "http://localhost:3000/api/files/false_71111111111@c.us_AAAAAAAAAAAAAAAAAAAA.oga"
+        example: "http://localhost:3000/api/files/false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA.oga"
     })
     mediaUrl: string
 

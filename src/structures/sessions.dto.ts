@@ -5,10 +5,10 @@ export class SessionStartRequest {
 }
 
 export class SessionStopRequest {
-    name: string
+    name = "default"
 }
 
 export class SessionDTO {
-    name: string
+    name = "default"
     status: WhatsappStatus
 }
