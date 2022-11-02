@@ -133,10 +133,11 @@ If you try to send an image the "echo server" will send a path to the downloaded
 
 ## Common
 
-- `DEBUG` - show debug and verbose logs, set in any value
-- `WHATSAPP_API_PORT` - listen port for HTTP server (default: `3000`)
-- `WHATSAPP_API_HOSTNAME` - Hostname for HTTP server (default: `localhost`)
-- `WHATSAPP_START_SESSION` - start session with that name right after launching the app
+- `DEBUG=1` - show debug and verbose logs, set in any value
+- `WHATSAPP_API_PORT=3000` - listen port for HTTP server (default: `3000`)
+- `WHATSAPP_API_HOSTNAME=localhost` - Hostname for HTTP server (default: `localhost`)
+- `WHATSAPP_API_KEY=mysecret` - protect the api with a secret code. If you set it - add `X-Api-Key: mysecret` to all requests.
+- `WHATSAPP_START_SESSION=default` - start session with the name right after launching the app
 
 ## Webhooks
 To receive incoming messages or other events from WhatsApp - we use [Webhooks](https://www.mparticle.com/blog/apis-vs-webhooks/). 

@@ -1,11 +1,12 @@
 import {Controller, Get, Query, Res} from '@nestjs/common';
-import {ApiTags} from "@nestjs/swagger";
+import {ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {Readable} from "stream";
 import {Response} from 'express';
 import {MultiSessionManager} from "../core/manager.multi";
 import {SessionQuery} from "../structures/chatting.dto";
 
 
+@ApiSecurity('api_key')
 @Controller('api')
 @ApiTags('screenshot')
 export class ScreenshotController {

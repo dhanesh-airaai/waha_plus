@@ -72,4 +72,8 @@ export class WhatsappConfigService {
     get(name: string, defaultValue = undefined): any {
         return this.configService.get(name, defaultValue)
     }
+
+    getApiKey(): string | undefined {
+        return this.configService.get("WHATSAPP_API_KEY", "")
+    }
 }

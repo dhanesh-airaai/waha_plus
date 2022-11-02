@@ -1,5 +1,5 @@
 import {Body, Controller, Get, Post, Put, Query} from '@nestjs/common';
-import {ApiOperation, ApiTags} from "@nestjs/swagger";
+import {ApiOperation, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {MultiSessionManager} from "../core/manager.multi";
 import {
     ChatRequest,
@@ -18,6 +18,7 @@ import {
 } from "../structures/chatting.dto";
 import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
 
+@ApiSecurity('api_key')
 @Controller('api')
 @ApiTags('chatting')
 export class ChattingController {

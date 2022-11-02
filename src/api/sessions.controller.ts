@@ -1,9 +1,10 @@
 import {Body, Controller, Get, Post} from '@nestjs/common';
-import {ApiTags} from "@nestjs/swagger";
+import {ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {MultiSessionManager} from "../core/manager.multi";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 
 
+@ApiSecurity('api_key')
 @Controller('api/sessions')
 @ApiTags('sessions')
 export class SessionsController {

@@ -1,8 +1,9 @@
 import {Controller, Get} from '@nestjs/common';
-import {ApiTags} from "@nestjs/swagger";
+import {ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {VERSION} from "../version";
 
 
+@ApiSecurity('api_key')
 @Controller('api/version')
 @ApiTags('other')
 export class VersionController {

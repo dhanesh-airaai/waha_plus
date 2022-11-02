@@ -1,4 +1,4 @@
-import {ConsoleLogger, Module} from '@nestjs/common';
+import {ConsoleLogger, MiddlewareConsumer, Module} from '@nestjs/common';
 import {ScreenshotController} from "./api/screenshot.controller";
 import {ConfigModule} from "@nestjs/config";
 import {WhatsappConfigService} from "./config.service";
@@ -7,6 +7,9 @@ import {SessionsController} from "./api/sessions.controller";
 import {ChattingController} from "./api/chatting.controller";
 import {MultiSessionManager} from "./core/manager.multi";
 import {VersionController} from "./api/version.controller";
+import {PassportModule} from "@nestjs/passport";
+import {ApiKeyStrategy} from "./plus/auth/apiKey.strategy";
+import {AuthMiddleware} from "./plus/auth/auth.middleware";
 
 @Module({
     imports: [
@@ -24,6 +27,7 @@ import {VersionController} from "./api/version.controller";
                 }]
             },
         }),
+        PassportModule,
     ],
     controllers: [
         SessionsController,
@@ -31,7 +35,10 @@ import {VersionController} from "./api/version.controller";
         ScreenshotController,
         VersionController,
     ],
-    providers: [MultiSessionManager, ConsoleLogger, WhatsappConfigService],
+    providers: [MultiSessionManager, ConsoleLogger, WhatsappConfigService, ApiKeyStrategy],
 })
 export class AppModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(AuthMiddleware).forRoutes("");
+    }
 }

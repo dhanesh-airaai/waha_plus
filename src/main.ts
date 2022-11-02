@@ -23,8 +23,8 @@ async function bootstrap() {
         .addTag('other', 'Other endpoints')
         .addApiKey({
                 type: 'apiKey',
-                description: 'Your secret key',
-                name: 'X-VENOM-TOKEN'
+                description: 'Your secret api key',
+                name: 'X-Api-Key'
             }
         )
         .build();
