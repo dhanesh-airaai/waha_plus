@@ -15,8 +15,8 @@ import {
     MessageTextQuery,
     MessageTextRequest,
     MessageVoiceRequest
-} from "../structures/requests.dto";
-import {WAMessage} from "../structures/WA.dto";
+} from "../structures/chatting.dto";
+import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
 
 @Controller('api')
 @ApiTags('chatting')
@@ -26,9 +26,7 @@ export class ChattingController {
 
     @Get('/checkNumberStatus')
     @ApiOperation({summary: 'Check number status'})
-    async checkNumberStatus(
-        @Query() request: CheckNumberStatusQuery,
-    ) {
+    async checkNumberStatus(@Query() request: CheckNumberStatusQuery): Promise<WANumberExistResult> {
         const whatsapp = this.whatsappSessionManager.getSession(request.sessionName)
         return whatsapp.checkNumberStatus(request)
     }

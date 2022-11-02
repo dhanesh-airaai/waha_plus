@@ -3,7 +3,7 @@ import {Buttons, Chat, Client, Events, LocalAuth, Message, MessageId, MessageMed
 import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./session";
-import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
+import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
 import {ensureSuffix} from "../utils";
 import {
     BinaryFile,
@@ -19,7 +19,7 @@ import {
     MessageTextButtonsRequest,
     MessageTextRequest,
     RemoteFile
-} from "../structures/requests.dto";
+} from "../structures/chatting.dto";
 import {NotImplementedByEngineError} from "./exceptions";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

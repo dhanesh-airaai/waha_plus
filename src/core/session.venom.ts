@@ -12,8 +12,8 @@ import {
     MessageReplyRequest,
     MessageTextButtonsRequest,
     MessageTextRequest
-} from "../structures/requests.dto";
-import {WAMessage, WANumberExistResult} from "../structures/WA.dto";
+} from "../structures/chatting.dto";
+import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
 import {ensureSuffix} from "../utils";
 import {create, Message, Whatsapp} from "venom-bot";
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";

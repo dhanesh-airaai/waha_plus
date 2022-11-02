@@ -5,11 +5,6 @@ export class WANumberExistResult {
     numberExists: boolean
 }
 
-export class WAWebhook {
-    event: WAEvents
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    payload: object
-}
 
 export class WAGroupNotification {
     @ApiProperty({
@@ -134,4 +129,10 @@ export class WAMessage {
         description: "Message in a raw format that we get from WhatsApp. May be changed anytime, use it with caution! It depends a lot on the underlying backend."
     })
     _data?: any
+}
+
+export class WAWebhook {
+    event: WAEvents
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    payload: WAMessage | WAGroupNotification | object
 }

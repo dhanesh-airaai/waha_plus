@@ -2,7 +2,7 @@ import request = require('requestretry');
 import {WhatsappSession} from "./session";
 import {ConsoleLogger} from "@nestjs/common";
 import {SECOND, WAEvents} from "../structures/enums.dto";
-import {WAWebhook} from "../structures/WA.dto";
+import {WAWebhook} from "../structures/responses.dto";
 import {NotImplementedByEngineError} from "./exceptions";
 
 

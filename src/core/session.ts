@@ -14,7 +14,7 @@ import {
     MessageTextButtonsRequest,
     MessageTextRequest,
     MessageVoiceRequest
-} from "../structures/requests.dto";
+} from "../structures/chatting.dto";
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
