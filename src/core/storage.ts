@@ -3,6 +3,7 @@ import del = require("del");
 import {promisify} from "util";
 import {SECOND} from "../structures/enums.dto";
 import * as path from "path";
+import {ConsoleLogger} from "@nestjs/common";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
 
@@ -11,10 +12,8 @@ const writeFileAsync = promisify(fs.writeFile)
 export class LocalMediaStorage {
     private readonly lifetime: number;
 
-    constructor(private filesFolder, private baseUrl, private lifetimeSeconds, private mimetypes) {
+    constructor(protected log: ConsoleLogger, private filesFolder, private baseUrl, private lifetimeSeconds, private mimetypes) {
         this.lifetime = lifetimeSeconds * SECOND
-
-        this.cleanFolder()
     }
 
     /**
@@ -49,7 +48,7 @@ export class LocalMediaStorage {
         }), this.lifetime)
     }
 
-    private cleanFolder() {
+    purge() {
         if (fs.existsSync(this.filesFolder)) {
             del([`${this.filesFolder}/*`], {force: true}).then((paths) => {
                     if (paths.length === 0) {

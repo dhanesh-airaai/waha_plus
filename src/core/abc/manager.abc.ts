@@ -3,6 +3,7 @@ import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../../structu
 import {WhatsappSession} from "./session.abc";
 
 export abstract class SessionManager implements OnApplicationShutdown {
+
     abstract start(request: SessionStartRequest): SessionDTO
 
     abstract stop(request: SessionStopRequest): void

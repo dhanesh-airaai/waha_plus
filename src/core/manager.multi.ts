@@ -13,27 +13,34 @@ import {SessionManager} from "./abc/manager.abc";
 export class MultiSessionManager implements SessionManager {
     private readonly sessions: Record<string, WhatsappSession>;
     private webhook: WebhookConductor
-    private readonly storage: LocalMediaStorage;
     private readonly defaultEngine: typeof WhatsappSession;
 
     constructor(
         private config: WhatsappConfigService,
         private log: ConsoleLogger,
     ) {
-        this.log.setContext('MultiSessionManager')
-        this.storage = new LocalMediaStorage(
+        this.log.setContext('SessionManager')
+        this.sessions = {}
+        this.webhook = new WebhookConductor(this.config.getWebhookUrl(), this.config.getWebhookEvents())
+        this.defaultEngine = this.getEngine(this.config.getDefaultEngineName())
+
+        this.clearStorage()
+
+        // Start session from the start
+        if (config.startSession) {
+            this.start({name: config.startSession})
+        }
+    }
+    private clearStorage(){
+        /* We need to clear the local storage just once */
+        const storage = new LocalMediaStorage(
+            new ConsoleLogger(`Storage`),
             this.config.filesFolder,
             this.config.filesURL,
             this.config.filesLifetime,
             this.config.mimetypes,
         )
-        this.sessions = {}
-        this.webhook = new WebhookConductor(this.config.getWebhookUrl(), this.config.getWebhookEvents())
-        this.defaultEngine = this.getEngine(this.config.getDefaultEngineName())
-
-        if (config.startSession) {
-            this.start({name: config.startSession})
-        }
+        storage.purge()
     }
 
     private getEngine(engine: WhatsappEngine): typeof WhatsappSession {
@@ -48,10 +55,20 @@ export class MultiSessionManager implements SessionManager {
 
     start(request: SessionStartRequest) {
         const name = request.name
+
         this.log.log(`'${name}' - staring session...`)
+        const log = new ConsoleLogger(`WhatsappSession - ${name}`)
+        const storage = new LocalMediaStorage(
+            new ConsoleLogger(`Storage - ${name}`),
+            this.config.filesFolder,
+            this.config.filesURL,
+            this.config.filesLifetime,
+            this.config.mimetypes,
+        )
         // @ts-ignore
-        const session = new this.defaultEngine(name, this.storage)
+        const session = new this.defaultEngine(name, storage, log)
         this.sessions[name] = session
+
         session.start().then(() => {
             this.webhook.configure(session)
         })

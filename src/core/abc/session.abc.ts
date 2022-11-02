@@ -18,13 +18,10 @@ import {
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
-    protected log: ConsoleLogger;
 
-    public constructor(public name: string, protected storage: LocalMediaStorage) {
+    public constructor(public name: string, protected storage: LocalMediaStorage, protected log: ConsoleLogger) {
         this.name = name
         this.status = WhatsappStatus.STARTING
-        this.log = new ConsoleLogger()
-        this.log.setContext(`WhatsappService - ${this.name}`)
     }
 
     /** Start the session */
