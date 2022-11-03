@@ -35,7 +35,7 @@ toc: true
 - Kick group participants
 - Promote/demote group participants
 
-# Contacts, users
+### Contacts
 - Mention users
 - Mute/unmute chats
 - Block/unblock contacts
