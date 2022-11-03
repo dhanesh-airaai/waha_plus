@@ -1,8 +1,8 @@
 [[docs]]
-  name = "Prologue"
+  name = "Overview"
   weight = 10
-  identifier = "prologue"
-  url = "/docs/prologue/"
+  identifier = "overview"
+  url = "/docs/overview/"
 
 [[docs]]
   name = "Help"
@@ -18,9 +18,9 @@
 
 
 [[main]]
-  name = "Docs"
-  url = "/docs/prologue/introduction/"
-# url = "/docs/1.0/prologue/introduction/"
+  name = "Documentation"
+  url = "/docs/overview/introduction/"
+# url = "/docs/1.0/overview/introduction/"
   weight = 10
 
 
@@ -29,25 +29,25 @@
 #  url = "/blog/"
 #  weight = 20
 
-[[main]]
-  name = "Get Started"
-  weight = 30
-  identifier = "get-started"
-  url = "/docs/prologue/introduction/"
+#[[main]]
+#  name = "Get Started"
+#  weight = 30
+#  identifier = "get-started"
+#  url = "/docs/overview/introduction/"
 
-[[main]]
-  name = "Quick Start"
-  weight = 40
-  identifier = "quick-start"
-  url = "/docs/prologue/quick-start/"
-  parent = "get-started"
+#[[main]]
+#  name = "Quick Start"
+#  weight = 40
+#  identifier = "quick-start"
+#  url = "/docs/overview/quick-start/"
+#  parent = "get-started"
 
-[[main]]
-  name = "Tutorial"
-  weight = 50
-  identifier = "tutorial"
-  url = "https://getdoks.org/tutorial/introduction/"
-  parent = "get-started"
+#[[main]]
+#  name = "Tutorial"
+#  weight = 50
+#  identifier = "tutorial"
+#  url = "https://getdoks.org/tutorial/introduction/"
+#  parent = "get-started"
 
 [[social]]
   name = "GitHub"

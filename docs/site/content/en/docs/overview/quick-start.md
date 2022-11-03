@@ -8,7 +8,7 @@ draft: false
 images: []
 menu:
   docs:
-    parent: "prologue"
+    parent: "overview"
 weight: 110
 toc: true
 ---
@@ -74,6 +74,3 @@ npm run start
 
 Doks will start the Hugo development webserver accessible by default at `http://localhost:1313`. Saved changes will live reload in the browser.
 
-## Other commands
-
-Doks comes with commands for common tasks. [Commands →]({{< relref "commands" >}})
