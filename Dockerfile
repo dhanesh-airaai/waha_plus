@@ -12,7 +12,7 @@ RUN npm install
 # App
 WORKDIR /src
 ADD . /src
-RUN npm run build
+RUN npm run build && find ./dist -name "*.d.ts" -delete
 
 #
 # Final
