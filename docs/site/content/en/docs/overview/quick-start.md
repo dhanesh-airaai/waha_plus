@@ -1,7 +1,7 @@
 ---
 title: "Quick Start"
-description: "One page summary of how to start a new Doks project."
-lead: "One page summary of how to start a new Doks project."
+description: "One page summary of how to start WhatsApp HTTP API."
+lead: "One page summary of how to start WhatsApp HTTP API."
 date: 2020-11-16T13:59:39+01:00
 lastmod: 2020-11-16T13:59:39+01:00
 draft: false
@@ -15,62 +15,35 @@ toc: true
 
 ## Requirements
 
-- [Git](https://git-scm.com/) — latest source release
-- [Node.js](https://nodejs.org/) — latest LTS version or newer
+Only thing that you must have - installed docker. Please follow the original
+instruction <a href="https://docs.docker.com/get-docker/" target="_blank" rel="noopener">how to install docker -></a>.
 
-{{< details "Why Node.js?" >}}
-Doks uses npm (included with Node.js) to centralize dependency management, making it [easy to update]({{< relref "how-to-update" >}}) resources, build tooling, plugins, and build scripts.
+
+{{< details "Why Docker?" >}}
+Docker makes it easy to ship all-in-one solution with the runtime and dependencies. You don't have to worry about language-specific libraries or chrome installation.
+
+Also Docker makes installation and update processes so simple, just one command!
 {{< /details >}}
 
-## Start a new Doks project
+## Send your first message
+Let's go over steps that allow you to send your first text message via WhatsApp HTTP API!
 
-Create a new site, change directories, install dependencies, and start development server.
+### 1. Download image
+Assuming you have installed [Docker](https://docs.docker.com/get-docker/), let's download the image
 
-### Create a new site
-
-Doks is available as a child theme and a starter theme.
-
-#### Child theme
-
-- Intended for novice to intermediate users
-- Intended for minor customizations
-- [Easily update npm packages]({{< relref "how-to-update" >}}) — __including__ [Doks](https://www.npmjs.com/package/@hyas/doks)
-
+#### Core
+For ![](/images/versions/core.png) version the command is
 ```bash
-git clone https://github.com/h-enk/doks-child-theme.git my-doks-site
+docker pull devlikeapro/whatsapp-http-api
 ```
 
-#### Starter theme
-
-- Intended for intermediate to advanced users
-- Intended for major customizations
-- [Easily update npm packages]({{< relref "how-to-update" >}})
-
+#### Plus
+For ![](/images/versions/core.png) version, we use login to get the image before:
 ```bash
-git clone https://github.com/h-enk/doks.git my-doks-site
+docker login -u devlikeapro -p {PASSWORD}
+docker pull devlikeapro/whatsapp-http-api-plus
+docker logout
 ```
+Read more about how to get `PASSWORD` for [Plus Version →]({{< relref "plus-version" >}})
 
-{{< details "Help me choose" >}}
-Not sure which one is for you? Pick the child theme.
-{{< /details >}}
-
-### Change directories
-
-```bash
-cd my-doks-site
-```
-
-### Install dependencies
-
-```bash
-npm install
-```
-
-### Start development server
-
-```bash
-npm run start
-```
-
-Doks will start the Hugo development webserver accessible by default at `http://localhost:1313`. Saved changes will live reload in the browser.
-
+{{< alert icon="ℹ" text="Use **whatsapp-http-api-plus** image name in all commands" />}}
