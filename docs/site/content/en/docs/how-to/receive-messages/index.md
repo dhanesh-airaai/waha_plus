@@ -35,7 +35,11 @@ Where `event` value helps you identify the incoming event with `payload` for tha
 
 Below the list of all events that WhatsApp HTTP API sends to your.
 
-{{< alert icon="👉" text="You can set https://httpbin.org/post as webhook url to see the JSON body in console" />}}
+{{< alert icon="👉" text="If you want to look at a webhook body - use the url `https://httpbin.org/post`" />}}
+
+```bash
+docker run -it -e WHATSAPP_HOOK_EVENTS=* -e WHATSAPP_HOOK_URL=https://httpbin.org/post allburov/whatsapp-http-api
+```
 
 ## Events
 
