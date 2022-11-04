@@ -95,7 +95,7 @@ export class RemoteFile {
     filename?: string | null
 
     @ApiProperty({
-        example: 'https://github.com/devlikeapro/whatsapp-http-api/raw/main/docs/dev.likeapro.jpg',
+        example: 'https://github.com/devlikeapro/whatsapp-http-api/raw/core/examples/dev.likeapro.jpg',
     })
     url: string
 }
@@ -168,7 +168,7 @@ export class VoiceRemoteFile {
     filename = "voice-message.mp3"
 
     @ApiProperty({
-        example: 'https://github.com/devlikeapro/whatsapp-http-api/raw/main/docs/dev.likeapro.mp3',
+        example: 'https://github.com/devlikeapro/whatsapp-http-api/raw/core/examples/dev.likeapro.mp3',
     })
     url: string
 
