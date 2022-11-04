@@ -115,3 +115,7 @@ curl -d "{\"chatId\": \"${PHONE}@c.us\", \"text\": \"Hello from WhatsApp HTTP AP
 ```
 
 ## What is next?
+- Right now you send simple text message but can you send more! [Send messages →]({{< relref "/docs/how-to/send-messages" >}})
+- Find how to receive and response to messages [Receive messages →]({{< relref "/docs/how-to/receive-messages" >}})
+- Make sure your [API is properly protected ->]({{< relref "/docs/how-to/auth" >}})
+
