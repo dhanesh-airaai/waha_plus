@@ -18,14 +18,18 @@ def whatsapp_webhook():
     if not data:
         return "WhatsApp HTTP API Echo server is ready!"
     pprint(data)
-    # The text
-    text = data["body"]
-    # Number in format 791111111@c.us
-    from_ = data["from"]
+    if data['event'] != "message":
+        return f"Unknown event {data['event']}"
 
-    if data.get("clientUrl", None):
+    payload = data["payload"]
+    # The text
+    text = payload["body"]
+    # Number in format 791111111@c.us
+    from_ = payload["from"]
+
+    if payload.get("mediaUrl", None):
         # Download file and set text to path
-        client_url = data["clientUrl"]
+        client_url = payload["mediaUrl"]
         filename = client_url.split("/")[-1]
         path = "/tmp/" + filename
         r = requests.get(client_url)
