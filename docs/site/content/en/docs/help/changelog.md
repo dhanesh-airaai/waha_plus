@@ -1,4 +1,17 @@
-# Changelog
+---
+title: "Changelog"
+description: "Changelog"
+lead: "Changelog"
+date: 2020-10-06T08:49:31+00:00
+lastmod: 2020-10-06T08:49:31+00:00
+draft: false
+images: []
+menu:
+  docs:
+    parent: "help"
+weight: 600
+toc: true
+---
 
 ## 2022.11
 
