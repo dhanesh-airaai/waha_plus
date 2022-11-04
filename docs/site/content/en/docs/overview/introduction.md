@@ -14,6 +14,12 @@ weight: 100
 toc: true
 ---
 
+## Get started
+
+{{< alert icon="👉" text="Run WhatsApp HTTP API in less than 5 minutes!" />}}
+
+Go straight to the [Quick Start →]({{< relref "quick-start" >}})
+
 ## Features
 We provide two versions:
 - Core ![](/images/versions/core.png) - a basic version that meet almost 80% people's needs. 100% free and [open source](https://github.com/devlikeapro/whatsapp-http-api).
@@ -32,7 +38,7 @@ Here's the list of features that both versions support:
 - Send media (images/documents/files) ![](/images/versions/plus.png)
 - Send voice messages ![](/images/versions/plus.png)
 - Receive media (images/audio/video/documents) ![](/images/versions/plus.png)
-- Receive media webhooks retries ![](/images/versions/plus.png)
+- Receive messages - webhook retries ![](/images/versions/plus.png)
 
 ### Sessions
 - Multi Device ![](/images/versions/core.png) ![](/images/versions/plus.png)
@@ -67,10 +73,3 @@ Here's the list of features that both versions support:
 - Get contact info
 - Get profile pictures
 - Set user status message
-
-
-## Get started
-
-{{< alert icon="👉" text="Run WhatsApp HTTP API in less than 5 minutes!" />}}
-
-Go straight to the [Quick Start →]({{< relref "quick-start" >}})

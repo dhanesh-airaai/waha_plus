@@ -97,7 +97,7 @@ instance. If you can get the actual screenshot - then you're ready to start send
 ### 6. Send a text message
 
 Let's try to send a message - you can either find `POST /api/sendText`  in
-swagger [http://localhost:3000/](http://localhost:3000/) or use `curl` or just open a link in a browser (change the
+[swagger](http://localhost:3000/) or use `curl` or just open a link in a browser (change the
 phone before!)
 
 ```bash
@@ -111,7 +111,7 @@ curl -d "{\"chatId\": \"${PHONE}@c.us\", \"text\": \"Hello from WhatsApp HTTP AP
 ```
 
 ## What is next?
-- Right now you send simple text message but can you send more! [Send messages →]({{< relref "/docs/how-to/send-messages" >}})
-- Find how to receive and response to messages [Receive messages →]({{< relref "/docs/how-to/receive-messages" >}})
+- Right now you've sent simple text message, but you can send more! [Send messages →]({{< relref "/docs/how-to/send-messages" >}})
+- Read how to receive and response to messages [Receive messages →]({{< relref "/docs/how-to/receive-messages" >}})
 - Make sure your [API is properly protected ->]({{< relref "/docs/how-to/auth" >}})
 
