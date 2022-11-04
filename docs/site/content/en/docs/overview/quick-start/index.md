@@ -1,0 +1,117 @@
+---
+title: "Quick Start"
+description: "One page summary of how to start WhatsApp HTTP API."
+lead: "One page summary of how to start WhatsApp HTTP API."
+date: 2020-11-16T13:59:39+01:00
+lastmod: 2020-11-16T13:59:39+01:00
+draft: false
+images: []
+menu:
+docs:
+parent: "overview"
+weight: 110
+toc: true
+---
+
+## Requirements
+
+Only thing that you must have - installed docker. Please follow the original
+instruction <a href="https://docs.docker.com/get-docker/" target="_blank" rel="noopener">how to install docker -></a>.
+
+{{< details "Why Docker?" >}}
+Docker makes it easy to ship all-in-one solution with the runtime and dependencies. You don't have to worry about
+language-specific libraries or chrome installation.
+
+Also Docker makes installation and update processes so simple, just one command!
+{{< /details >}}
+
+## Send your first message
+
+Let's go over steps that allow you to send your first text message via WhatsApp HTTP API!
+
+### 1. Download image
+
+Assuming you have installed [Docker](https://docs.docker.com/get-docker/), let's download the image
+
+#### Core
+
+For ![](/images/versions/core.png) version the command is
+
+```bash
+docker pull devlikeapro/whatsapp-http-api
+```
+
+#### Plus
+
+For ![](/images/versions/core.png) version, we use login to get the image before:
+
+```bash
+docker login -u devlikeapro -p {PASSWORD}
+docker pull devlikeapro/whatsapp-http-api-plus
+docker logout
+```
+
+Read more about how to get `PASSWORD` for [Plus Version →]({{< relref "plus-version" >}})
+
+### 2. Run WhatsApp HTTP API
+
+Run WhatsApp HTTP API:
+
+```bash
+docker run -it --rm -v `pwd`/tokens:/app/tokens -p 127.0.0.1:3000:3000/tcp --name whatsapp-http-api allburov/whatsapp-http-api
+
+# It prints logs and the last line must be
+# WhatsApp HTTP API is running on: http://[::1]:3000
+```
+
+Open the link in your browser [http://localhost:3000/](http://localhost:3000/) and you'll see API documentation
+(Swagger).
+
+{{< alert icon="👉" text="We don't recommend expose the API in the internet without authorization!" />}}
+
+![](swagger.png)
+
+### 3. Start a new session
+
+To start a new session you should have your mobile phone with installed WhatsApp application close to you.
+
+Please go and read how what we'll need to a bit
+later:
+<a href="https://faq.whatsapp.com/381777293328336/?helpref=hc_fnav" target="_blank">
+How to log in - the instruction on WhatsApp site
+</a>
+
+When your ready - find `POST /api/session/start`, click on **Try it out**, then **Execute** a bit below.
+
+![](session-start.png)
+
+### 4. Get and scan QR
+
+Find `GET /api/screenshot` and execute it, it shows you QR code that you must scan with your device.
+
+![](qr.png)
+
+### 5. Get the screenshot
+
+Execute `GET /api/screenshot` after a few seconds after scanning the QR - it'll show you the screenshot of you Whatsapp
+instance. If you can get the actual screenshot - then you're ready to start sending messages!
+
+![](screenshot.png)
+
+### 6. Send a text message
+
+Let's try to send a message - you can either find `POST /api/sendText`  in
+swagger [http://localhost:3000/](http://localhost:3000/) or use `curl` or just open a link in a browser (change the
+phone before!)
+
+```bash
+# Phone without +
+# Using GET
+curl "http://localhost:3000/api/sendText?phone=71111111111&text=Hello+from+WhatsApp+HTTP+API!"
+
+# Using POST
+export PHONE=71111111111
+curl -d "{\"chatId\": \"${PHONE}@c.us\", \"text\": \"Hello from WhatsApp HTTP API\" }" -H "Content-Type: application/json" -X POST http://localhost:3000/api/sendText
+```
+
+## What is next?
