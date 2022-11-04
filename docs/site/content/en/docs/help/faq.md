@@ -13,38 +13,15 @@ weight: 630
 toc: true
 ---
 
-## Hyas?
 
-Doks is a [Hyas theme](https://gethyas.com/themes/) build by the creator of Hyas.
+## How to build the newest Docker image locally
 
-## Footer notice?
+If the changes haven't been released yet from `main` branch - you can build your own version from the git repository
 
-Please keep it in place.
+```bash
+git clone https://github.com/devlikeapro/whatsapp-http-api.git
+cd whatsapp-http-api
+docker build . -t devlikeapro/whatsapp-http-api
+```
 
-## Keyboard shortcuts for search?
 
-- focus: `Ctrl + /`
-- select: `↓` and `↑`
-- open: `Enter`
-- close: `Esc`
-
-## Other documentation?
-
-- [Netlify](https://docs.netlify.com/)
-- [Hugo](https://gohugo.io/documentation/)
-
-## Can I get support?
-
-Create a topic:
-
-- [Netlify Community](https://community.netlify.com/)
-- [Hugo Forums](https://discourse.gohugo.io/)
-- [Doks Discussions](https://github.com/h-enk/doks/discussions)
-
-## Contact the creator?
-
-Send `h-enk` a message:
-
-- [Netlify Community](https://community.netlify.com/)
-- [Hugo Forums](https://discourse.gohugo.io/)
-- [Doks Discussions](https://github.com/h-enk/doks/discussions)
