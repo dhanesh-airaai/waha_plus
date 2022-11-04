@@ -17,7 +17,7 @@ toc: true
 ## Features
 We provide two versions:
 - Core ![](/images/versions/core.png) - a basic version that meet almost 80% people's needs. 100% free and [open source](https://github.com/devlikeapro/whatsapp-http-api).
-- Plus ![](/images/versions/plus.png) - a version with advanced messages, security, and reliability features. One payment for month updates, read more about [Plus Version →]({{< relref "plus-version" >}})
+- Plus ![](/images/versions/plus.png) - a version with advanced messages, security, and reliability features. One-time payment, no license expiration, quick updates, read more about [Plus Version →]({{< relref "plus-version" >}})
 
 Here's the list of features that both versions support:
 

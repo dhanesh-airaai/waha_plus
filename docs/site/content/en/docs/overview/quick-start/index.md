@@ -31,19 +31,15 @@ Let's go over steps that allow you to send your first text message via WhatsApp 
 
 ### 1. Download image
 
-Assuming you have installed [Docker](https://docs.docker.com/get-docker/), let's download the image
+Assuming you have installed [Docker](https://docs.docker.com/get-docker/), let's download the image.
 
-#### Core
-
-For ![](/images/versions/core.png) version the command is
+![](/images/versions/core.png) For Core version the command is
 
 ```bash
 docker pull devlikeapro/whatsapp-http-api
 ```
 
-#### Plus
-
-For ![](/images/versions/core.png) version, we use login to get the image before:
+![](/images/versions/plus.png) For Plus version, we use login to get the image before:
 
 ```bash
 docker login -u devlikeapro -p {PASSWORD}
@@ -67,7 +63,7 @@ docker run -it --rm -v `pwd`/tokens:/app/tokens -p 127.0.0.1:3000:3000/tcp --nam
 Open the link in your browser [http://localhost:3000/](http://localhost:3000/) and you'll see API documentation
 (Swagger).
 
-{{< alert icon="👉" text="We don't recommend expose the API in the internet without authorization!" />}}
+{{< alert icon="👉" text="We don't recommend expose the API in the internet without authentication!" />}}
 
 ![](swagger.png)
 
