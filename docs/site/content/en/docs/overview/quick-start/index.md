@@ -79,13 +79,30 @@ How to log in - the instruction on WhatsApp site
 
 When your ready - find `POST /api/session/start`, click on **Try it out**, then **Execute** a bit below.
 
+
+The example payload:
+```json
+{
+  "name": "default"
+}
+```
+
 ![](session-start.png)
+
+By using the request with `name` values you can start multiple session (WhatsApp accounts) inside the single docker container in Plus
+![](/images/versions/plus.png) version and only one account in Core ![](/images/versions/core.png) version.
+
+Read more about [multiple sessions →]({{< relref "/docs/how-to/session" >}})
 
 ### 4. Get and scan QR
 
-Find `GET /api/screenshot` and execute it, it shows you QR code that you must scan with your device.
+Find `GET /api/screenshot` and execute it, it shows you QR code.
 
 ![](qr.png)
+
+**Scan the QR with your cell phone's WhatsApp app.**
+
+![](scan-qr-phone.png)
 
 ### 5. Get the screenshot
 
@@ -96,17 +113,27 @@ instance. If you can get the actual screenshot - then you're ready to start send
 
 ### 6. Send a text message
 
-Let's try to send a message - you can either find `POST /api/sendText`  in
-[swagger](http://localhost:3000/) or use `curl` or just open a link in a browser (change the
-phone before!)
+Let's send a text message - find `POST /api/sendText`  in [swagger](http://localhost:3000/) and change `chatId` this
+way: use a phone international phone number without + and add `@c.us` suffix at the end.
+
+For phone number `12132132131` the `chatId` is  `12132132131@c.us`.
+
+The example payload:
+```json
+{
+  "chatId": "12132132130@c.us",
+  "text": "Hi there!",
+  "session": "default"
+}
+```
+
+![](send-text.png)
+
+Also, you can use `curl` and send POST request like this:
 
 ```bash
 # Phone without +
-# Using GET
-curl "http://localhost:3000/api/sendText?phone=71111111111&text=Hello+from+WhatsApp+HTTP+API!"
-
-# Using POST
-export PHONE=71111111111
+export PHONE=12132132130
 curl -d "{\"chatId\": \"${PHONE}@c.us\", \"text\": \"Hello from WhatsApp HTTP API\" }" -H "Content-Type: application/json" -X POST http://localhost:3000/api/sendText
 ```
 
