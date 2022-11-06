@@ -114,7 +114,7 @@ instance. If you can get the actual screenshot - then you're ready to start send
 ### 6. Send a text message
 
 Let's send a text message - find `POST /api/sendText`  in [swagger](http://localhost:3000/) and change `chatId` this
-way: use a phone international phone number without + and add `@c.us` suffix at the end.
+way: use a phone international phone number without + and add `@c.us` at the end.
 
 For phone number `12132132131` the `chatId` is  `12132132131@c.us`.
 
