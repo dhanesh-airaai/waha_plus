@@ -10,7 +10,7 @@ description = "The project gives you HTTP API for WhatsApp that you can configur
 # docsVersion = "0.3"
 
 ## Open Graph
-images = ["logo.pn"]
+images = ["logo.png"]
 ogLocale = "en_US"
 domainTLD = "wa-http-api.devlike.pro"
 titleHome = "WhatsApp HTTP API"
