@@ -14,12 +14,22 @@ toc: true
 ---
 
 ## 2022.11
+### Engine ![](/images/versions/core.png) ![](/images/versions/plus.png)
+WAHA has changed its underlying engine from Venom to Whatsapp Web.JS. It might change the response and webhook's payloads.
+
+**Please test changes in test environment before update production!!**
+
 ### Requests ![](/images/versions/core.png) ![](/images/versions/plus.png)
 - For all `/api/session/` requests use `name` field instead of `sessionName`.
 - For all "chatting" requests use `session` field instead of `sessionName`.
 
 ### Sessions ![](/images/versions/plus.png)
 Now you don't have to scan QR code each time you run WAHA, WAHA saves it for you! Available only in Plus version.
+
+### Security ![](/images/versions/plus.png)
+Now you can authenticate all requests for WAHA - use `WHATSAPP_API_KEY=secret` environment variable to set "secret key".
+
+If `WHATSAPP_API_KEY` is set - requests must have `X-Api-Key` header with `secret` value, where `secret` - any random secret key.
 
 ### Webhooks ![](/images/versions/core.png) ![](/images/versions/plus.png)
 #### Configuration
