@@ -14,6 +14,12 @@ toc: true
 ---
 
 ## 2022.11
+### Requests ![](/images/versions/core.png) ![](/images/versions/plus.png)
+- For all `/api/session/` requests use `name` field instead of `sessionName`.
+- For all "chatting" requests use `session` field instead of `sessionName`.
+
+### Sessions ![](/images/versions/plus.png)
+Now you don't have to scan QR code each time you run WAHA, WAHA saves it for you! Available only in Plus version.
 
 ### Webhooks ![](/images/versions/core.png) ![](/images/versions/plus.png)
 #### Configuration
