@@ -13,6 +13,9 @@ parent: "overview"
 weight: 100
 toc: true
 ---
+<div class="d-flex justify-content-center">
+  <img src="/images/logo1.png"/>
+</div>
 
 ## Get started
 
