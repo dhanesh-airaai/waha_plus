@@ -15,7 +15,7 @@ We do not recommend exposing the API on any public networks!
 Either protect the API with [Api Key](https://www.fortinet.com/resources/cyberglossary/api-key) or deny access by using
 firewalls.
 
-## Api Key ![](/images/versions/plus.png)
+## API security ![](/images/versions/plus.png)
 
 You can protect the API by requiring Api Key in a request's headers.
 
@@ -49,3 +49,5 @@ headers = {
 requests.get("http://localhost:3000/api/sessions", headers=headers)
 ```
 
+## Swagger Security ![](/images/versions/plus-soon.png)
+If you want to hide under a password the swagger UI - please create an issue on GitHub, we'll do it!
