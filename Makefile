@@ -1,11 +1,11 @@
 build:
-	docker build . -t allburov/whatsapp-http-api
+	docker build . -t devlikeapro/whatsapp-http-api
 
 run:
-	docker run --rm -d -v `pwd`/.sessions:/app/.sessions -p 127.0.0.1:3000:3000/tcp --name whatsapp-http-api allburov/whatsapp-http-api
+	docker run --rm -d -v `pwd`/.sessions:/app/.sessions -p 127.0.0.1:3000:3000/tcp --name whatsapp-http-api devlikeapro/whatsapp-http-api
 
 stop:
 	docker stop whatsapp-http-api
 
 push:
-	docker push allburov/whatsapp-http-api
+	docker push devlikeapro/whatsapp-http-api

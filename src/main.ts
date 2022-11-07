@@ -15,7 +15,7 @@ async function bootstrap() {
     const options = new DocumentBuilder()
         .setTitle('WhatsApp HTTP API')
         .setDescription('WhatsApp HTTP API that you can configure in a click!')
-        .setExternalDoc("Github WhatsApp HTTP API", "https://github.com/allburov/whatsapp-http-api")
+        .setExternalDoc("Github WhatsApp HTTP API", "https://github.com/devlikeapro/whatsapp-http-api")
         .setVersion('1.0')
         .addTag('sessions', 'Control your WhatsApp sessions')
         .addTag('screenshot', 'Get screenshot of WhatsApp and show QR code')

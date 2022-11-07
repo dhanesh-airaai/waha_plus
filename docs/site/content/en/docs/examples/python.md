@@ -31,7 +31,7 @@ Run "echo" server in one terminal and leave it working:
 
 ```bash
 # if you haven't already
-git clone https://github.com/allburov/whatsapp-http-api.git
+git clone https://github.com/devlikeapro/whatsapp-http-api.git
 cd whatsapp-http-api
 python -mpip install -r examples/requirements.txt
 export FLASK_APP=examples/echo.py
