@@ -13,10 +13,14 @@ weight: 110
 toc: true
 ---
 
+On this page you're going to install WAHA, run it, authenticate the client using QR code and send the first text message to WhatsApp!
+
 ## Requirements
 
 Only thing that you must have - installed docker. Please follow the original
 instruction <a href="https://docs.docker.com/get-docker/" target="_blank" rel="noopener">how to install docker -></a>.
+
+When you are ready - come back and follows the below steps to send the first text message to WhatsApp via HTTP API!
 
 {{< details "Why Docker?" >}}
 Docker makes it easy to ship all-in-one solution with the runtime and dependencies. You don't have to worry about
