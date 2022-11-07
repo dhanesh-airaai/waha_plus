@@ -43,5 +43,31 @@ What is the difference between **WAHA Plus** and other SaaS solutions for WhatsA
 | **Confidentiality** | ✔️ Your own server, your own infrastructure! | ➖ You have to give access to customers' data - phone number, name, your messages. |
 | **Price**           |          ✔️ one-time $69 donation!           |                                                 ➖ Monthly payment starts from $50 |
 
-
 ## Get Plus ![](/images/versions/plus.png)
+
+For $69 one-time donation you get:
+1. **Secret password** for Docker Hub to download Plus image: `devlikeapro/whatsapp-http-api-plus`.
+2. **All updates for one month** for the Plus image.
+3. **NO LICENSE CHECKS** on installed instances!
+4. **NO LICENSE EXPIRATION** on installed instances! We repeated it twice just to make sure that you've got it 😊
+
+{{< alert icon="👉" text="We don't mind if you stay subscribed with us after one month :)" />}}
+
+### Get Plus on Boosty
+We use Boosty to get donations (Patreon analogue) - [https://boosty.to/wa-http-api](https://boosty.to/wa-http-api).
+
+Go ahead and get your monthly password to get no license expiration WhatsApp HTTP API - either subscribe or use one time donation!
+
+{{< alert icon="💡" text="If you stay subscribed - the price will never change for you and always be $69 to get monthly updates!" />}}
+
+![](boosty.png)
+
+
+### Install Plus
+After you get the password, use it to login and download docker image:
+```bash
+docker login -u devlikeapro -p {PASSWORD}
+docker pull devlikeapro/whatsapp-http-api-plus
+docker logout
+```
+Then in all commands use **Plus** image `devlikeapro/whatsapp-http-api-plus` instead of Core `devlikeapro/whatsapp-http-api`.
