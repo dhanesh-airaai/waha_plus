@@ -19,7 +19,7 @@ There are common fields that you can find in almost all requests:
 - `session` - a session name from which account you're sending the message. We use `default` in the examples.
   - Core ![](/images/versions/core.png) version supports only `default` session.
   - Plus ![](/images/versions/plus.png) allows you to run multiple sessions inside one container to save your memory and CPU resources!
-Read more about [multiple sessions →]({{< relref "/docs/how-to/session" >}})
+Read more about [multiple sessions →]({{< relref "/docs/how-to/sessions" >}})
 
 - `chatId` - it's a phone number or Group identifier where you're sending the message.
   - **Phone numbers** accounts use international phone number without + at the start and add `@c.us` at the end.

@@ -96,7 +96,7 @@ The example payload:
 By using the request with `name` values you can start multiple session (WhatsApp accounts) inside the single docker container in Plus
 ![](/images/versions/plus.png) version and only one account in Core ![](/images/versions/core.png) version.
 
-Read more about [multiple sessions →]({{< relref "/docs/how-to/session" >}})
+Read more about [multiple sessions →]({{< relref "/docs/how-to/sessions" >}})
 
 ### 4. Get and scan QR
 
@@ -144,5 +144,5 @@ curl -d "{\"chatId\": \"${PHONE}@c.us\", \"text\": \"Hello from WhatsApp HTTP AP
 ## What is next?
 - Right now you've sent simple text message, but you can send more! [Send messages →]({{< relref "/docs/how-to/send-messages" >}})
 - Read how to receive and response to messages [Receive messages →]({{< relref "/docs/how-to/receive-messages" >}})
-- Make sure your [API is properly protected ->]({{< relref "/docs/how-to/auth" >}})
+- Make sure your [API is properly protected ->]({{< relref "/docs/how-to/security" >}})
 
