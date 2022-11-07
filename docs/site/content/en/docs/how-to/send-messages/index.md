@@ -46,8 +46,31 @@ To reply on a message - use `POST /api/reply` with example payload.
   "text": "Reply text"
 }
 ```
+
 ### Reply files ![](/images/versions/plus-soon.png)
 WAHA does not support reply with files (images, voice, etc). If you're interested in it - please create an issue in GitHub.
+
+## Add a reaction ![](/images/versions/core.png) ![](/images/versions/plus.png)
+Use `PUT /api/reaction` method to set reaction to a message.
+
+{{< alert icon="👉" text="Reactoin API uses PUT, not POST request! Please make sure you send right request." />}}
+
+```json
+{
+  "messageId": "false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA",
+  "reaction": "👍",
+  "session": "default"
+}
+```
+
+To remove reaction from a message - send empty string in the reaction request.
+```json
+{
+  "messageId": "false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA",
+  "reaction": "",
+  "session": "default"
+}
+```
 
 ## Send image ![](/images/versions/plus.png)
 Use `POST /api/sendImage` to send images.
