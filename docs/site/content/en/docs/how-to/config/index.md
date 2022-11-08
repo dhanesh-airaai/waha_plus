@@ -28,10 +28,9 @@ docker run -it -e WHATSAPP_HOOK_EVENTS=* -e WHATSAPP_HOOK_URL=https://httpbin.or
 -
 
 ## File storage ![](/images/versions/plus.png)
-
-- `WHATSAPP_FILES_FOLDER` - folder where will be stored files from chats (images, voice messages) (
-  default: `/tmp/whatsapp-files`)
 - `WHATSAPP_FILES_MIMETYPES` - download only these mimetypes from messages (download all files be default). Mimetypes
   must be separated by a comma, without spaces: `audio,image/png,image/gif`. In order to choose type use prefix (
   like `audio,image`).
 - `WHATSAPP_FILES_LIFETIME`- to keep free space files will be removed after this time (default: `180`, in seconds)
+- `WHATSAPP_FILES_FOLDER` - folder where will be stored files from chats (images, voice messages) (
+  default: `/tmp/whatsapp-files`)
