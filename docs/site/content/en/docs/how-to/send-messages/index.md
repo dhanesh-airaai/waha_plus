@@ -8,11 +8,13 @@ draft: false
 images: []
 weight: 200
 ---
-On your swagger documentation [http://localhost:3000/](http://localhost:3000/) you can find:
+On your swagger documentation [http://localhost:3000/](http://localhost:3000/)
+or in [the example swagger](/swagger) you can find:
 1. List of all supported methods - we have not documented all of them on the page
 1. Requests JSON schemas
 1. Responses JSON schemas
 1. **Try it** button - no additional setup to play around with a method
+
 
 ## Fields
 There are common fields that you can find in almost all requests:
