@@ -14,7 +14,7 @@ weight: 100
 toc: true
 ---
 <div class="d-flex justify-content-center">
-  <img src="/images/logo1.png"/>
+  <img src="/images/logo.png"/>
 </div>
 
 ## Get started
