@@ -10,7 +10,7 @@ description = "WAHA - WhatsApp HTTP API that you can configure in a click!"
 # docsVersion = "0.3"
 
 ## Open Graph
-images = ["logo.png"]
+images = ["/images/logo.png"]
 ogLocale = "en_US"
 domainTLD = "waha.devlike.pro"
 titleHome = "WAHA"
