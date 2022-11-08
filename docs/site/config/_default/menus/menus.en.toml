@@ -29,21 +29,21 @@
 #  weight = 20
 
 [[main]]
-  name = "Get Plus ➕"
+  name = "Get Plus"
   weight = 30
   identifier = "get-plus"
   url = ""
 
 
 [[main]]
-  name = "About Plus"
+  name = "About WAHA Plus"
   weight = 40
   identifier = "plus-version"
   url = "/docs/how-to/plus-version"
   parent = "get-plus"
 
 [[main]]
-  name = "Boosty ->"
+  name = "Get Plus on Boosty ->"
   weight = 50
   identifier = "boosty"
   url = "https://boosty.to/wa-http-api"
