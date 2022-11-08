@@ -47,11 +47,13 @@ The Plus additional features are:
 
 What is the difference between **WAHA Plus** and other SaaS solutions for WhatsApp HTTP API?
 
-|                     |                  WAHA Plus                   |                                                                            Others |
-|---------------------|:--------------------------------------------:|----------------------------------------------------------------------------------:|
-| **Sessions number** |                ✔️ No limits!                 |                                                            ➖ One account for $50. |
-| **Confidentiality** | ✔️ Your own server, your own infrastructure! | ➖ You have to give access to customers' data - phone number, name, your messages. |
-| **Price**           |          ✔️ one-time $69 donation!           |                                                 ➖ Monthly payment starts from $50 |
+|                    |                     WAHA Plus                     |                                                                            Others |
+|--------------------|:-------------------------------------------------:|----------------------------------------------------------------------------------:|
+| **Sessions**       |                   ✔️ No limits!                   |                                                      ➖ One account for $50/month. |
+| **Infrastructure** | ✔️ On-Premise - your server, your infrastructure! |                                                        ➖ Insecure cloud solution. |
+| **Security**       |                 ✔️ No data leaks!                 | ➖ You have to give access to customers' data - phone number, name, your messages. |
+| **Message price**  |             ✔️ All messages are Free!             |                     ➖ Some solutions have a price for messages - $1/100 messages. |
+| **Expenses**       |           ✔️ one-time $69 **donation**!           |                                                 ➖ Monthly payment starts from $50 |
 
 ## Get Plus ![](/images/versions/plus.png)
 
@@ -68,7 +70,7 @@ We use Boosty to get donations (Patreon analogue) - [https://boosty.to/wa-http-a
 
 Go ahead and get your monthly password to get no license expiration WhatsApp HTTP API - either subscribe or use one time donation!
 
-{{< alert icon="💡" text="If you stay subscribed - the price will never change for you and always be $69 to get monthly updates!" />}}
+{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $69 to get monthly updates!" />}}
 
 ![](boosty.png)
 
