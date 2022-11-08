@@ -25,11 +25,11 @@ toc: true
 Go straight to the [Quick Start →]({{< relref "quick-start" >}})
 
 ## Features
-We provide two versions:
-- Core ![](/images/versions/core.png) - a basic version that meet almost 80% people's needs. 100% free and [open source](https://github.com/devlikeapro/whatsapp-http-api).
-- Plus ![](/images/versions/plus.png) - a version with advanced messages, security, and reliability features. One-time donation, no license expiration, quick updates, read more about [Plus Version →]({{< relref "plus-version" >}})
+WAHA distributes in two versions:
+- Core ![](/images/versions/core.png) - the basic version that meet almost 80% people's needs. 100% free and [open source](https://github.com/devlikeapro/whatsapp-http-api).
+- Plus ![](/images/versions/plus.png) - the version with advanced messages, security, and reliability features. One-time donation, no license expiration, quick updates, read more about [Plus Version →]({{< relref "plus-version" >}})
 
-Here's the list of features that both versions support:
+Here's the available features:
 
 ### Messages
 - Send messages ![](/images/versions/core.png) ![](/images/versions/plus.png)
