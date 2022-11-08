@@ -1,10 +1,10 @@
 # Meta Data for SEO
 
 ## Homepage
-title = "WhatsApp HTTP API"
+title = "WAHA"
 titleSeparator = "-"
-titleAddition = "configure it in a click!"
-description = "The project gives you HTTP API for WhatsApp that you can configure in a click!"
+titleAddition = "WhatsApp HTTP API"
+description = "WAHA - WhatsApp HTTP API that you can configure in a click!"
 
 ## Documentation
 # docsVersion = "0.3"
@@ -12,8 +12,8 @@ description = "The project gives you HTTP API for WhatsApp that you can configur
 ## Open Graph
 images = ["logo.png"]
 ogLocale = "en_US"
-domainTLD = "wa-http-api.devlike.pro"
-titleHome = "WhatsApp HTTP API"
+domainTLD = "waha.devlike.pro"
+titleHome = "WAHA"
 
 ## Twitter Cards
 #twitterSite = "@getdoks"
