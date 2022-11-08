@@ -23,36 +23,31 @@
 # url = "/docs/1.0/overview/introduction/"
   weight = 10
 
-[[main]]
-name = "Get Plus ➕"
-url = "https://boosty.to/wa-http-api"
-weight = 20
-
-
 #[[main]]
 #  name = "Blog"
 #  url = "/blog/"
 #  weight = 20
 
-#[[main]]
-#  name = "Get Started"
-#  weight = 30
-#  identifier = "get-started"
-#  url = "/docs/overview/introduction/"
+[[main]]
+  name = "Get Plus ➕"
+  weight = 30
+  identifier = "get-plus"
+  url = ""
 
-#[[main]]
-#  name = "Quick Start"
-#  weight = 40
-#  identifier = "quick-start"
-#  url = "/docs/overview/quick-start/"
-#  parent = "get-started"
 
-#[[main]]
-#  name = "Tutorial"
-#  weight = 50
-#  identifier = "tutorial"
-#  url = "https://getdoks.org/tutorial/introduction/"
-#  parent = "get-started"
+[[main]]
+  name = "About Plus"
+  weight = 40
+  identifier = "plus-version"
+  url = "/docs/how-to/plus-version"
+  parent = "get-plus"
+
+[[main]]
+  name = "Boosty ->"
+  weight = 50
+  identifier = "boosty"
+  url = "https://boosty.to/wa-http-api"
+  parent = "get-plus"
 
 [[social]]
   name = "GitHub"

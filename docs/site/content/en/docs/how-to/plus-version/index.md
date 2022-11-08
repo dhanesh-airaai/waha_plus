@@ -14,7 +14,7 @@ weight: 900
 1. Core ![](/images/versions/core.png) a basic version that meet almost 80% people’s needs. 100% free and open source.
 2. Plus ![](/images/versions/plus.png) a version with advanced messages, security, and reliability features.
 
-Plus version - available through **one-time donation**.
+Plus version - available through **donations** - either one time or subscription.
 
 **It doesn't require monthly subscriptions, once installed on your server - it always works!**
 
