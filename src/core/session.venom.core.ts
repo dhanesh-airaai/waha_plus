@@ -193,21 +193,13 @@ export class WhatsappSessionVenomCore extends WhatsappSession {
      * END - Methods for API
      */
 
-    private async downloadAndDecryptMedia(message: Message) {
+    protected async downloadAndDecryptMedia(message: Message) {
         if (!message.isMMS || !message.isMedia) {
             return message
         }
-
-        this.log.log(`The message ${message.id} has media, downloading it...`);
-        return this.whatsapp.decryptFile(message).then(async (buffer) => {
-            this.log.verbose(`Writing file from the message ${message.id}...`)
-            const url = await this.storage.save(message.id, message.mimetype, buffer)
-            this.log.log(`The file from ${message.id} has been saved to ${url}`);
-
-            // @ts-ignore
-            message.mediaUrl = url
-            return message
-        });
+        // @ts-ignore
+        message.mediaUrl = await this.storage.save(messageId, "", new Buffer())
+        return message
     }
 
     private processIncomingMessage(message: Message) {

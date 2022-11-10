@@ -1,5 +1,5 @@
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Buttons, Chat, Client, Events, LocalAuth, Message} from "whatsapp-web.js";
+import {Buttons, Chat, Client, Events, Message} from "whatsapp-web.js";
 import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./abc/session.abc";
@@ -19,7 +19,6 @@ import {
     MessageVoiceRequest
 } from "../structures/chatting.dto";
 import {AvailableInPlusVersion, NotImplementedByEngineError} from "./exceptions";
-import {MEDIA_URL} from "./storage.none";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
@@ -199,7 +198,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         }
 
         // @ts-ignore
-        message.mediaUrl = MEDIA_URL
+        message.mediaUrl = await this.storage.save(messageId, "", new Buffer())
         return message
     }
 
