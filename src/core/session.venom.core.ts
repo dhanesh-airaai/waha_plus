@@ -198,7 +198,7 @@ export class WhatsappSessionVenomCore extends WhatsappSession {
             return message
         }
         // @ts-ignore
-        message.mediaUrl = await this.storage.save(messageId, "", new Buffer())
+        message.mediaUrl = await this.storage.save(message.id, "", undefined)
         return message
     }
 

@@ -198,7 +198,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         }
 
         // @ts-ignore
-        message.mediaUrl = await this.storage.save(messageId, "", new Buffer())
+        message.mediaUrl = await this.storage.save(message.id._serialized, "", undefined)
         return message
     }
 

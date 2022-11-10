@@ -4,11 +4,11 @@ import {WhatsappSession} from "./abc/session.abc";
 import {WhatsappEngine} from "../structures/enums.dto";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 import {WhatsappConfigService} from "../config.service";
-import {MediaAvailableInPlusStorage} from "./storage.none";
 import {WhatsappSessionVenomCore} from "./session.venom.core";
 import {WhatsappSessionWebJSCore} from "./session.webjs.core";
 import {DOCS_URL} from "./exceptions";
 import {WebhookConductorCore} from "./webhooks.core";
+import {MediaStorageCore} from "./storage.core";
 
 export class OnlyDefaultSessionIsAllowed extends UnprocessableEntityException {
     constructor() {
@@ -22,7 +22,7 @@ export class SessionManagerCore extends SessionManager {
     DEFAULT = "default"
 
     // @ts-ignore
-    protected MediaStorageClass = MediaAvailableInPlusStorage
+    protected MediaStorageClass = MediaStorageCore
     // @ts-ignore
     protected WebhookConductorClass = WebhookConductorCore
     protected readonly EngineClass: typeof WhatsappSession;
