@@ -5,12 +5,12 @@ import {WhatsappConfigService} from "./config.service";
 import {ServeStaticModule} from "@nestjs/serve-static";
 import {SessionsController} from "./api/sessions.controller";
 import {ChattingController} from "./api/chatting.controller";
-import {MultiSessionManager} from "./plus/manager.multi";
 import {VersionController} from "./api/version.controller";
 import {PassportModule} from "@nestjs/passport";
 import {ApiKeyStrategy} from "./plus/auth/apiKey.strategy";
 import {AuthMiddleware} from "./plus/auth/auth.middleware";
 import {SessionManager} from "./core/abc/manager.abc";
+import {SessionManagerPlus} from "./plus/manager.plus";
 
 
 @Module({
@@ -40,9 +40,9 @@ import {SessionManager} from "./core/abc/manager.abc";
     providers: [
         {
             provide: SessionManager,
-            useClass: MultiSessionManager,
+            useClass: SessionManagerPlus,
         },
-        MultiSessionManager,
+        SessionManagerPlus,
         WhatsappConfigService,
         ApiKeyStrategy,
         ConsoleLogger,

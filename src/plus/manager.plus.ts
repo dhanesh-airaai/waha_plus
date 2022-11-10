@@ -10,9 +10,14 @@ import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures
 import {SessionManager} from "../core/abc/manager.abc";
 
 @Injectable()
-export class MultiSessionManager implements SessionManager {
+export class SessionManagerPlus implements SessionManager {
     private readonly sessions: Record<string, WhatsappSession>;
-    private readonly defaultEngine: typeof WhatsappSession;
+
+    // @ts-ignore
+    private MediaStorageClass = LocalMediaStorage
+    // @ts-ignore
+    private WebhookConductorClass = WebhookConductorCore
+    private readonly EngineClass: typeof WhatsappSession;
 
     constructor(
         private config: WhatsappConfigService,
@@ -20,7 +25,7 @@ export class MultiSessionManager implements SessionManager {
     ) {
         this.log.setContext('SessionManager')
         this.sessions = {}
-        this.defaultEngine = this.getEngine(this.config.getDefaultEngineName())
+        this.EngineClass = this.getEngine(this.config.getDefaultEngineName())
 
         this.clearStorage()
 
@@ -30,19 +35,8 @@ export class MultiSessionManager implements SessionManager {
         }
     }
 
-    private clearStorage() {
-        /* We need to clear the local storage just once */
-        const storage = new LocalMediaStorage(
-            new ConsoleLogger(`Storage`),
-            this.config.filesFolder,
-            this.config.filesURL,
-            this.config.filesLifetime,
-            this.config.mimetypes,
-        )
-        storage.purge()
-    }
 
-    private getEngine(engine: WhatsappEngine): typeof WhatsappSession {
+    protected getEngine(engine: WhatsappEngine): typeof WhatsappSession {
         if (engine === WhatsappEngine.WEBJS) {
             return WhatsappSessionWebJSCore
         } else if (engine === WhatsappEngine.VENOM) {
@@ -57,7 +51,7 @@ export class MultiSessionManager implements SessionManager {
 
         this.log.log(`'${name}' - staring session...`)
         const log = new ConsoleLogger(`WhatsappSession - ${name}`)
-        const storage = new LocalMediaStorage(
+        const storage = new this.MediaStorageClass(
             new ConsoleLogger(`Storage - ${name}`),
             this.config.filesFolder,
             this.config.filesURL,
@@ -65,14 +59,14 @@ export class MultiSessionManager implements SessionManager {
             this.config.mimetypes,
         )
         const webhookLog = new ConsoleLogger(`Webhook - ${name}`)
-        const webhook = new WebhookConductorCore(
+        const webhook = new this.WebhookConductorClass(
             webhookLog,
             this.config.getWebhookUrl(),
             this.config.getWebhookEvents()
         )
 
         // @ts-ignore
-        const session = new this.defaultEngine(name, storage, log)
+        const session = new this.EngineClass(name, storage, log)
         this.sessions[name] = session
 
         session.start().then(() => webhook.configure(session))
@@ -109,5 +103,16 @@ export class MultiSessionManager implements SessionManager {
         for (const name of Object.keys(this.sessions)) {
             await this.stop({name: name})
         }
+    }
+    private clearStorage() {
+        /* We need to clear the local storage just once */
+        const storage = new this.MediaStorageClass(
+            new ConsoleLogger(`Storage`),
+            this.config.filesFolder,
+            this.config.filesURL,
+            this.config.filesLifetime,
+            this.config.mimetypes,
+        )
+        storage.purge()
     }
 }
