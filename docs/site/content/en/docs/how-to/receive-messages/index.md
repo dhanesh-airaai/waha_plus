@@ -12,7 +12,7 @@ weight: 300
 The project uses [Webhooks](https://en.wikipedia.org/wiki/Webhook) to send the messages or events from WhatsApp to your
 application.
 
-## Configure webhooks
+## Webhooks ![](/images/versions/core.png) ![](/images/versions/plus.png)
 
 You can configure where you want to receive events in environment variables:
 
@@ -41,29 +41,6 @@ Below the list of all events that WhatsApp HTTP API sends to your.
 docker run -it -e WHATSAPP_HOOK_EVENTS=* -e WHATSAPP_HOOK_URL=https://httpbin.org/post devlikeapro/whatsapp-http-api
 ```
 
-## Files ![](/images/versions/plus.png)
-
-When people send you files - images, voice messages, and documents - WAHA saves it in the file storage.
-In your application you must download it and use it as you want to. You can find the URL in `mediaUrl` field
-
-For example, you can get the webhook like this with `mediaUrl` value (we've skipped other fields):
-
-```json
-{
-  "event": "message",
-  "payload": {
-    "id": "true_11111111111@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "timestamp": 1667561485,
-    "from": "11111111111@c.us",
-    "mediaUrl": "http://localhost:3000/api/files/true_11111111111@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.jpg"
-  }
-}
-```
-Then you can use the link to download the file `http://localhost:3000/api/files/true_11111111111@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.jpg`.
-
-To configure the url you can use environment variables `WHATSAPP_API_HOSTNAME` and `WHATSAPP_API_PORT`.
-
-[Read more about file storage configuration and variables ->]({{< relref "config" >}}).
 
 ## Events ![](/images/versions/core.png) ![](/images/versions/plus.png)
 
@@ -175,3 +152,31 @@ Fired on all message creations, including your own. The payload is the same as f
   "payload": {}
 }
 ```
+
+## Files ![](/images/versions/plus.png)
+
+When people send you files - images, voice messages, and documents - WAHA saves it in the file storage.
+In your application you must download it and use it as you want to. You can find the URL in `mediaUrl` field
+
+For example, you can get the webhook like this with `mediaUrl` value (we've skipped other fields):
+
+```json
+{
+  "event": "message",
+  "payload": {
+    "id": "true_11111111111@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "timestamp": 1667561485,
+    "from": "11111111111@c.us",
+    "mediaUrl": "http://localhost:3000/api/files/true_11111111111@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.jpg"
+  }
+}
+```
+Then you can use the link to download the file `http://localhost:3000/api/files/true_11111111111@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.jpg`.
+
+To configure the url you can use environment variables `WHATSAPP_API_HOSTNAME` and `WHATSAPP_API_PORT`.
+
+[Read more about file storage configuration and variables ->]({{< relref "config" >}}).
+
+## Webhook retries ![](/images/versions/plus.png)
+
+**WAHA** retries to reach your webhook URL 15 times and with 2 seconds.
