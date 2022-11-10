@@ -4,7 +4,6 @@ import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./abc/session.abc";
 import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
-import {ensureSuffix} from "./utils";
 import {
     BinaryFile,
     ChatRequest,
@@ -26,7 +25,7 @@ import {NotImplementedByEngineError} from "./exceptions";
 const qrcode = require('qrcode-terminal');
 
 
-export class WhatsappSessionWebJS extends WhatsappSession {
+export class WhatsappSessionWebJSCore extends WhatsappSession {
     whatsapp: Client;
 
     async start() {
@@ -77,12 +76,12 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     sendText(request: MessageTextRequest): Promise<WAMessage> {
-        return this.whatsapp.sendMessage(ensureSuffix(request.chatId), request.text).then(this.toWAMessage)
+        return this.whatsapp.sendMessage(this.ensureSuffix(request.chatId), request.text).then(this.toWAMessage)
     }
 
     sendTextButtons(request: MessageTextButtonsRequest) {
         const message = new Buttons("", request.buttons, request.title, request.text)
-        return this.whatsapp.sendMessage(ensureSuffix(request.chatId), message).then(this.toWAMessage)
+        return this.whatsapp.sendMessage(this.ensureSuffix(request.chatId), message).then(this.toWAMessage)
     }
 
     sendContactVCard(request: MessageContactVcardRequest) {

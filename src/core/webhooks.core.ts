@@ -7,7 +7,7 @@ import {NotImplementedByEngineError} from "./exceptions";
 import {WebhookConductorBase} from "./abc/webhooks.abc";
 
 
-export class WebhookConductor implements WebhookConductorBase {
+export class WebhookConductorCore implements WebhookConductorBase {
     private RETRY_DELAY = 15
     private RETRY_ATTEMPTS = 3;
 

@@ -14,7 +14,6 @@ import {
     MessageTextRequest
 } from "../structures/chatting.dto";
 import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
-import {ensureSuffix} from "./utils";
 import {create, Message, Whatsapp} from "venom-bot";
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {NotImplementedByEngineError} from "./exceptions";
@@ -35,7 +34,7 @@ class QR {
 
 }
 
-export class WhatsappSessionVenom extends WhatsappSession {
+export class WhatsappSessionVenomCore extends WhatsappSession {
     whatsapp: Whatsapp;
     private qr: QR
 
@@ -119,7 +118,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
 
     async checkNumberStatus(request: CheckNumberStatusQuery): Promise<WANumberExistResult> {
         try {
-            const result = await this.whatsapp.checkNumberStatus(ensureSuffix(request.phone))
+            const result = await this.whatsapp.checkNumberStatus(this.ensureSuffix(request.phone))
             return {numberExists: result['numberExists']}
         } catch (error) {
             // We need to "touch" the error in order to get unhandled rejections
@@ -135,7 +134,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
     }
 
     sendText(request: MessageTextRequest) {
-        return this.whatsapp.sendText(ensureSuffix(request.chatId), request.text)
+        return this.whatsapp.sendText(this.ensureSuffix(request.chatId), request.text)
     }
 
     reply(request: MessageReplyRequest) {
@@ -175,7 +174,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
                 }
             }
         })
-        return this.whatsapp.sendButtons(ensureSuffix(request.chatId), request.title, buttons, request.text)
+        return this.whatsapp.sendButtons(this.ensureSuffix(request.chatId), request.title, buttons, request.text)
     }
 
     startTyping(chat: ChatRequest) {

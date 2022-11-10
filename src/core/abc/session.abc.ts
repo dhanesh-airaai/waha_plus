@@ -25,6 +25,19 @@ export abstract class WhatsappSession {
         this.log = log
     }
 
+
+    /**
+     * Add WhatsApp suffix (@c.us) to the phone number if it doesn't have it yet
+     * @param phone
+     */
+    protected ensureSuffix(phone) {
+        const suffix = "@c.us"
+        if (phone.includes("@")) {
+            return phone
+        }
+        return phone + suffix
+    }
+
     /** Start the session */
     abstract start()
 

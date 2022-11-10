@@ -1,11 +1,11 @@
 import {ConsoleLogger, Injectable, NotFoundException} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "../core/abc/session.abc";
-import {WebhookConductor} from "../core/webhooks";
-import {WhatsappSessionWebJS} from "../core/session.webjs";
+import {WebhookConductorCore} from "../core/webhooks.core";
+import {WhatsappSessionWebJSCore} from "../core/session.webjs.core";
 import {LocalMediaStorage} from "./storage.local";
 import {WhatsappEngine} from "../structures/enums.dto";
-import {WhatsappSessionVenom} from "../core/session.venom";
+import {WhatsappSessionVenomCore} from "../core/session.venom.core";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 import {SessionManager} from "../core/abc/manager.abc";
 
@@ -44,9 +44,9 @@ export class MultiSessionManager implements SessionManager {
 
     private getEngine(engine: WhatsappEngine): typeof WhatsappSession {
         if (engine === WhatsappEngine.WEBJS) {
-            return WhatsappSessionWebJS
+            return WhatsappSessionWebJSCore
         } else if (engine === WhatsappEngine.VENOM) {
-            return WhatsappSessionVenom
+            return WhatsappSessionVenomCore
         } else {
             throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`)
         }
@@ -65,7 +65,7 @@ export class MultiSessionManager implements SessionManager {
             this.config.mimetypes,
         )
         const webhookLog = new ConsoleLogger(`Webhook - ${name}`)
-        const webhook = new WebhookConductor(
+        const webhook = new WebhookConductorCore(
             webhookLog,
             this.config.getWebhookUrl(),
             this.config.getWebhookEvents()
