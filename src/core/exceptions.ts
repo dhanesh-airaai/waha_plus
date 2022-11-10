@@ -1,4 +1,4 @@
-const DOCS_URL = "https://waha.devlike.pro/"
+export const DOCS_URL = "https://waha.devlike.pro/"
 
 export class NotImplementedByEngineError extends Error {
     constructor(msg = "") {

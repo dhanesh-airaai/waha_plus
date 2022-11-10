@@ -1,16 +1,13 @@
-import request = require('requestretry');
 import {WhatsappSession} from "./abc/session.abc";
 import {ConsoleLogger} from "@nestjs/common";
-import {SECOND, WAEvents} from "../structures/enums.dto";
+import {WAEvents} from "../structures/enums.dto";
 import {WAWebhook} from "../structures/responses.dto";
 import {NotImplementedByEngineError} from "./exceptions";
 import {WebhookConductor} from "./abc/webhooks.abc";
+import request = require('request');
 
 
 export class WebhookConductorCore implements WebhookConductor {
-    private RETRY_DELAY = 15
-    private RETRY_ATTEMPTS = 3;
-
     constructor(protected log: ConsoleLogger, private readonly url, private readonly events: WAEvents[] | string[]) {
         this.url = url
         this.events = this.getSuitableEvents(events)
@@ -66,12 +63,7 @@ export class WebhookConductorCore implements WebhookConductor {
     protected post(json, url) {
         request.post(
             url,
-            {
-                json: json,
-                maxAttempts: this.RETRY_ATTEMPTS,
-                retryDelay: this.RETRY_DELAY * SECOND,
-                retryStrategy: request.RetryStrategies.HTTPOrNetworkError
-            },
+            {json: json},
             (error, res, body) => {
                 if (error) {
                     this.log.error(error)

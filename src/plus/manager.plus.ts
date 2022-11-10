@@ -1,13 +1,13 @@
 import {ConsoleLogger, Injectable, NotFoundException} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "../core/abc/session.abc";
-import {WebhookConductorCore} from "../core/webhooks.core";
 import {WhatsappSessionWebJSCore} from "../core/session.webjs.core";
 import {LocalMediaStorage} from "./storage.local";
 import {WhatsappEngine} from "../structures/enums.dto";
 import {WhatsappSessionVenomCore} from "../core/session.venom.core";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 import {SessionManager} from "../core/abc/manager.abc";
+import {WebhookConductorPlus} from "./webhooks.plus";
 
 @Injectable()
 export class SessionManagerPlus implements SessionManager {
@@ -16,7 +16,7 @@ export class SessionManagerPlus implements SessionManager {
     // @ts-ignore
     private MediaStorageClass = LocalMediaStorage
     // @ts-ignore
-    private WebhookConductorClass = WebhookConductorCore
+    private WebhookConductorClass = WebhookConductorPlus
     private readonly EngineClass: typeof WhatsappSession;
 
     constructor(
