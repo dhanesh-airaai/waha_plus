@@ -8,6 +8,7 @@ import {MediaAvailableInPlusStorage} from "./storage.none";
 import {WhatsappSessionVenomCore} from "./session.venom.core";
 import {WhatsappSessionWebJSCore} from "./session.webjs.core";
 import {DOCS_URL} from "./exceptions";
+import {WebhookConductorCore} from "./webhooks.core";
 
 export class OnlyDefaultSessionIsAllowed extends Error {
     constructor() {

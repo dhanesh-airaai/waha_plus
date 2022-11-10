@@ -1,10 +1,23 @@
 import {NestFactory} from '@nestjs/core';
-import {AppModule} from './app.module';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {WhatsappConfigService} from "./config.service";
 import {AllExceptionsFilter} from "./api/exception.filter";
+import {getWAHAVersion, WAHAVersion} from "./version";
+
+async function getAppModule() {
+    const version = getWAHAVersion()
+    console.log(`WAHA (WhatsApp HTTP API) - Running ${version} version...`)
+
+    if (version === WAHAVersion.CORE) {
+        const {AppModuleCore} = await import("./core/app.module.core")
+        return AppModuleCore
+    }
+    const {AppModulePlus} = await import("./plus/app.module.plus")
+    return AppModulePlus
+}
 
 async function bootstrap() {
+    const AppModule = await getAppModule()
     const app = await NestFactory.create(AppModule, {
         logger: process.env.DEBUG != undefined ? ['log', 'debug', 'error', 'verbose', 'warn'] :
             ['log', 'error', 'warn'],
