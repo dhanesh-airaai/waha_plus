@@ -1,4 +1,4 @@
-import {ConsoleLogger, Injectable, NotFoundException} from "@nestjs/common";
+import {ConsoleLogger, Injectable, NotFoundException, UnprocessableEntityException} from "@nestjs/common";
 import {SessionManager} from "./abc/manager.abc";
 import {WhatsappSession} from "./abc/session.abc";
 import {WhatsappEngine} from "../structures/enums.dto";
@@ -10,7 +10,7 @@ import {WhatsappSessionWebJSCore} from "./session.webjs.core";
 import {DOCS_URL} from "./exceptions";
 import {WebhookConductorCore} from "./webhooks.core";
 
-export class OnlyDefaultSessionIsAllowed extends Error {
+export class OnlyDefaultSessionIsAllowed extends UnprocessableEntityException {
     constructor() {
         super(`WAHA Core support only 'default' session. If you want to run more then one WhatsApp account - please get WAHA PLUS version. Check this out: ${DOCS_URL}`);
     }
