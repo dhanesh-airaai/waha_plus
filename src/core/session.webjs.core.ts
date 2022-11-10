@@ -1,11 +1,10 @@
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
-import {Buttons, Chat, Client, Events, LocalAuth, Message, MessageId, MessageMedia} from "whatsapp-web.js";
+import {Buttons, Chat, Client, Events, LocalAuth, Message} from "whatsapp-web.js";
 import {Message as MessageInstance} from "whatsapp-web.js/src/structures"
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {WhatsappSession} from "./abc/session.abc";
 import {WAMessage, WANumberExistResult} from "../structures/responses.dto";
 import {
-    BinaryFile,
     ChatRequest,
     CheckNumberStatusQuery,
     MessageContactVcardRequest,
@@ -17,9 +16,10 @@ import {
     MessageReplyRequest,
     MessageTextButtonsRequest,
     MessageTextRequest,
-    RemoteFile
+    MessageVoiceRequest
 } from "../structures/chatting.dto";
-import {NotImplementedByEngineError} from "./exceptions";
+import {AvailableInPlusVersion, NotImplementedByEngineError} from "./exceptions";
+import {MEDIA_URL} from "./storage.none";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
@@ -28,15 +28,18 @@ const qrcode = require('qrcode-terminal');
 export class WhatsappSessionWebJSCore extends WhatsappSession {
     whatsapp: Client;
 
-    async start() {
-        this.whatsapp = new Client({
-            authStrategy: new LocalAuth({clientId: this.name, dataPath: "./.sessions"}),
+    protected buildClient() {
+        return new Client({
             puppeteer: {
                 headless: true,
                 executablePath: "/usr/bin/google-chrome-stable",
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
             }
         });
+    }
+
+    async start() {
+        this.whatsapp = this.buildClient()
 
         this.whatsapp.initialize().catch(error => {
             this.status = WhatsappStatus.FAILED
@@ -95,22 +98,16 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         return this.whatsapp.sendMessage(request.chatId, request.text, options).then(this.toWAMessage)
     }
 
-    async sendFile(request: MessageFileRequest) {
-        const media = await this.fileToMedia(request.file)
-        const options = {sendMediaAsDocument: true}
-        return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
+    sendImage(request: MessageImageRequest) {
+        throw new AvailableInPlusVersion()
     }
 
-    async sendImage(request: MessageImageRequest) {
-        const media = await this.fileToMedia(request.file)
-        const options = {media: media}
-        return this.whatsapp.sendMessage(request.chatId, request.caption, options).then(this.toWAMessage)
+    sendFile(request: MessageFileRequest) {
+        throw new AvailableInPlusVersion()
     }
 
-    async sendVoice(request) {
-        const media = await this.fileToMedia(request.file)
-        const options = {sendAudioAsVoice: true}
-        return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
+    sendVoice(request: MessageVoiceRequest) {
+        throw new AvailableInPlusVersion()
     }
 
     sendLinkPreview(request: MessageLinkPreviewRequest) {
@@ -172,7 +169,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     }
 
     private processIncomingMessage(message: Message) {
-        return this.downloadAndDecryptMedia(message).then(this.toWAMessage)
+        return this.downloadMedia(message).then(this.toWAMessage)
     }
 
     protected toWAMessage(message: Message): Promise<WAMessage> {
@@ -196,45 +193,16 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         })
     }
 
-    private async downloadAndDecryptMedia(message: Message) {
+    protected async downloadMedia(message: Message) {
         if (!message.hasMedia) {
             return message
         }
 
-        this.log.log(`The message ${message.id._serialized} has media, downloading it...`);
-        return message.downloadMedia().then(async (media: MessageMedia) => {
-            this.log.verbose(`Writing file from the message ${message.id}...`)
-            const buffer = Buffer.from(media.data, "base64")
-            const url = await this.storage.save(message.id._serialized, media.mimetype, buffer)
-            this.log.log(`The file from ${message.id} has been saved to ${url}`);
-
-            // @ts-ignore
-            message.mediaUrl = url
-            return message
-        })
-
+        // @ts-ignore
+        message.mediaUrl = MEDIA_URL
+        return message
     }
 
-    private async fileToMedia(file: BinaryFile | RemoteFile) {
-        if ("url" in file) {
-            const mediaOptions = {unsafeMime: true}
-            const media = await MessageMedia.fromUrl(file.url, mediaOptions)
-            console.log(media.mimetype)
-            media.mimetype = file.mimetype || media.mimetype
-            return media
-        }
-        return new MessageMedia(file.mimetype, file.data, file.filename)
-    }
-
-    private deserializeId(messageId: string): MessageId {
-        const parts = messageId.split("_")
-        return {
-            "fromMe": parts[0] === "true",
-            "remote": parts[1],
-            "id": parts[2],
-            "_serialized": messageId
-        }
-    }
 
 }
 

@@ -8,6 +8,7 @@ import {WhatsappSessionVenomCore} from "../core/session.venom.core";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 import {SessionManager} from "../core/abc/manager.abc";
 import {WebhookConductorPlus} from "./webhooks.plus";
+import {WhatsappSessionWebJSPlus} from "./session.webjs.plus";
 
 @Injectable()
 export class SessionManagerPlus implements SessionManager {
@@ -38,7 +39,7 @@ export class SessionManagerPlus implements SessionManager {
 
     protected getEngine(engine: WhatsappEngine): typeof WhatsappSession {
         if (engine === WhatsappEngine.WEBJS) {
-            return WhatsappSessionWebJSCore
+            return WhatsappSessionWebJSPlus
         } else if (engine === WhatsappEngine.VENOM) {
             return WhatsappSessionVenomCore
         } else {

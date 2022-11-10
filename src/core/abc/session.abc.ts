@@ -15,6 +15,7 @@ import {
     MessageVoiceRequest
 } from "../../structures/chatting.dto";
 import {MediaStorage} from "./storage.abc";
+import {MessageId} from "whatsapp-web.js";
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
@@ -25,18 +26,6 @@ export abstract class WhatsappSession {
         this.log = log
     }
 
-
-    /**
-     * Add WhatsApp suffix (@c.us) to the phone number if it doesn't have it yet
-     * @param phone
-     */
-    protected ensureSuffix(phone) {
-        const suffix = "@c.us"
-        if (phone.includes("@")) {
-            return phone
-        }
-        return phone + suffix
-    }
 
     /** Start the session */
     abstract start()
@@ -79,9 +68,32 @@ export abstract class WhatsappSession {
     abstract stopTyping(chat: ChatRequest)
 
     abstract setReaction(request: MessageReactionRequest)
+
     /**
      * END - Methods for API
      */
+
+    /**
+     * Add WhatsApp suffix (@c.us) to the phone number if it doesn't have it yet
+     * @param phone
+     */
+    protected ensureSuffix(phone) {
+        const suffix = "@c.us"
+        if (phone.includes("@")) {
+            return phone
+        }
+        return phone + suffix
+    }
+
+    protected deserializeId(messageId: string): MessageId {
+        const parts = messageId.split("_")
+        return {
+            "fromMe": parts[0] === "true",
+            "remote": parts[1],
+            "id": parts[2],
+            "_serialized": messageId
+        }
+    }
 
 }
 
