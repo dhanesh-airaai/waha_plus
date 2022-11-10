@@ -1,6 +1,5 @@
 import {WAEvents, WhatsappStatus} from "../../structures/enums.dto";
 import {ConsoleLogger} from "@nestjs/common";
-import {LocalMediaStorage} from "../storage";
 import {
     ChatRequest,
     CheckNumberStatusQuery,
@@ -15,11 +14,12 @@ import {
     MessageTextRequest,
     MessageVoiceRequest
 } from "../../structures/chatting.dto";
+import {MediaStorage} from "./storage.abc";
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
 
-    public constructor(public name: string, protected storage: LocalMediaStorage, protected log: ConsoleLogger) {
+    public constructor(public name: string, protected storage: MediaStorage, protected log: ConsoleLogger) {
         this.name = name
         this.status = WhatsappStatus.STARTING
         this.log = log
@@ -67,7 +67,7 @@ export abstract class WhatsappSession {
 
     abstract setReaction(request: MessageReactionRequest)
     /**
-     * STOP - Methods for API
+     * END - Methods for API
      */
 
 }

@@ -5,11 +5,13 @@ import {WhatsappConfigService} from "./config.service";
 import {ServeStaticModule} from "@nestjs/serve-static";
 import {SessionsController} from "./api/sessions.controller";
 import {ChattingController} from "./api/chatting.controller";
-import {MultiSessionManager} from "./core/manager.multi";
+import {MultiSessionManager} from "./plus/manager.multi";
 import {VersionController} from "./api/version.controller";
 import {PassportModule} from "@nestjs/passport";
 import {ApiKeyStrategy} from "./plus/auth/apiKey.strategy";
 import {AuthMiddleware} from "./plus/auth/auth.middleware";
+import {SessionManager} from "./core/abc/manager.abc";
+
 
 @Module({
     imports: [
@@ -35,7 +37,16 @@ import {AuthMiddleware} from "./plus/auth/auth.middleware";
         ScreenshotController,
         VersionController,
     ],
-    providers: [MultiSessionManager, ConsoleLogger, WhatsappConfigService, ApiKeyStrategy],
+    providers: [
+        {
+            provide: SessionManager,
+            useClass: MultiSessionManager,
+        },
+        MultiSessionManager,
+        WhatsappConfigService,
+        ApiKeyStrategy,
+        ConsoleLogger,
+    ],
 })
 export class AppModule {
     configure(consumer: MiddlewareConsumer) {

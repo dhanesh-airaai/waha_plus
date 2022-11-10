@@ -150,7 +150,7 @@ export class WhatsappSessionWebJS extends WhatsappSession {
     }
 
     /**
-     * STOP - Methods for API
+     * END - Methods for API
      */
 
     subscribe(event, handler) {

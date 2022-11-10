@@ -4,9 +4,10 @@ import {ConsoleLogger} from "@nestjs/common";
 import {SECOND, WAEvents} from "../structures/enums.dto";
 import {WAWebhook} from "../structures/responses.dto";
 import {NotImplementedByEngineError} from "./exceptions";
+import {WebhookConductorBase} from "./abc/webhooks.abc";
 
 
-export class WebhookConductor {
+export class WebhookConductor implements WebhookConductorBase {
     private RETRY_DELAY = 15
     private RETRY_ATTEMPTS = 3;
 

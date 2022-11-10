@@ -6,7 +6,7 @@ export abstract class SessionManager implements OnApplicationShutdown {
 
     abstract start(request: SessionStartRequest): SessionDTO
 
-    abstract stop(request: SessionStopRequest): void
+    abstract stop(request: SessionStopRequest): Promise<void>
 
     abstract getSession(name: string): WhatsappSession
 

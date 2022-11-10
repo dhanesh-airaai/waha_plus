@@ -4,12 +4,13 @@ import {promisify} from "util";
 import {SECOND} from "../structures/enums.dto";
 import * as path from "path";
 import {ConsoleLogger} from "@nestjs/common";
+import {MediaStorage} from "../core/abc/storage.abc";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
 
 const writeFileAsync = promisify(fs.writeFile)
 
-export class LocalMediaStorage {
+export class LocalMediaStorage implements MediaStorage {
     private readonly lifetime: number;
 
     constructor(protected log: ConsoleLogger, private filesFolder, private baseUrl, private lifetimeSeconds, private mimetypes) {

@@ -1,7 +1,5 @@
-// TODO: Add real address
-const PLUS_VERSION_URL = "https://google.com/"
+const DOCS_URL = "https://waha.devlike.pro/"
 
-// TODO: Add more details about the engine - venom / whatsapp-web.js
 export class NotImplementedByEngineError extends Error {
     constructor(msg = "") {
         let error = "The method is not implemented by the engine."
@@ -14,6 +12,6 @@ export class NotImplementedByEngineError extends Error {
 
 export class AvailableInPlusVersion extends Error {
     constructor() {
-        super(`The feature is available only in Plus version. Check this out: ${PLUS_VERSION_URL}`);
+        super(`The feature is available only in Plus version. Check this out: ${DOCS_URL}`);
     }
 }

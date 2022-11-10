@@ -18,7 +18,7 @@ import {ensureSuffix} from "./utils";
 import {create, Message, Whatsapp} from "venom-bot";
 import {WAEvents, WhatsappStatus} from "../structures/enums.dto";
 import {NotImplementedByEngineError} from "./exceptions";
-import {LocalMediaStorage} from "./storage";
+import {MediaStorage} from "./abc/storage.abc";
 import {UnprocessableEntityException} from "@nestjs/common/exceptions/unprocessable-entity.exception";
 import {ConsoleLogger} from "@nestjs/common";
 
@@ -39,7 +39,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
     whatsapp: Whatsapp;
     private qr: QR
 
-    public constructor(public name: string, protected storage: LocalMediaStorage, protected log: ConsoleLogger) {
+    public constructor(public name: string, protected storage: MediaStorage, protected log: ConsoleLogger) {
         super(name, storage, log);
         this.qr = new QR()
     }
@@ -191,7 +191,7 @@ export class WhatsappSessionVenom extends WhatsappSession {
     }
 
     /**
-     * STOP - Methods for API
+     * END - Methods for API
      */
 
     private async downloadAndDecryptMedia(message: Message) {
