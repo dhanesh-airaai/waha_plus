@@ -10,6 +10,7 @@ export class NotImplementedByEngineError extends Error {
     }
 }
 
+
 export class AvailableInPlusVersion extends Error {
     constructor() {
         super(`The feature is available only in Plus version. Check this out: ${DOCS_URL}`);

@@ -1,29 +1,29 @@
 import {ConsoleLogger, Injectable, NotFoundException} from "@nestjs/common";
 import {WhatsappConfigService} from "../config.service";
 import {WhatsappSession} from "../core/abc/session.abc";
-import {WhatsappSessionWebJSCore} from "../core/session.webjs.core";
 import {LocalMediaStorage} from "./storage.local";
 import {WhatsappEngine} from "../structures/enums.dto";
-import {WhatsappSessionVenomCore} from "../core/session.venom.core";
 import {SessionDTO, SessionStartRequest, SessionStopRequest} from "../structures/sessions.dto";
 import {SessionManager} from "../core/abc/manager.abc";
 import {WebhookConductorPlus} from "./webhooks.plus";
 import {WhatsappSessionWebJSPlus} from "./session.webjs.plus";
+import {WhatsappSessionVenomPlus} from "./session.venom.plus";
 
 @Injectable()
-export class SessionManagerPlus implements SessionManager {
+export class SessionManagerPlus extends SessionManager {
     private readonly sessions: Record<string, WhatsappSession>;
 
     // @ts-ignore
-    private MediaStorageClass = LocalMediaStorage
+    protected MediaStorageClass = LocalMediaStorage
     // @ts-ignore
-    private WebhookConductorClass = WebhookConductorPlus
-    private readonly EngineClass: typeof WhatsappSession;
+    protected WebhookConductorClass = WebhookConductorPlus
+    protected readonly EngineClass: typeof WhatsappSession;
 
     constructor(
         private config: WhatsappConfigService,
         private log: ConsoleLogger,
     ) {
+        super()
         this.log.setContext('SessionManager')
         this.sessions = {}
         this.EngineClass = this.getEngine(this.config.getDefaultEngineName())
@@ -41,7 +41,7 @@ export class SessionManagerPlus implements SessionManager {
         if (engine === WhatsappEngine.WEBJS) {
             return WhatsappSessionWebJSPlus
         } else if (engine === WhatsappEngine.VENOM) {
-            return WhatsappSessionVenomCore
+            return WhatsappSessionVenomPlus
         } else {
             throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`)
         }
