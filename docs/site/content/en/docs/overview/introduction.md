@@ -58,7 +58,7 @@ Here's the available features:
 
 ### Updates
 - Bug fixes and updates come as soon as they are implemented. ![](/images/versions/plus.png)
-- One month delay in bug fixes and udpates. ![](/images/versions/core.png)
+- One month delay in bug fixes and updates. ![](/images/versions/core.png)
 
 
 ### Groups ![](/images/versions/soon.png)
