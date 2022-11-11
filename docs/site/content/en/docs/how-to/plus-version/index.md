@@ -9,7 +9,7 @@ images: []
 weight: 900
 ---
 
-**WAHA** is distributed in two version:
+**WAHA** is distributed in two versions:
 
 1. Core ![](/images/versions/core.png) the basic version that meet almost 80% people’s needs. 100% free and open source.
 2. Plus ![](/images/versions/plus.png) the version with advanced messages, security, and reliability features.
@@ -21,7 +21,7 @@ Plus version - available through **donations** - either one time or subscription
 {{< alert icon="💡" text="No licence checks or expiration on already installed instances!" />}}
 
 ## Donations
-We do not sell **WAHA**, it's not a purchase. It's just a donation.
+We do not sell **WAHA**, it's not a purchase. It's a donation.
 
 We treat our projects like an art. You donate to the project and get a bit more from it as a thank-you. 😊
 
@@ -61,11 +61,11 @@ For $69 one-time donation you get:
 1. **Secret password** for Docker Hub to download Plus image: `devlikeapro/whatsapp-http-api-plus`.
 2. **All updates for one month** for the Plus image.
 3. **NO LICENSE CHECKS** on installed instances!
-4. **NO LICENSE EXPIRATION** on installed instances! We repeated it twice just to make sure that you've got it 😊
+4. **NO LICENSE EXPIRATION** on installed instances! We repeated it twice to make sure that you've got it 😊
 
 {{< alert icon="👉" text="We don't mind if you stay subscribed with us after one month :)" />}}
 
-### Get Plus on Boosty
+### Boosty
 We use Boosty to get donations (Patreon analogue) - [https://boosty.to/wa-http-api](https://boosty.to/wa-http-api).
 
 Go ahead and get your monthly password to get no license expiration WhatsApp HTTP API - either subscribe or use one time donation!
@@ -73,6 +73,11 @@ Go ahead and get your monthly password to get no license expiration WhatsApp HTT
 {{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $69 to get monthly updates!" />}}
 
 ![](boosty.png)
+
+### Patreon
+You can support the project and get WAHA Plus version on Patreon: [https://patreon.com/wa_http_api](https://patreon.com/wa_http_api)
+
+{{< alert icon="💡" text="Please look at Boosty - we prefer it because of lower fees, so we can donate more to the projects!" />}}
 
 
 ### Install Plus

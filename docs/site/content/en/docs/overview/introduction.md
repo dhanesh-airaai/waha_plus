@@ -25,7 +25,7 @@ toc: true
 Go straight to the [Quick Start →]({{< relref "quick-start" >}})
 
 ## Features
-WAHA distributes in two versions:
+WAHA is distributed in two versions:
 - Core ![](/images/versions/core.png) - the basic version that meet almost 80% people's needs. 100% free and [open source](https://github.com/devlikeapro/whatsapp-http-api).
 - Plus ![](/images/versions/plus.png) - the version with advanced messages, security, and reliability features. One-time donation, no license expiration, quick updates, read more about [Plus Version →]({{< relref "plus-version" >}})
 
