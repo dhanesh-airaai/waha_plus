@@ -23,11 +23,13 @@ Plus version - available through **donations** - either one time or subscription
 ## Donations
 We do not sell **WAHA**, it's not a purchase. It's a donation.
 
-We treat our projects like an art. You donate to the project and get a bit more from it as a thank-you. 😊
+We treat our projects like art. You donate to the project and get a bit more from it as a thank-you. 😊
 
-{{< alert icon="💡" text="WAHA does not have license checks and expiration - because **art can not expire**! Enjoy it till it works!" />}}
+Treat **WAHA Plus** it as an additional episode, behind-the-scenes videos, our nude photos 😊
 
-We re-donate most of the donations down to the stream to the underlying libraries and tools - JS-community, Node, other libraries authors, personal contributors.
+{{< alert icon="💡" text="WAHA does not have license checks and expiration - because art can not expire! Enjoy it till it works!" />}}
+
+We donate most of the donations down to the stream to the underlying libraries and tools - JS-community, Node, other libraries authors, personal contributors.
 By donating to the **WAHA** you donate to the Open Source world!
 
 ## Features
@@ -52,6 +54,7 @@ What is the difference between **WAHA Plus** and other SaaS solutions for WhatsA
 | **Sessions**       |                   ✔️ No limits!                   |                                                      ➖ One account for $50/month. |
 | **Infrastructure** | ✔️ On-Premise - your server, your infrastructure! |                                                        ➖ Insecure cloud solution. |
 | **Security**       |                 ✔️ No data leaks!                 | ➖ You have to give access to customers' data - phone number, name, your messages. |
+| **License Term**               |               ✔️ No license checks!   |                                                                       ➖ One month |
 | **Message price**  |             ✔️ All messages are Free!             |                     ➖ Some solutions have a price for messages - $1/100 messages. |
 | **Expenses**       |           ✔️ one-time $69 **donation**!           |                                                 ➖ Monthly payment starts from $50 |
 
