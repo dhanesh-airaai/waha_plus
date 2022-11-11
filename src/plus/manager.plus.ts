@@ -50,7 +50,7 @@ export class SessionManagerPlus extends SessionManager {
     start(request: SessionStartRequest) {
         const name = request.name
 
-        this.log.log(`'${name}' - staring session...`)
+        this.log.log(`'${name}' - starting session...`)
         const log = new ConsoleLogger(`WhatsappSession - ${name}`)
         const storage = new this.MediaStorageClass(
             new ConsoleLogger(`Storage - ${name}`),
