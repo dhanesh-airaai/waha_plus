@@ -2,7 +2,7 @@ import {NestFactory} from '@nestjs/core';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {WhatsappConfigService} from "./config.service";
 import {AllExceptionsFilter} from "./api/exception.filter";
-import {getWAHAVersion, WAHAVersion} from "./version";
+import {getWAHAVersion, VERSION, WAHAVersion} from "./version";
 
 async function getAppModule() {
     const version = getWAHAVersion()
@@ -26,10 +26,10 @@ async function bootstrap() {
     app.enableShutdownHooks();
     app.useGlobalFilters(new AllExceptionsFilter());
     const options = new DocumentBuilder()
-        .setTitle('WhatsApp HTTP API')
+        .setTitle('WAHA - WhatsApp HTTP API')
         .setDescription('WhatsApp HTTP API that you can configure in a click!')
-        .setExternalDoc("Github WhatsApp HTTP API", "https://github.com/devlikeapro/whatsapp-http-api")
-        .setVersion('1.0')
+        .setExternalDoc("Documentation", "https://waha.devlike.pro/")
+        .setVersion(VERSION.version)
         .addTag('sessions', 'Control your WhatsApp sessions')
         .addTag('screenshot', 'Get screenshot of WhatsApp and show QR code')
         .addTag('chatting', 'Chat methods')
