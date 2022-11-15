@@ -1,7 +1,27 @@
 import {WhatsappSessionVenomCore} from "../core/session.venom.core";
-import {Message} from "venom-bot";
+import {create, Message} from "venom-bot";
 
 export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
+    protected buildClient() {
+        return create(this.name,
+            this.getCatchQR(),
+            undefined,
+            // Keep this options in sync with core
+            {
+                headless: true,
+                devtools: false,
+                useChrome: true,
+                debug: false,
+                logQR: true,
+                browserArgs: ["--no-sandbox", '--disable-setuid-sandbox'],
+                autoClose: 60000,
+                puppeteerOptions: {},
+                multidevice: true,
+                folderNameToken: "venom",
+                mkdirFolderToken: ".sessions",
+            }
+        )
+    }
     protected async downloadAndDecryptMedia(message: Message) {
         if (!message.isMMS || !message.isMedia) {
             return message
