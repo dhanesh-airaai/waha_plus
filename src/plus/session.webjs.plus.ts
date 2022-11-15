@@ -27,19 +27,19 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     async sendFile(request: MessageFileRequest) {
         const media = await this.fileToMedia(request.file)
         const options = {sendMediaAsDocument: true}
-        return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
+        return this.whatsapp.sendMessage(request.chatId, media, options)
     }
 
     async sendImage(request: MessageImageRequest) {
         const media = await this.fileToMedia(request.file)
         const options = {media: media}
-        return this.whatsapp.sendMessage(request.chatId, request.caption, options).then(this.toWAMessage)
+        return this.whatsapp.sendMessage(request.chatId, request.caption, options)
     }
 
     async sendVoice(request) {
         const media = await this.fileToMedia(request.file)
         const options = {sendAudioAsVoice: true}
-        return this.whatsapp.sendMessage(request.chatId, media, options).then(this.toWAMessage)
+        return this.whatsapp.sendMessage(request.chatId, media, options)
     }
 
     protected async downloadMedia(message: Message) {
