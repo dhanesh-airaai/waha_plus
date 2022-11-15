@@ -6,7 +6,11 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
 
     protected buildClient() {
         return new Client({
-            authStrategy: new LocalAuth({clientId: this.name, dataPath: "./.sessions"}),
+            authStrategy: new LocalAuth({
+                    clientId:
+                    this.name, dataPath: "./.sessions/webjs"
+                }
+            ),
             puppeteer: {
                 headless: true,
                 executablePath: "/usr/bin/google-chrome-stable",
@@ -14,6 +18,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
             }
         });
     }
+
     private async fileToMedia(file: BinaryFile | RemoteFile) {
         if ("url" in file) {
             const mediaOptions = {unsafeMime: true}
@@ -24,6 +29,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
         }
         return new MessageMedia(file.mimetype, file.data, file.filename)
     }
+
     async sendFile(request: MessageFileRequest) {
         const media = await this.fileToMedia(request.file)
         const options = {sendMediaAsDocument: true}
