@@ -13,7 +13,7 @@ export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
                 useChrome: true,
                 debug: false,
                 logQR: true,
-                browserArgs: ["--no-sandbox", '--disable-setuid-sandbox'],
+                browserArgs: this.getBrowserArgsForPuppeteer(),
                 autoClose: 60000,
                 puppeteerOptions: {},
                 multidevice: true,

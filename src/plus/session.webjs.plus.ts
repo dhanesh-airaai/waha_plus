@@ -13,8 +13,8 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
             ),
             puppeteer: {
                 headless: true,
-                executablePath: "/usr/bin/google-chrome-stable",
-                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: this.getBrowserExecutablePath(),
+                args: this.getBrowserArgsForPuppeteer(),
             }
         });
     }
