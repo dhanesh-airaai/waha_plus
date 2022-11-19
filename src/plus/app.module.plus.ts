@@ -4,6 +4,7 @@ import {AuthMiddleware} from "./auth/auth.middleware";
 import {SessionManager} from "../core/abc/manager.abc";
 import {SessionManagerPlus} from "./manager.plus";
 import {CONTROLLERS, IMPORTS} from "../core/app.module.core";
+import {ApiKeyStrategy} from "./auth/apiKey.strategy";
 
 const PROVIDERS = [
     {
@@ -12,6 +13,7 @@ const PROVIDERS = [
     },
     WhatsappConfigService,
     ConsoleLogger,
+    ApiKeyStrategy,
 ]
 
 @Module({
