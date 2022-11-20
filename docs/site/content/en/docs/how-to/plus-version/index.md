@@ -9,34 +9,18 @@ images: []
 weight: 900
 ---
 
+## Overview
+
 **WAHA** is distributed in two versions:
 
 1. Core ![](/images/versions/core.png) the basic version that meet almost 80% people’s needs. 100% free and open source.
 2. Plus ![](/images/versions/plus.png) the version with advanced messages, security, and reliability features.
 
-Plus version - available through **donations** - either one time or subscription.
+**If you enjoy Core ![](/images/versions/core.png) version and would like to support the project** - you can subscribe on Core level.
+It's not expensive, but it supports the project a lot!
+- [Boosty ->](https://boosty.to/wa-http-api)
+- [Patreon ->](https://patreon.com/wa_http_api)
 
-**It doesn't require monthly subscriptions, once installed on your server - it always works!**
-
-{{< alert icon="💡" text="No licence checks or expiration on already installed instances!" />}}
-
-## Donations
-We do not sell **WAHA**, it's not a purchase. It's a donation.
-
-We treat our projects like art. You donate to the project and get a bit more from it as a thank-you. 😊
-
-Treat **WAHA Plus** it as an additional episode, behind-the-scenes videos, our nude photos 😊
-
-{{< alert icon="💡" text="WAHA does not have license checks and expiration - because art can not expire! Enjoy it till it works!" />}}
-
-We donate most of the donations down to the stream to the underlying libraries and tools - JS-community, Node, other libraries authors, personal contributors.
-By donating to the **WAHA** you donate to the Open Source world!
-
-### Special New Year Offer!
-We set minimum donation to **$19** till **January 15, 2022**!
-
-You can subscribe now and get **WAHA Plus** version for almost free!
-Stay subscribed and the donation amount WILL NOT be changed for your - **always $19** even after **January 15, 2022**!
 
 ## Features
 
@@ -62,11 +46,29 @@ What is the difference between **WAHA Plus** and other SaaS solutions for WhatsA
 | **Security**       |                 ✔️ No data leaks!                 | ➖ You have to give access to customers' data - phone number, name, your messages. |
 | **License Term**               |               ✔️ No license checks!   |                                                                       ➖ One month |
 | **Message price**  |             ✔️ All messages are Free!             |                     ➖ Some solutions have a price for messages - $1/100 messages. |
-| **Expenses**       |           ✔️ one-time $69 **donation**!           |                                                 ➖ Monthly payment starts from $50 |
+| **Expenses**       |           ✔️ one-time $19 **donation**!           |                                                 ➖ Monthly payment starts from $50 |
+
+## Donations
+
+WAHA Plus version is available through **donations** - either one time or subscription.
+
+**It doesn't require monthly subscriptions, once installed on your server - it always works!**
+
+{{< alert icon="💡" text="No licence checks or expiration on already installed instances!" />}}
+We do not sell **WAHA**, it's not a purchase. It's a donation.
+
+We treat our projects like art. You donate to the project and get a bit more from it as a thank-you. 😊
+
+Treat **WAHA Plus** it as an additional episode, behind-the-scenes videos, our nude photos 😊
+
+{{< alert icon="💡" text="WAHA does not have license checks and expiration - because art can not expire! Enjoy it till it works!" />}}
+
+We donate most of the donations down to the stream to the underlying libraries and tools - JS-community, Node, other libraries authors, personal contributors.
+By donating to the **WAHA** you donate to the Open Source world!
 
 ## Get Plus ![](/images/versions/plus.png)
 
-For $69 one-time donation you get:
+For $19 one-time donation you get:
 1. **Secret password** for Docker Hub to download Plus image: `devlikeapro/whatsapp-http-api-plus`.
 2. **All updates for one month** for the Plus image.
 3. **NO LICENSE CHECKS** on installed instances!
@@ -79,7 +81,7 @@ We use Boosty to get donations (Patreon analogue) - [https://boosty.to/wa-http-a
 
 Go ahead and get your monthly password to get no license expiration WhatsApp HTTP API - either subscribe or use one time donation!
 
-{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $69 to get monthly updates!" />}}
+{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
 
 ![](boosty.png)
 
