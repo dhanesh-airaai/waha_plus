@@ -80,7 +80,7 @@ export class WhatsappConfigService {
     getSwaggerUsernamePassword(): [string, string] | undefined {
         const user = this.configService.get("WHATSAPP_SWAGGER_USERNAME", undefined)
         const password = this.configService.get("WHATSAPP_SWAGGER_PASSWORD", undefined)
-        if (!user && !password) {
+        if (!user || !password) {
             console.log("Please set up both WHATSAPP_SWAGGER_USERNAME and WHATSAPP_SWAGGER_PASSWORD " +
                 "to enable swagger authentication.")
             return undefined
