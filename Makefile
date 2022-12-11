@@ -9,6 +9,8 @@ run-webjs:
 		-e WHATSAPP_HOOK_URL=https://httpbin.org/post \
 		-e WHATSAPP_HOOK_EVENTS=* \
 		-e WHATSAPP_API_KEY=321 \
+		-e WHATSAPP_SWAGGER_USERNAME=admin \
+		-e WHATSAPP_SWAGGER_PASSWORD=123 \
 		--name whatsapp-http-api devlikeapro/whatsapp-http-api
 
 run-venom:
@@ -20,6 +22,8 @@ run-venom:
 		-e WHATSAPP_HOOK_EVENTS=* \
 		-e WHATSAPP_DEFAULT_ENGINE=VENOM \
 		-e WHATSAPP_API_KEY=321 \
+		-e WHATSAPP_SWAGGER_USERNAME=admin \
+		-e WHATSAPP_SWAGGER_PASSWORD=123 \
 		--name whatsapp-http-api devlikeapro/whatsapp-http-api
 
 stop:
