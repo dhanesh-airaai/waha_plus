@@ -12,6 +12,9 @@ menu:
 weight: 600
 toc: true
 ---
+## 2022.12
+### Security ![](/images/versions/plus.png)
+- Added `WHATSAPP_SWAGGER_USERNAME` and `WHATSAPP_SWAGGER_PASSWORD` to hide and protect swagger panel.
 
 ## 2022.11
 **Please test changes in test environment before update production!!**
