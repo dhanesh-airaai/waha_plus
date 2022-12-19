@@ -2,7 +2,7 @@ import {WAEvents, WhatsappStatus} from "../../structures/enums.dto";
 import {ConsoleLogger} from "@nestjs/common";
 import {
     ChatRequest,
-    CheckNumberStatusQuery,
+    CheckNumberStatusQuery, GetMessageQuery,
     MessageContactVcardRequest,
     MessageFileRequest,
     MessageImageRequest,
@@ -101,7 +101,10 @@ export abstract class WhatsappSession {
 
     abstract stopTyping(chat: ChatRequest)
 
+    abstract getMessages(query: GetMessageQuery)
+
     abstract setReaction(request: MessageReactionRequest)
+
 
     /**
      * END - Methods for API
