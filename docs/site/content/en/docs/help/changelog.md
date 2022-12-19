@@ -13,6 +13,8 @@ weight: 600
 toc: true
 ---
 ## 2022.12
+- Added `GET /messages/` endpoint to get chat messages [#31](https://github.com/devlikeapro/whatsapp-http-api/issues/31)
+
 ### Security ![](/images/versions/plus.png)
 - Added `WHATSAPP_SWAGGER_USERNAME` and `WHATSAPP_SWAGGER_PASSWORD` to hide and protect swagger panel.
 
