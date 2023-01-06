@@ -2,7 +2,8 @@ import {WAEvents, WhatsappStatus} from "../../structures/enums.dto";
 import {ConsoleLogger} from "@nestjs/common";
 import {
     ChatRequest,
-    CheckNumberStatusQuery, GetMessageQuery,
+    CheckNumberStatusQuery,
+    GetMessageQuery,
     MessageContactVcardRequest,
     MessageFileRequest,
     MessageImageRequest,
@@ -16,6 +17,8 @@ import {
 } from "../../structures/chatting.dto";
 import {MediaStorage} from "./storage.abc";
 import {MessageId} from "whatsapp-web.js";
+import {ContactQuery, ContactRequest} from "../../structures/contacts.dto";
+import {NotImplementedByEngineError} from "../exceptions";
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
@@ -26,7 +29,7 @@ export abstract class WhatsappSession {
         this.log = log
     }
 
-    getBrowserExecutablePath(){
+    getBrowserExecutablePath() {
         return "/usr/bin/google-chrome-stable"
     }
 
@@ -104,6 +107,33 @@ export abstract class WhatsappSession {
     abstract getMessages(query: GetMessageQuery)
 
     abstract setReaction(request: MessageReactionRequest)
+
+    /**
+     * Contacts methods
+     */
+    public getContact(query: ContactQuery) {
+        throw new NotImplementedByEngineError()
+    }
+
+    public getContacts() {
+        throw new NotImplementedByEngineError()
+    }
+
+    public getContactAbout(query: ContactQuery) {
+        throw new NotImplementedByEngineError()
+    }
+
+    public getContactProfilePicture(query: ContactQuery) {
+        throw new NotImplementedByEngineError()
+    }
+
+    public blockContact(request: ContactRequest) {
+        throw new NotImplementedByEngineError()
+    }
+
+    public unblockContact(request: ContactRequest) {
+        throw new NotImplementedByEngineError()
+    }
 
 
     /**
