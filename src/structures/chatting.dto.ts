@@ -77,8 +77,8 @@ export class MessageReplyRequest extends ChatRequest {
 }
 
 export class MessageLocationRequest extends ChatRequest {
-    latitude: string;
-    longitude: string;
+    latitude: number;
+    longitude: number;
     title: string;
 }
 
