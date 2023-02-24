@@ -54,14 +54,14 @@ Here's the available features:
 
 ### Security
 - API authentication ![](/images/versions/plus.png)
-- Swagger panel authentication ![](/images/versions/plus-soon.png)
+- Swagger panel authentication ![](/images/versions/plus.png)
 
 ### Updates
 - Bug fixes and updates come as soon as they are implemented. ![](/images/versions/plus.png)
 - One month delay in bug fixes and updates. ![](/images/versions/core.png)
 
 
-### Groups ![](/images/versions/soon.png)
+### Groups
 - Join groups by invite
 - Get invite for group
 - Modify group info (subject, description)
@@ -70,7 +70,7 @@ Here's the available features:
 - Kick group participants
 - Promote/demote group participants
 
-### Contacts ![](/images/versions/soon.png)
+### Contacts
 - Mention users
 - Mute/unmute chats
 - Block/unblock contacts
