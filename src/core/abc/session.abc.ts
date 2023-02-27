@@ -20,6 +20,17 @@ import {MessageId} from "whatsapp-web.js";
 import {ContactQuery, ContactRequest} from "../../structures/contacts.dto";
 import {NotImplementedByEngineError} from "../exceptions";
 import {CreateGroupRequest, ParticipantsRequest} from "../../structures/groups.dto";
+import * as fs from "fs";
+
+const CHROME_PATH = "/usr/bin/google-chrome-stable"
+const CHROMIUM_PATH = "/usr/bin/chromium"
+
+export function getBrowserExecutablePath() {
+    if (fs.existsSync(CHROME_PATH)) {
+        return CHROME_PATH
+    }
+    return CHROMIUM_PATH
+}
 
 export abstract class WhatsappSession {
     public status: WhatsappStatus;
@@ -31,7 +42,7 @@ export abstract class WhatsappSession {
     }
 
     getBrowserExecutablePath() {
-        return "/usr/bin/google-chrome-stable"
+        return getBrowserExecutablePath()
     }
 
     getBrowserArgsForPuppeteer() {
