@@ -40,4 +40,4 @@ update-swagger:
 
 update-dependencies:
 	. ${NVM_DIR}/nvm.sh && nvm exec yarn add whatsapp-web.js@https://github.com/pedroslopez/whatsapp-web.js
-	. ${NVM_DIR}/nvm.sh && nvm exec yarn add venom-bot@https://github.com/orkestral/venom
+	. ${NVM_DIR}/nvm.sh && nvm exec yarn add venom-bot
