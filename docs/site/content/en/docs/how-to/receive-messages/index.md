@@ -12,7 +12,7 @@ weight: 120
 The project uses [Webhooks](https://en.wikipedia.org/wiki/Webhook) to send the messages or events from WhatsApp to your
 application.
 
-## Webhooks ![](/images/versions/core.png) ![](/images/versions/plus.png)
+## Webhooks ![](/images/versions/core.png)
 
 You can configure where you want to receive events in environment variables:
 
@@ -40,7 +40,7 @@ Below the list of all events that WhatsApp HTTP API sends to your.
 Run the bellow command and see look at the logs - it prints body request for all events that happen in your WhatsApp!
 
 ```bash
-docker run -it -e WHATSAPP_HOOK_EVENTS=* -e WHATSAPP_HOOK_URL=https://httpbin.org/post devlikeapro/whatsapp-http-api
+docker run -it -e "WHATSAPP_HOOK_EVENTS=*" -e WHATSAPP_HOOK_URL=https://httpbin.org/post devlikeapro/whatsapp-http-api
 ```
 
 ### Examples
@@ -55,7 +55,7 @@ You can create a pull request with your favorite language in the [GitHub, in exa
 Just put the code and **README.md** file in the folder - we'll do the rest!
 
 
-## Events ![](/images/versions/core.png) ![](/images/versions/plus.png)
+## Events ![](/images/versions/core.png)
 
 ### message
 
