@@ -7,7 +7,8 @@ import {ConsoleLogger} from "@nestjs/common";
 import {MediaStorage} from "../core/abc/storage.abc";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const FileType = require('file-type');
 const writeFileAsync = promisify(fs.writeFile)
 
 export class LocalMediaStorage implements MediaStorage {
@@ -31,6 +32,10 @@ export class LocalMediaStorage implements MediaStorage {
     }
 
     public async save(messageId, mimetype, buffer): Promise<string> {
+        if (!mimetype){
+            mimetype = (await FileType.fromBuffer(buffer)).mime
+        }
+
         if (!this.needToDownload(mimetype)) {
             this.log.log(`The message ${messageId} has ${mimetype} media, skip it.`);
             return ""
