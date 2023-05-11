@@ -47,12 +47,20 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     }
 
     sendImage(request: MessageImageRequest) {
-        const message = this.fileToMessage(request.file, 'image', request.caption)
+        const message = this.fileToMessage(
+          request.file,
+          'image',
+          request.caption
+        )
         return this.sock.sendMessage(request.chatId, message)
     }
 
     sendFile(request: MessageFileRequest) {
-        const message = this.fileToMessage(request.file, 'document')
+        const message = this.fileToMessage(
+          request.file,
+          'document',
+          request.caption
+        )
         return this.sock.sendMessage(request.chatId, message)
     }
 
