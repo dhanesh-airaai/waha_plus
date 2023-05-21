@@ -11,13 +11,11 @@ export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
       {
         headless: true,
         devtools: false,
-        useChrome: true,
         debug: false,
         logQR: true,
         browserArgs: this.getBrowserArgsForPuppeteer(),
         autoClose: 60000,
         puppeteerOptions: {},
-        multidevice: true,
         folderNameToken: this.sessionStorage.engine,
         mkdirFolderToken: this.sessionStorage.sessionsFolder,
       },
