@@ -17,8 +17,8 @@ export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
                 autoClose: 60000,
                 puppeteerOptions: {},
                 multidevice: true,
-                folderNameToken: "venom",
-                mkdirFolderToken: ".sessions",
+                folderNameToken: this.sessionStorage.engine,
+                mkdirFolderToken: this.sessionStorage.sessionsFolder,
             }
         )
     }

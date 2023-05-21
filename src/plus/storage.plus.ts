@@ -5,13 +5,14 @@ import {SECOND} from "../structures/enums.dto";
 import * as path from "path";
 import {ConsoleLogger} from "@nestjs/common";
 import {MediaStorage} from "../core/abc/storage.abc";
+import { SessionStorageCore } from "../core/storage.core";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FileType = require('file-type');
 const writeFileAsync = promisify(fs.writeFile)
 
-export class LocalMediaStorage implements MediaStorage {
+export class MediaStoragePlus implements MediaStorage {
     private readonly lifetime: number;
 
     constructor(protected log: ConsoleLogger, private filesFolder, private baseUrl, private lifetimeSeconds, private mimetypes) {
@@ -67,5 +68,12 @@ export class LocalMediaStorage implements MediaStorage {
             fs.mkdirSync(this.filesFolder)
             this.log.log(`Directory '${this.filesFolder}' created from scratch`)
         }
+    }
+}
+
+export class SessionStoragePlus extends SessionStorageCore {
+    constructor(engine: string) {
+        super(engine);
+        this.sessionsFolder = "./.sessions";
     }
 }

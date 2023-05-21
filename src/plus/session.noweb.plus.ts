@@ -13,7 +13,7 @@ const logger = require('pino')()
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     protected getAuthFolder() {
-        return `./.sessions/noweb/${this.name}`
+        return this.sessionStorage.getFolderPath(this.name)
     }
 
 

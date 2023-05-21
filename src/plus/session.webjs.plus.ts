@@ -7,8 +7,8 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     protected buildClient() {
         return new Client({
             authStrategy: new LocalAuth({
-                    clientId:
-                    this.name, dataPath: "./.sessions/webjs"
+                    clientId: this.name,
+                    dataPath: this.sessionStorage.getFolderPath(this.name)
                 }
             ),
             puppeteer: {
