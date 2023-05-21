@@ -1,16 +1,25 @@
-import { ConsoleLogger, Injectable, NotFoundException } from "@nestjs/common";
-import { WhatsappConfigService } from "../config.service";
-import { WAHAInternalEvent, WhatsappSession, WhatsAppSessionConfig } from "../core/abc/session.abc";
-import { MediaStoragePlus, SessionStoragePlus } from "./storage.plus";
-import { WhatsappEngine, WhatsappStatus } from "../structures/enums.dto";
-import { SessionDTO, SessionLogoutRequest, SessionStartRequest, SessionStopRequest } from "../structures/sessions.dto";
-import { SessionManager } from "../core/abc/manager.abc";
-import { WebhookConductorPlus } from "./webhooks.plus";
-import { WhatsappSessionWebJSPlus } from "./session.webjs.plus";
-import { WhatsappSessionVenomPlus } from "./session.venom.plus";
-import { WhatsappSessionNoWebPlus } from "./session.noweb.plus";
-import { LocalSessionStorage } from "../core/abc/storage.abc";
-import * as lodash from "lodash";
+import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
+import { WhatsappConfigService } from '../config.service';
+import {
+  WAHAInternalEvent,
+  WhatsappSession,
+  WhatsAppSessionConfig,
+} from '../core/abc/session.abc';
+import { MediaStoragePlus, SessionStoragePlus } from './storage.plus';
+import { WhatsappEngine, WhatsappStatus } from '../structures/enums.dto';
+import {
+  SessionDTO,
+  SessionLogoutRequest,
+  SessionStartRequest,
+  SessionStopRequest,
+} from '../structures/sessions.dto';
+import { SessionManager } from '../core/abc/manager.abc';
+import { WebhookConductorPlus } from './webhooks.plus';
+import { WhatsappSessionWebJSPlus } from './session.webjs.plus';
+import { WhatsappSessionVenomPlus } from './session.venom.plus';
+import { WhatsappSessionNoWebPlus } from './session.noweb.plus';
+import { LocalSessionStorage } from '../core/abc/storage.abc';
+import * as lodash from 'lodash';
 
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
@@ -25,15 +34,15 @@ export class SessionManagerPlus extends SessionManager {
 
   constructor(
     private config: WhatsappConfigService,
-    private log: ConsoleLogger
+    private log: ConsoleLogger,
   ) {
     super();
-    this.log.setContext("SessionManager");
+    this.log.setContext('SessionManager');
     this.sessions = {};
     const engineName = this.config.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
     this.sessionStorage = new SessionStoragePlus(engineName.toLowerCase());
-    this.sessionStorage.init()
+    this.sessionStorage.init();
 
     this.clearStorage();
     this.restartStoppedSessions();
@@ -47,24 +56,21 @@ export class SessionManagerPlus extends SessionManager {
 
     const stoppedSessions = this.sessionStorage.getAll();
     stoppedSessions.forEach((sessionName) => {
-        this.log.log(`Restarting STOPPED session - ${sessionName}...`);
-        this.start({ name: sessionName });
-      }
-    );
+      this.log.log(`Restarting STOPPED session - ${sessionName}...`);
+      this.start({ name: sessionName });
+    });
   }
 
   protected startPredefinedSessions() {
     const startSessions = this.config.startSessions;
     startSessions.forEach((sessionName) => {
-        // Do not start already started session
-        if (this.sessions[sessionName]) {
-          return;
-        }
-        this.start({ name: sessionName });
+      // Do not start already started session
+      if (this.sessions[sessionName]) {
+        return;
       }
-    );
+      this.start({ name: sessionName });
+    });
   }
-
 
   protected getEngine(engine: WhatsappEngine): typeof WhatsappSession {
     if (engine === WhatsappEngine.WEBJS) {
@@ -78,9 +84,8 @@ export class SessionManagerPlus extends SessionManager {
     }
   }
 
-
-  async onApplicationShutdown(signal ?: string) {
-    this.log.log("Stop all sessions...");
+  async onApplicationShutdown(signal?: string) {
+    this.log.log('Stop all sessions...');
     for (const name of Object.keys(this.sessions)) {
       await this.stop({ name: name, logout: false });
     }
@@ -93,7 +98,7 @@ export class SessionManagerPlus extends SessionManager {
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
-      this.config.mimetypes
+      this.config.mimetypes,
     );
     storage.purge();
   }
@@ -111,21 +116,28 @@ export class SessionManagerPlus extends SessionManager {
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
-      this.config.mimetypes
+      this.config.mimetypes,
     );
     const webhookLog = new ConsoleLogger(`Webhook - ${name}`);
     const webhook = new this.WebhookConductorClass(
       webhookLog,
       this.config.getWebhookUrl(),
-      this.config.getWebhookEvents()
+      this.config.getWebhookEvents(),
     );
 
-    const sessionConfig: WhatsAppSessionConfig = { name, storage, log, sessionStorage: this.sessionStorage };
+    const sessionConfig: WhatsAppSessionConfig = {
+      name,
+      storage,
+      log,
+      sessionStorage: this.sessionStorage,
+    };
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
     this.sessions[name] = session;
 
-    session.events.on(WAHAInternalEvent.engine_start, () => webhook.configure(session));
+    session.events.on(WAHAInternalEvent.engine_start, () =>
+      webhook.configure(session),
+    );
     session.start();
     return { name: session.name, status: session.status };
   }
@@ -147,7 +159,9 @@ export class SessionManagerPlus extends SessionManager {
     const session = this.sessions[name];
     if (!session) {
       if (error) {
-        throw new NotFoundException(`We didn't find a session with name '${name}'. Please start it first by using POST /sessions/start request`);
+        throw new NotFoundException(
+          `We didn't find a session with name '${name}'. Please start it first by using POST /sessions/start request`,
+        );
       }
       return;
     }
@@ -164,7 +178,7 @@ export class SessionManagerPlus extends SessionManager {
     return sessionNames.map((sessionName) => {
       return {
         name: sessionName,
-        status: this.sessions[sessionName]?.status || WhatsappStatus.STOPPED
+        status: this.sessions[sessionName]?.status || WhatsappStatus.STOPPED,
       };
     });
   }
