@@ -1,6 +1,7 @@
 import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
 import { WhatsappConfigService } from '../config.service';
 import {
+  ProxyConfig,
   WAHAInternalEvent,
   WhatsappSession,
   WhatsAppSessionConfig,
@@ -20,6 +21,7 @@ import { WhatsappSessionVenomPlus } from './session.venom.plus';
 import { WhatsappSessionNoWebPlus } from './session.noweb.plus';
 import { LocalSessionStorage } from '../core/abc/storage.abc';
 import * as lodash from 'lodash';
+import { getProxyConfig } from 'src/core/helpers.proxy';
 
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
@@ -130,6 +132,7 @@ export class SessionManagerPlus extends SessionManager {
       storage,
       log,
       sessionStorage: this.sessionStorage,
+      proxyConfig: this.getProxyConfig(name),
     };
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
@@ -140,6 +143,10 @@ export class SessionManagerPlus extends SessionManager {
     );
     session.start();
     return { name: session.name, status: session.status };
+  }
+
+  private getProxyConfig(sessionName: string): ProxyConfig | undefined {
+    return getProxyConfig(this.config, this.sessions, sessionName);
   }
 
   async stop(request: SessionStopRequest) {

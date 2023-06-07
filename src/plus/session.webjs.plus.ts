@@ -1,5 +1,12 @@
 import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
-import { Client, LocalAuth, Message, MessageMedia } from 'whatsapp-web.js';
+import {
+  AuthStrategy,
+  Client,
+  ClientOptions,
+  LocalAuth,
+  Message,
+  MessageMedia,
+} from 'whatsapp-web.js';
 import {
   BinaryFile,
   MessageFileRequest,
@@ -9,7 +16,7 @@ import {
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   protected buildClient() {
-    return new Client({
+    const clientOptions: ClientOptions = {
       authStrategy: new LocalAuth({
         clientId: this.name,
         dataPath: this.sessionStorage.getFolderPath(this.name),
@@ -19,7 +26,9 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
         executablePath: this.getBrowserExecutablePath(),
         args: this.getBrowserArgsForPuppeteer(),
       },
-    });
+    };
+    this.addProxyConfig(clientOptions);
+    return new Client(clientOptions);
   }
 
   private async fileToMedia(file: BinaryFile | RemoteFile) {

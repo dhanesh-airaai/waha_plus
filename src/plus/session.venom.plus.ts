@@ -1,12 +1,9 @@
 import { WhatsappSessionVenomCore } from '../core/session.venom.core';
-import { create, Message } from 'venom-bot';
+import { create, CreateConfig, Message } from 'venom-bot';
 
 export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
   protected buildClient() {
-    return create(
-      this.name,
-      this.getCatchQR(),
-      undefined,
+    const venomOptions: CreateConfig =
       // Keep this options in sync with core
       {
         headless: true,
@@ -18,8 +15,9 @@ export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
         puppeteerOptions: {},
         folderNameToken: this.sessionStorage.engine,
         mkdirFolderToken: this.sessionStorage.sessionsFolder,
-      },
-    );
+      };
+    this.addProxyConfig(venomOptions);
+    return create(this.name, this.getCatchQR(), undefined, venomOptions);
   }
   protected async downloadAndDecryptMedia(message: Message) {
     if (!message.isMMS || !message.isMedia) {
