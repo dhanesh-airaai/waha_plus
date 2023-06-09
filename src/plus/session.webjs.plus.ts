@@ -1,6 +1,5 @@
 import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
 import {
-  AuthStrategy,
   Client,
   ClientOptions,
   LocalAuth,
@@ -69,14 +68,24 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       `The message ${message.id._serialized} has media, downloading it...`,
     );
     return message.downloadMedia().then(async (media: MessageMedia) => {
-      this.log.verbose(`Writing file from the message ${message.id}...`);
+      this.log.verbose(
+        `Writing file from the message ${message.id._serialized}...`,
+      );
+      if (!media) {
+        this.log.log(`No media found for ${message.id._serialized}.`);
+        // @ts-ignore
+        message.mediaUrl = null;
+        return message;
+      }
       const buffer = Buffer.from(media.data, 'base64');
       const url = await this.storage.save(
         message.id._serialized,
         media.mimetype,
         buffer,
       );
-      this.log.log(`The file from ${message.id} has been saved to ${url}`);
+      this.log.log(
+        `The file from ${message.id._serialized} has been saved to ${url}`,
+      );
 
       // @ts-ignore
       message.mediaUrl = url;
