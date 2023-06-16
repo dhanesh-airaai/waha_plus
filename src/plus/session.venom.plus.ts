@@ -1,5 +1,6 @@
-import { WhatsappSessionVenomCore } from '../core/session.venom.core';
 import { create, CreateConfig, Message } from 'venom-bot';
+
+import { WhatsappSessionVenomCore } from '../core/session.venom.core';
 
 export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
   protected buildClient() {

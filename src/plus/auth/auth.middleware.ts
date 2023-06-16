@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as passport from 'passport';
+
 import { WhatsappConfigService } from '../../config.service';
 
 @Injectable()

@@ -1,4 +1,3 @@
-import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
 import {
   Client,
   ClientOptions,
@@ -6,6 +5,8 @@ import {
   Message,
   MessageMedia,
 } from 'whatsapp-web.js';
+
+import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
 import {
   BinaryFile,
   MessageFileRequest,

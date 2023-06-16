@@ -1,7 +1,8 @@
 import { INestApplication } from '@nestjs/common';
+
+import { WhatsappConfigService } from '../config.service';
 import { SwaggerModuleCore } from '../core/swagger.module.core';
 import { BasicAuthFunction } from './auth/basicAuth';
-import { WhatsappConfigService } from '../config.service';
 
 export class SwaggerModulePlus extends SwaggerModuleCore {
   setUpAuth(app: INestApplication) {

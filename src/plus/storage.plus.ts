@@ -1,11 +1,12 @@
 import fs = require('fs');
 import del = require('del');
-import { promisify } from 'util';
-import { SECOND } from '../structures/enums.dto';
-import * as path from 'path';
 import { ConsoleLogger } from '@nestjs/common';
+import * as path from 'path';
+import { promisify } from 'util';
+
 import { MediaStorage } from '../core/abc/storage.abc';
 import { SessionStorageCore } from '../core/storage.core';
+import { SECOND } from '../structures/enums.dto';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
 // eslint-disable-next-line @typescript-eslint/no-var-requires

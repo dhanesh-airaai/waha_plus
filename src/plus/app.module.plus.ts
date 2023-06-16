@@ -1,10 +1,11 @@
 import { ConsoleLogger, MiddlewareConsumer, Module } from '@nestjs/common';
+
 import { WhatsappConfigService } from '../config.service';
-import { AuthMiddleware } from './auth/auth.middleware';
 import { SessionManager } from '../core/abc/manager.abc';
-import { SessionManagerPlus } from './manager.plus';
 import { CONTROLLERS, IMPORTS } from '../core/app.module.core';
 import { ApiKeyStrategy } from './auth/apiKey.strategy';
+import { AuthMiddleware } from './auth/auth.middleware';
+import { SessionManagerPlus } from './manager.plus';
 
 const PROVIDERS = [
   {

@@ -1,3 +1,6 @@
+import { downloadMediaMessage } from '@adiwajshing/baileys';
+import { UnprocessableEntityException } from '@nestjs/common';
+
 import { WhatsappSessionNoWebCore } from '../core/session.noweb.core';
 import {
   BinaryFile,
@@ -6,8 +9,6 @@ import {
   MessageVoiceRequest,
   RemoteFile,
 } from '../structures/chatting.dto';
-import { UnprocessableEntityException } from '@nestjs/common';
-import { downloadMediaMessage } from '@adiwajshing/baileys';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const logger = require('pino')();
 

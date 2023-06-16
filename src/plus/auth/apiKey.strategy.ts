@@ -1,6 +1,7 @@
-import { HeaderAPIKeyStrategy } from 'passport-headerapikey';
-import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { HeaderAPIKeyStrategy } from 'passport-headerapikey';
+
 import { WhatsappConfigService } from '../../config.service';
 
 @Injectable()
