@@ -13,12 +13,6 @@ import {
 const logger = require('pino')();
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
-  protected getAuthFolder() {
-    // In the Core version we create temp folder instead
-    // Use what we get here from session storage as is
-    return this.sessionStorage.getFolderPath(this.name);
-  }
-
   fileToMessage(
     file: RemoteFile | BinaryFile,
     type,

@@ -1,6 +1,7 @@
 import fs = require('fs');
 import del = require('del');
 import { ConsoleLogger } from '@nestjs/common';
+import crypto from 'crypto';
 import * as path from 'path';
 import { promisify } from 'util';
 
@@ -84,5 +85,8 @@ export class SessionStoragePlus extends SessionStorageCore {
   constructor(engine: string) {
     super(engine);
     this.sessionsFolder = './.sessions';
+  }
+  getFolderPath(name: string): string {
+    return path.join(this.engineFolder, name);
   }
 }

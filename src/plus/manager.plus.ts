@@ -6,18 +6,19 @@ import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import {
   ProxyConfig,
+  SessionParams,
   WAHAInternalEvent,
   WhatsappSession,
-  WhatsAppSessionConfig,
 } from '../core/abc/session.abc';
-import { LocalSessionStorage } from '../core/abc/storage.abc';
-import { WhatsappEngine, WhatsappStatus } from '../structures/enums.dto';
+import { WAHAEngine, WAHASessionStatus } from '../structures/enums.dto';
 import {
+  SessionConfig,
   SessionDTO,
   SessionLogoutRequest,
   SessionStartRequest,
   SessionStopRequest,
 } from '../structures/sessions.dto';
+import { WebhookConfig } from '../structures/webhooks.dto';
 import { WhatsappSessionNoWebPlus } from './session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './session.webjs.plus';
@@ -33,7 +34,6 @@ export class SessionManagerPlus extends SessionManager {
   // @ts-ignore
   protected WebhookConductorClass = WebhookConductorPlus;
   protected readonly EngineClass: typeof WhatsappSession;
-  protected sessionStorage: LocalSessionStorage;
 
   constructor(
     private config: WhatsappConfigService,
@@ -45,42 +45,51 @@ export class SessionManagerPlus extends SessionManager {
     const engineName = this.config.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
     this.sessionStorage = new SessionStoragePlus(engineName.toLowerCase());
-    this.sessionStorage.init();
 
     this.clearStorage();
     this.restartStoppedSessions();
     this.startPredefinedSessions();
   }
 
-  protected restartStoppedSessions() {
+  protected async restartStoppedSessions() {
     if (!this.config.shouldRestartAllSessions) {
       return;
     }
 
-    const stoppedSessions = this.sessionStorage.getAll();
-    stoppedSessions.forEach((sessionName) => {
+    await this.sessionStorage.init();
+    const stoppedSessions = await this.sessionStorage.getAll();
+
+    const promises = stoppedSessions.map(async (sessionName) => {
       this.log.log(`Restarting STOPPED session - ${sessionName}...`);
-      this.start({ name: sessionName });
+      const config = await this.sessionStorage.configRepository.get(
+        sessionName,
+      );
+      return this.start({ name: sessionName, config: config });
     });
+    await Promise.all(promises);
   }
 
-  protected startPredefinedSessions() {
+  protected async startPredefinedSessions() {
     const startSessions = this.config.startSessions;
-    startSessions.forEach((sessionName) => {
+    const promises = startSessions.map(async (sessionName) => {
       // Do not start already started session
       if (this.sessions[sessionName]) {
         return;
       }
-      this.start({ name: sessionName });
+      const config = await this.sessionStorage.configRepository.get(
+        sessionName,
+      );
+      return this.start({ name: sessionName, config: config });
     });
+    await Promise.all(promises);
   }
 
-  protected getEngine(engine: WhatsappEngine): typeof WhatsappSession {
-    if (engine === WhatsappEngine.WEBJS) {
+  protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
+    if (engine === WAHAEngine.WEBJS) {
       return WhatsappSessionWebJSPlus;
-    } else if (engine === WhatsappEngine.VENOM) {
+    } else if (engine === WAHAEngine.VENOM) {
       return WhatsappSessionVenomPlus;
-    } else if (engine === WhatsappEngine.NOWEB) {
+    } else if (engine === WAHAEngine.NOWEB) {
       return WhatsappSessionNoWebPlus;
     } else {
       throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`);
@@ -109,7 +118,7 @@ export class SessionManagerPlus extends SessionManager {
   //
   // API Methods
   //
-  start(request: SessionStartRequest) {
+  async start(request: SessionStartRequest) {
     const name = request.name;
 
     this.log.log(`'${name}' - starting session...`);
@@ -122,28 +131,38 @@ export class SessionManagerPlus extends SessionManager {
       this.config.mimetypes,
     );
     const webhookLog = new ConsoleLogger(`Webhook - ${name}`);
-    const webhook = new this.WebhookConductorClass(
-      webhookLog,
-      this.config.getWebhookUrl(),
-      this.config.getWebhookEvents(),
-    );
+    const webhook = new this.WebhookConductorClass(webhookLog);
 
-    const sessionConfig: WhatsAppSessionConfig = {
+    const sessionConfig: SessionParams = {
       name,
       storage,
       log,
       sessionStorage: this.sessionStorage,
       proxyConfig: this.getProxyConfig(name),
+      sessionConfig: request.config,
     };
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
     this.sessions[name] = session;
 
+    // configure webhooks
+    let webhooks: WebhookConfig[] = [];
+    if (request.config?.webhooks) {
+      webhooks = webhooks.concat(request.config.webhooks);
+    }
+    const globalWebhookConfig = this.config.getWebhookConfig();
+    webhooks.push(globalWebhookConfig);
     session.events.on(WAHAInternalEvent.engine_start, () =>
-      webhook.configure(session),
+      webhook.configure(session, webhooks),
     );
-    session.start();
-    return { name: session.name, status: session.status };
+
+    // start session
+    await session.start();
+    return {
+      name: session.name,
+      status: session.status,
+      config: session.sessionConfig,
+    };
   }
 
   private getProxyConfig(sessionName: string): ProxyConfig | undefined {
@@ -176,18 +195,30 @@ export class SessionManagerPlus extends SessionManager {
     return session;
   }
 
-  getSessions(all): SessionDTO[] {
+  async getSessions(all): Promise<SessionDTO[]> {
     let sessionNames = Object.keys(this.sessions);
     if (all) {
-      const stoppedSession = this.sessionStorage.getAll();
+      const stoppedSession = await this.sessionStorage.getAll();
       sessionNames = lodash.union(sessionNames, stoppedSession);
     }
 
-    return sessionNames.map((sessionName) => {
+    const sessions = sessionNames.map(async (sessionName) => {
+      const status =
+        this.sessions[sessionName]?.status || WAHASessionStatus.STOPPED;
+      let sessionConfig: SessionConfig;
+      if (status != WAHASessionStatus.STOPPED) {
+        sessionConfig = this.sessions[sessionName].sessionConfig;
+      } else {
+        sessionConfig = await this.sessionStorage.configRepository.get(
+          sessionName,
+        );
+      }
       return {
         name: sessionName,
-        status: this.sessions[sessionName]?.status || WhatsappStatus.STOPPED,
+        status: status,
+        config: sessionConfig,
       };
     });
+    return await Promise.all(sessions);
   }
 }
