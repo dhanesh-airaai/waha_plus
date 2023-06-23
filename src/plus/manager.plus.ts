@@ -5,13 +5,13 @@ import { getProxyConfig } from 'src/core/helpers.proxy';
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import {
-  ProxyConfig,
   SessionParams,
   WAHAInternalEvent,
   WhatsappSession,
 } from '../core/abc/session.abc';
 import { WAHAEngine, WAHASessionStatus } from '../structures/enums.dto';
 import {
+  ProxyConfig,
   SessionConfig,
   SessionDTO,
   SessionLogoutRequest,
@@ -133,12 +133,13 @@ export class SessionManagerPlus extends SessionManager {
     const webhookLog = new ConsoleLogger(`Webhook - ${name}`);
     const webhook = new this.WebhookConductorClass(webhookLog);
 
+    const proxyConfig = this.getProxyConfig(request);
     const sessionConfig: SessionParams = {
       name,
       storage,
       log,
       sessionStorage: this.sessionStorage,
-      proxyConfig: this.getProxyConfig(name),
+      proxyConfig: proxyConfig,
       sessionConfig: request.config,
     };
     // @ts-ignore
@@ -146,12 +147,7 @@ export class SessionManagerPlus extends SessionManager {
     this.sessions[name] = session;
 
     // configure webhooks
-    let webhooks: WebhookConfig[] = [];
-    if (request.config?.webhooks) {
-      webhooks = webhooks.concat(request.config.webhooks);
-    }
-    const globalWebhookConfig = this.config.getWebhookConfig();
-    webhooks.push(globalWebhookConfig);
+    const webhooks = this.getWebhooks(request);
     session.events.on(WAHAInternalEvent.engine_start, () =>
       webhook.configure(session, webhooks),
     );
@@ -165,8 +161,29 @@ export class SessionManagerPlus extends SessionManager {
     };
   }
 
-  private getProxyConfig(sessionName: string): ProxyConfig | undefined {
-    return getProxyConfig(this.config, this.sessions, sessionName);
+  /**
+   * Combine per session and global webhooks
+   */
+  private getWebhooks(request: SessionStartRequest) {
+    let webhooks: WebhookConfig[] = [];
+    if (request.config?.webhooks) {
+      webhooks = webhooks.concat(request.config.webhooks);
+    }
+    const globalWebhookConfig = this.config.getWebhookConfig();
+    webhooks.push(globalWebhookConfig);
+    return webhooks;
+  }
+
+  /**
+   * Get either session's or global proxy if defined
+   */
+  protected getProxyConfig(
+    request: SessionStartRequest,
+  ): ProxyConfig | undefined {
+    if (request.config.proxy) {
+      return request.config.proxy;
+    }
+    return getProxyConfig(this.config, this.sessions, request.name);
   }
 
   async stop(request: SessionStopRequest) {
@@ -179,7 +196,7 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   async logout(request: SessionLogoutRequest) {
-    this.sessionStorage.clean(request.name);
+    await this.sessionStorage.clean(request.name);
   }
 
   getSession(name: string, error = true): WhatsappSession {
