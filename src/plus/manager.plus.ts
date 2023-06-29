@@ -180,7 +180,7 @@ export class SessionManagerPlus extends SessionManager {
   protected getProxyConfig(
     request: SessionStartRequest,
   ): ProxyConfig | undefined {
-    if (request.config.proxy) {
+    if (request.config?.proxy) {
       return request.config.proxy;
     }
     return getProxyConfig(this.config, this.sessions, request.name);
