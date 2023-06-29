@@ -23,26 +23,12 @@ toc: true
 {{< alert icon="👉" text="Run WhatsApp HTTP API in less than 5 minutes!" />}}
 
 We will guide you through the necessary steps to successfully send your first text message using WhatsApp HTTP API in
-[Quick Start →]({{< relref "quick-start" >}}).
-
-If you find it easier to follow a video tutorial rather than reading through text, we've got you covered!
-A 3-minute video tutorial is available to help you navigate WhatsApp HTTP API smoothly.
-
-<div class="d-flex justify-content-center my-4">
-  <iframe
-    width="560" height="315"
-    src="https://www.youtube.com/embed/RFerMyAUPRg"
-    title="YouTube video player"
-    frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen
-  ></iframe>
-</div>
+[**Quick Start →**]({{< relref "quick-start" >}}).
 
 ## Features
 WAHA is distributed in two versions:
 - Core ![](/images/versions/core.png) - the basic version that meet almost 80% people's needs. 100% free and [open source ->](https://github.com/devlikeapro/whatsapp-http-api).
-- Plus ![](/images/versions/plus.png) - the version with advanced messages, security, and reliability features. One-time donation, no license expiration, quick updates, read more about [Plus Version →]({{< relref "plus-version" >}})
+- Plus ![](/images/versions/plus.png) - the version with advanced messages, security, and reliability features. Donations, no license expiration, quick updates, read more about [Plus Version →]({{< relref "plus-version" >}})
 
 Here's the available features:
 

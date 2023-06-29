@@ -34,7 +34,7 @@ Also Docker makes installation and update processes so simple, just one command!
 
 We will guide you through the necessary steps to successfully send your first text message using WhatsApp HTTP API.
 
-If you find it easier to follow a video tutorial rather than reading through text, we've got you covered!
+**If you find it easier to follow a video** tutorial, we've got you covered!
 A 3-minute video tutorial is available to help you navigate WhatsApp HTTP API smoothly.
 
 <div class="d-flex justify-content-center my-4">
@@ -181,7 +181,6 @@ curl -d "{\"chatId\": \"${PHONE}@c.us\", \"text\": \"Hello from WhatsApp HTTP AP
 ```
 
 ## What is next?
-
 - Right now you've sent simple text message, but you can send more! [Send messages →]({{< relref "/docs/how-to/send-messages" >}})
 - Read how to receive and response to messages [Receive messages →]({{< relref "/docs/how-to/receive-messages" >}})
 - Make sure your [API is properly protected ->]({{< relref "/docs/how-to/security" >}})
