@@ -16,30 +16,19 @@ weight: 900
 1. Core ![](/images/versions/core.png) the basic version that meet almost 80% people’s needs. 100% free and open source.
 2. Plus ![](/images/versions/plus.png) the version with advanced messages, security, and reliability features.
 
-### Features
-
-The Plus additional features are:
-
-1. [**Send images\files\voices** →]({{< relref "/docs/how-to/send-messages" >}})
-2. [**Receive images\files\voices** →]({{< relref "/docs/how-to/receive-messages" >}})
-3. [**Webhook retries** →]({{< relref "/docs/how-to/receive-messages#retries" >}})
-4. [**Security** →]({{< relref "/docs/how-to/security" >}})
-5. [**Saving sessions** →]({{< relref "/docs/how-to/sessions" >}})
-6. [**Support multiple sessions** →]({{< relref "/docs/how-to/sessions" >}})
-7. **Priority in support** - on both bugs and features
-
-### Differences
-
-What is the difference between **WAHA Plus** and other SaaS solutions for WhatsApp HTTP API?
-
-|                    |                     WAHA Plus                     |                                                                            Others |
-|--------------------|:-------------------------------------------------:|----------------------------------------------------------------------------------:|
-| **Sessions**       |   ✔️ No limits on **accounts** or **servers**!    |                                                      ➖ One account for $50/month. |
-| **Infrastructure** | ✔️ On-Premise - your server, your infrastructure! |                                                        ➖ Insecure cloud solution. |
-| **Security**       |                 ✔️ No data leaks!                 | ➖ You have to give access to customers' data - phone number, name, your messages. |
-| **License Term**               |               ✔️ No license checks!               |                                                                       ➖ One month |
-| **Message price**  |             ✔️ All messages are Free!             |                     ➖ Some solutions have a price for messages - $1/100 messages. |
-| **Expenses**       |               ✔️ $19 **donation**!                |                                                 ➖ Monthly payment starts from $50 |
+ You support the project and get **WAHA Plus** on
+ <a href="https://boosty.to/wa-http-api" target="_blank">
+   <b>
+     Boosty ->
+   </b>
+ </a>
+or
+ <a href="https://patreon.com/wa_http_api" target="_blank">
+   <b>
+     Patreon ->
+   </b>
+ </a>
+.
 
 ### Donations
 
@@ -60,17 +49,37 @@ Treat **WAHA Plus** it as an additional episode, behind-the-scenes videos, our n
 We donate most of the donations down to the stream to the underlying libraries and tools - JS-community, Node, other libraries authors, personal contributors.
 By donating to the **WAHA** you donate to the Open Source world!
 
+### Features
+
+The Plus additional features are:
+
+1. [**Send images\files\voices** →]({{< relref "/docs/how-to/send-messages" >}})
+2. [**Receive images\files\voices** →]({{< relref "/docs/how-to/receive-messages" >}})
+3. [**Webhook retries** →]({{< relref "/docs/how-to/receive-messages#retries" >}})
+4. [**Security** →]({{< relref "/docs/how-to/security" >}})
+5. [**Saving sessions** →]({{< relref "/docs/how-to/sessions" >}})
+6. [**Support multiple sessions** →]({{< relref "/docs/how-to/sessions" >}})
+7. **Priority in support** - on both bugs and features
+
+### Why WAHA?
+
+What is the difference between **WAHA Plus** and **other SaaS solutions** for WhatsApp HTTP API?
+
+|                    |                     WAHA Plus                     |                                                                            Others |
+|--------------------|:-------------------------------------------------:|----------------------------------------------------------------------------------:|
+| **Sessions**       |   ✔️ No limits on **accounts** or **servers**!    |                                                      ➖ One account for $50/month. |
+| **Infrastructure** | ✔️ On-Premise - your server, your infrastructure! |                                                        ➖ Insecure cloud solution. |
+| **Security**       |                 ✔️ No data leaks!                 | ➖ You have to give access to customers' data - phone number, name, your messages. |
+| **License Term**               |               ✔️ No license checks!               |                                                                       ➖ One month |
+| **Message price**  |             ✔️ All messages are Free!             |                     ➖ Some solutions have a price for messages - $1/100 messages. |
+| **Expenses**       |               ✔️ $19 **donation**!                |                                                 ➖ Monthly payment starts from $50 |
+
+
 ## Get Plus ![](/images/versions/plus.png)
 
-For **$19** donation you get:
-1. **Secret password** for Docker Hub to download Plus image: `devlikeapro/whatsapp-http-api-plus`.
-2. **All updates for one month** for the Plus image.
-3. **NO LICENSE CHECKS** on installed instances!
-4. **NO LICENSE EXPIRATION** on installed instances! We repeated it twice to make sure that you've got it 😊
+The more you support the project - the more you get!
 
-{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
-
-Here's all available tiers with their perks:
+Here's available tiers for our supporters:
 
 |                                                                                     |  Plus   | Advanced |   Pro   |
 |-------------------------------------------------------------------------------------|---------|:--------:|:-------:|
@@ -79,6 +88,13 @@ Here's all available tiers with their perks:
 | Access to a Telegram group where we provide support and assistance.                 |   ➖️    |    ➖     |   ✔️    |
 | **Donation**                                                                        | **$19** | **$39**  | **$99** |
 
+For **$19** donation you get:
+1. **Secret password** for Docker Hub to download Plus image: `devlikeapro/whatsapp-http-api-plus`.
+2. **All updates for one month** for the Plus image.
+3. **NO LICENSE CHECKS** on installed instances!
+4. **NO LICENSE EXPIRATION** on installed instances! We repeated it twice to make sure that you've got it 😊
+
+{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
 
 
 ### Boosty
