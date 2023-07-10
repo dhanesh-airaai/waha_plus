@@ -35,8 +35,8 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     if ('url' in file) {
       const mediaOptions = { unsafeMime: true };
       const media = await MessageMedia.fromUrl(file.url, mediaOptions);
-      console.log(media.mimetype);
       media.mimetype = file.mimetype || media.mimetype;
+      media.filename = file.filename || media.filename;
       return media;
     }
     return new MessageMedia(file.mimetype, file.data, file.filename);
