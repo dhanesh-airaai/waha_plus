@@ -120,7 +120,6 @@ export class SessionManagerPlus extends SessionManager {
   //
   async start(request: SessionStartRequest) {
     const name = request.name;
-
     this.log.log(`'${name}' - starting session...`);
     const log = new ConsoleLogger(`WhatsappSession - ${name}`);
     const storage = new this.MediaStorageClass(
@@ -132,7 +131,6 @@ export class SessionManagerPlus extends SessionManager {
     );
     const webhookLog = new ConsoleLogger(`Webhook - ${name}`);
     const webhook = new this.WebhookConductorClass(webhookLog);
-
     const proxyConfig = this.getProxyConfig(request);
     const sessionConfig: SessionParams = {
       name,
@@ -142,6 +140,7 @@ export class SessionManagerPlus extends SessionManager {
       proxyConfig: proxyConfig,
       sessionConfig: request.config,
     };
+    await this.sessionStorage.init(name);
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
     this.sessions[name] = session;
