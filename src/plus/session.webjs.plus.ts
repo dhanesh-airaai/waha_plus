@@ -64,6 +64,10 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     if (!message.hasMedia) {
       return message;
     }
+    // Can't get media for revoked messages
+    if (message.type === 'revoked') {
+      return message;
+    }
 
     this.log.log(
       `The message ${message.id._serialized} has media, downloading it...`,
