@@ -8,11 +8,10 @@ import {
 
 import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
 import {
-  BinaryFile,
   MessageFileRequest,
   MessageImageRequest,
-  RemoteFile,
 } from '../structures/chatting.dto';
+import { BinaryFile, RemoteFile } from '../structures/files.dto';
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   protected buildClient() {

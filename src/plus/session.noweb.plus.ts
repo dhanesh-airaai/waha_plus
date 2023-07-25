@@ -1,14 +1,21 @@
 import { downloadMediaMessage } from '@adiwajshing/baileys';
 import { UnprocessableEntityException } from '@nestjs/common';
 
-import { WhatsappSessionNoWebCore } from '../core/session.noweb.core';
+import { NotImplementedByEngineError } from '../core/exceptions';
+import { toJID, WhatsappSessionNoWebCore } from '../core/session.noweb.core';
 import {
-  BinaryFile,
   MessageFileRequest,
   MessageImageRequest,
   MessageVoiceRequest,
-  RemoteFile,
 } from '../structures/chatting.dto';
+import { BinaryFile, RemoteFile } from '../structures/files.dto';
+import {
+  BROADCAST_ID,
+  ImageStatus,
+  TextStatus,
+  VideoStatus,
+  VoiceStatus,
+} from '../structures/status.dto';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const logger = require('pino')();
 
@@ -89,5 +96,33 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       message.mediaUrl = url;
     });
     return message;
+  }
+
+  /**
+   * Status methods
+   */
+  public sendImageStatus(status: ImageStatus) {
+    const message = this.fileToMessage(status.file, 'image', status.caption);
+    const options = {
+      statusJidList: status.contacts.map(toJID),
+    };
+    return this.sock.sendMessage(BROADCAST_ID, message, options);
+  }
+
+  public sendVoiceStatus(status: VoiceStatus) {
+    const message = this.fileToMessage(status.file, 'audio');
+    const options = {
+      backgroundColor: status.backgroundColor,
+      statusJidList: status.contacts.map(toJID),
+    };
+    return this.sock.sendMessage(BROADCAST_ID, message, options);
+  }
+
+  public sendVideoStatus(status: VideoStatus) {
+    const message = this.fileToMessage(status.file, 'video', status.caption);
+    const options = {
+      statusJidList: status.contacts.map(toJID),
+    };
+    return this.sock.sendMessage(BROADCAST_ID, message, options);
   }
 }
