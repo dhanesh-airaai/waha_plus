@@ -75,6 +75,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     const hasMedia =
       messageType === 'imageMessage' ||
       messageType == 'audioMessage' ||
+      messageType == 'documentMessage' ||
       messageType == 'videoMessage';
     if (!hasMedia) return message;
 
