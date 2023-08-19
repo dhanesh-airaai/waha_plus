@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { WebhookSender } from '../core/abc/webhooks.abc';
 import { WebhookConductorCore } from '../core/webhooks.core';
 import { SECOND } from '../structures/enums.dto';
-import { WebhookConfig } from '../structures/webhooks.dto';
+import { WebhookConfig } from '../structures/webhooks.config.dto';
 
 const DEFAULT_RETRY_DELAY_SECONDS = 2;
 const DEFAULT_RETRY_ATTEMPTS = 15;

@@ -18,7 +18,7 @@ import {
   SessionStartRequest,
   SessionStopRequest,
 } from '../structures/sessions.dto';
-import { WebhookConfig } from '../structures/webhooks.dto';
+import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { WhatsappSessionNoWebPlus } from './session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './session.webjs.plus';
