@@ -1,15 +1,22 @@
 import makeWASocket, {
   Browsers,
   DisconnectReason,
+  getAggregateVotesInPollMessage,
+  getKeyAuthor,
   isJidGroup,
   makeInMemoryStore,
   PresenceData,
+  proto,
   useMultiFileAuthState,
+  WAMessageContent,
+  WAMessageKey,
 } from '@adiwajshing/baileys';
 import { UnprocessableEntityException } from '@nestjs/common';
+import { request } from 'express';
 import * as fs from 'fs/promises';
 import { Agent } from 'https';
 import * as lodash from 'lodash';
+import { update } from 'lodash';
 import { PairingCodeResponse } from 'src/structures/auth.dto';
 import { Message } from 'whatsapp-web.js';
 
@@ -19,10 +26,12 @@ import {
   ChatRequest,
   CheckNumberStatusQuery,
   MessageContactVcardRequest,
+  MessageDestination,
   MessageFileRequest,
   MessageImageRequest,
   MessageLinkPreviewRequest,
   MessageLocationRequest,
+  MessagePollRequest,
   MessageReactionRequest,
   MessageReplyRequest,
   MessageTextButtonsRequest,
@@ -52,6 +61,11 @@ import {
 import { WAMessage } from '../structures/responses.dto';
 import { BROADCAST_ID, TextStatus } from '../structures/status.dto';
 import {
+  PollVote,
+  PollVotePayload,
+  WAMessageAckBody,
+} from '../structures/webhooks.dto';
+import {
   ensureSuffix,
   WAHAInternalEvent,
   WhatsappSession,
@@ -62,8 +76,6 @@ import {
 } from './exceptions';
 import { createAgentProxy } from './helpers.proxy';
 import { QR } from './QR';
-import { WAMessageAckBody } from '../structures/webhooks.dto';
-import { update } from 'lodash';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QRCode = require('qrcode');
@@ -115,6 +127,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       logger: logger,
       mobile: false,
       defaultQueryTimeoutMs: undefined,
+      getMessage: (key) => this.getMessage(key),
     };
   }
 
@@ -157,6 +170,16 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.connectStore();
     this.listenConnectionEvents();
     this.events.emit(WAHAInternalEvent.engine_start);
+  }
+
+  protected async getMessage(
+    key: WAMessageKey,
+  ): Promise<WAMessageContent | undefined> {
+    if (!this.store) {
+      return proto.Message.fromObject({});
+    }
+    const msg = await this.store.loadMessage(key.remoteJid!, key.id!);
+    return msg?.message || undefined;
   }
 
   protected listenConnectionEvents() {
@@ -297,6 +320,21 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     };
 
     return this.sock.sendMessage(request.chatId, buttonMessage);
+  }
+
+  async sendPoll(request: MessagePollRequest) {
+    const requestPoll = request.poll;
+    const poll = {
+      name: requestPoll.name,
+      values: requestPoll.options,
+      selectableCount: requestPoll.multipleAnswers
+        ? requestPoll.options.length
+        : 1,
+    };
+    const message = { poll: poll };
+    const remoteJid = toJID(request.chatId);
+    const result = await this.sock.sendMessage(remoteJid, message);
+    return this.toWAMessage(result);
   }
 
   sendContactVCard(request: MessageContactVcardRequest) {
@@ -523,9 +561,9 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   subscribe(event, handler) {
     if (event === WAHAEvents.MESSAGE) {
-      this.sock.ev.on(BaileysEvents.MESSAGES_UPSERT, ({ messages }) =>
-        this.handleIncomingMessages(messages, handler, false),
-      );
+      this.sock.ev.on(BaileysEvents.MESSAGES_UPSERT, ({ messages }) => {
+        this.handleIncomingMessages(messages, handler, false);
+      });
     } else if (event === WAHAEvents.MESSAGE_ANY) {
       this.sock.ev.on(BaileysEvents.MESSAGES_UPSERT, ({ messages }) =>
         this.handleIncomingMessages(messages, handler, true),
@@ -535,6 +573,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       this.sock.ev.on(BaileysEvents.MESSAGES_UPDATE, (events) => {
         events
           .filter(isMine)
+          .filter(isAckUpdateMessageEvent)
           .map(this.convertMessageUpdateToMessageAck)
           .forEach(handler);
       });
@@ -553,6 +592,18 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       this.sock.ev.on(BaileysEvents.PRESENCE_UPDATE, (data) =>
         handler(this.toWahaPresences(data.id, data.presences)),
       );
+    } else if (event === WAHAEvents.POLL_VOTE) {
+      this.sock.ev.on(BaileysEvents.MESSAGES_UPDATE, (events) => {
+        events.forEach((event) =>
+          this.handleMessagesUpdatePollVote(event, handler),
+        );
+      });
+    } else if (event === WAHAEvents.POLL_VOTE_FAILED) {
+      this.sock.ev.on(BaileysEvents.MESSAGES_UPSERT, ({ messages }) => {
+        messages.forEach((message) =>
+          this.handleMessageUpsertPollVoteFailed(message, handler),
+        );
+      });
     } else {
       throw new NotImplementedByEngineError(
         `Engine does not support webhook event: ${event}`,
@@ -565,6 +616,8 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       // if there is no text or media message
       if (!message) return;
       if (!message.message) return;
+      // Ignore poll votes, we have dedicated handler for that
+      if (message.message.pollUpdateMessage) return;
       // Do not include my messages
       if (!includeFromMe && message.key.fromMe) {
         continue;
@@ -584,7 +637,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   }
 
   protected toWAMessage(message): Promise<WAMessage> {
-    const destination = getDestination(message);
+    const fromToParticipant = getFromToParticipant(message);
     const id = buildMessageId(message.key);
     let body = message.message.conversation;
     if (!body) {
@@ -595,11 +648,11 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return Promise.resolve({
       id: id,
       timestamp: message.messageTimestamp,
-      from: toCusFormat(destination.from),
+      from: toCusFormat(fromToParticipant.from),
       fromMe: message.key.fromMe,
       body: body,
-      to: toCusFormat(destination.to),
-      participant: toCusFormat(destination.participant),
+      to: toCusFormat(fromToParticipant.to),
+      participant: toCusFormat(fromToParticipant.participant),
       // @ts-ignore
       hasMedia: Boolean(message.mediaUrl),
       // @ts-ignore
@@ -613,24 +666,26 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       _data: message,
     });
   }
+
   protected convertMessageUpdateToMessageAck(event): WAMessageAckBody {
     const message = event;
-    const destination = getDestination(message);
+    const fromToParticipant = getFromToParticipant(message);
     const id = buildMessageId(message.key);
     const ack = message.update.status - 1;
     const body: WAMessageAckBody = {
       id: id,
-      from: toCusFormat(destination.from),
-      to: toCusFormat(destination.to),
-      participant: toCusFormat(destination.participant),
+      from: toCusFormat(fromToParticipant.from),
+      to: toCusFormat(fromToParticipant.to),
+      participant: toCusFormat(fromToParticipant.participant),
       fromMe: message.key.fromMe,
       ack: ack,
       ackName: WAMessageAck[ack] || ACK_UNKNOWN,
     };
     return body;
   }
+
   protected convertMessageReceiptUpdateToMessageAck(event): WAMessageAckBody {
-    const destination = getDestination(event);
+    const fromToParticipant = getFromToParticipant(event);
     const id = buildMessageId(event.key);
 
     const receipt = event.receipt;
@@ -644,14 +699,85 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     }
     const body: WAMessageAckBody = {
       id: id,
-      from: toCusFormat(destination.from),
-      to: toCusFormat(destination.to),
-      participant: toCusFormat(destination.participant),
+      from: toCusFormat(fromToParticipant.from),
+      to: toCusFormat(fromToParticipant.to),
+      participant: toCusFormat(fromToParticipant.participant),
       fromMe: event.key.fromMe,
       ack: ack,
       ackName: WAMessageAck[ack] || ACK_UNKNOWN,
     };
     return body;
+  }
+
+  protected async handleMessagesUpdatePollVote(event, handler) {
+    const { key, update } = event;
+    const pollUpdates = update?.pollUpdates;
+    if (!pollUpdates) {
+      return;
+    }
+
+    const pollCreationMessageKey = key;
+    const pollCreationMessage = await this.getMessage(key);
+    // Handle updates one by one, so we can get Vote Message for the specific vote
+    for (const pollUpdate of pollUpdates) {
+      const votes = getAggregateVotesInPollMessage({
+        message: pollCreationMessage,
+        pollUpdates: [pollUpdate],
+      });
+
+      // Get selected options for the author
+      const selectedOptions = [];
+      for (const voteAggregation of votes) {
+        for (const voter of voteAggregation.voters) {
+          if (voter === getKeyAuthor(pollUpdate.pollUpdateMessageKey)) {
+            selectedOptions.push(voteAggregation.name);
+          }
+        }
+      }
+
+      // Build payload and call the handler
+      const voteDestination = getDestination(pollUpdate.pollUpdateMessageKey);
+      const pollVote: PollVote = {
+        ...voteDestination,
+        selectedOptions: selectedOptions,
+        timestamp: pollUpdate.senderTimestampMs,
+      };
+      const payload: PollVotePayload = {
+        vote: pollVote,
+        poll: getDestination(pollCreationMessageKey),
+      };
+      handler(payload);
+    }
+  }
+  protected async handleMessageUpsertPollVoteFailed(message, handler) {
+    const pollUpdateMessage = message.message?.pollUpdateMessage;
+    if (!pollUpdateMessage) {
+      return;
+    }
+    const pollCreationMessageKey = pollUpdateMessage.pollCreationMessageKey;
+    const pollCreationMessage = await this.getMessage(pollCreationMessageKey);
+    if (pollCreationMessage) {
+      // We found message, so later the engine will issue a message.update message
+      return;
+    }
+
+    // We didn't find the creation message, so send failed one
+    const pollUpdateMessageKey = message.key;
+    const voteDestination = getDestination(pollUpdateMessageKey);
+    const pollVote: PollVote = {
+      ...voteDestination,
+      selectedOptions: [],
+      // change to below line when the PR merged, so we have the same timestamps
+      // https://github.com/WhiskeySockets/Baileys/pull/348
+      // Or without toNumber() - it depends on the PR above
+      // timestamp: pollUpdateMessage.senderTimestampMs.toNumber()
+      timestamp: message.messageTimestamp,
+    };
+    const payload: PollVotePayload = {
+      vote: pollVote,
+      poll: getDestination(pollCreationMessageKey),
+    };
+    handler(payload);
   }
 
   private toWahaPresences(
@@ -698,6 +824,9 @@ function toCusFormat(remoteJid) {
   }
   if (!remoteJid) {
     return;
+  }
+  if (remoteJid == 'me') {
+    return remoteJid;
   }
   const number = remoteJid.split('@')[0];
   return ensureSuffix(number);
@@ -752,7 +881,15 @@ function isMine(message) {
   return message?.key?.fromMe;
 }
 
-function getDestination(message) {
+function isNotMine(message) {
+  return !message?.key?.fromMe;
+}
+
+function isAckUpdateMessageEvent(event) {
+  return event?.update.status != null;
+}
+
+function getFromToParticipant(message) {
   const isGroupMessage = Boolean(message.key.participant);
   let participant: string;
   let to: string;
@@ -765,5 +902,38 @@ function getDestination(message) {
     from: from,
     to: to,
     participant: participant,
+  };
+}
+
+function getTo(key, meId = undefined) {
+  // For group - always to group JID
+  const isGroupMessage = Boolean(key.participant);
+  if (isGroupMessage) {
+    return key.remoteJid;
+  }
+  if (key.fromMe) {
+    return key.remoteJid;
+  }
+  return meId || 'me';
+}
+
+function getFrom(key, meId) {
+  // For group - always from participant
+  const isGroupMessage = Boolean(key.participant);
+  if (isGroupMessage) {
+    return key.participant;
+  }
+  if (key.fromMe) {
+    return meId || 'me';
+  }
+  return key.remoteJid;
+}
+
+function getDestination(key, meId = undefined): MessageDestination {
+  return {
+    id: buildMessageId(key),
+    to: toCusFormat(getTo(key, meId)),
+    from: toCusFormat(getFrom(key, meId)),
+    fromMe: key.fromMe,
   };
 }
