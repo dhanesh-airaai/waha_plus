@@ -11,9 +11,11 @@ import {
 } from '../core/abc/session.abc';
 import { WAHAEngine, WAHASessionStatus } from '../structures/enums.dto';
 import {
+  MeInfo,
   ProxyConfig,
   SessionConfig,
   SessionDTO,
+  SessionInfo,
   SessionLogoutRequest,
   SessionStartRequest,
   SessionStopRequest,
@@ -211,7 +213,7 @@ export class SessionManagerPlus extends SessionManager {
     return session;
   }
 
-  async getSessions(all): Promise<SessionDTO[]> {
+  async getSessions(all): Promise<SessionInfo[]> {
     let sessionNames = Object.keys(this.sessions);
     if (all) {
       const stoppedSession = await this.sessionStorage.getAll();
@@ -222,17 +224,23 @@ export class SessionManagerPlus extends SessionManager {
       const status =
         this.sessions[sessionName]?.status || WAHASessionStatus.STOPPED;
       let sessionConfig: SessionConfig;
+      let me: MeInfo | null;
       if (status != WAHASessionStatus.STOPPED) {
         sessionConfig = this.sessions[sessionName].sessionConfig;
+        me = await this.sessions[sessionName]
+          .getSessionMeInfo()
+          .catch((err) => null);
       } else {
         sessionConfig = await this.sessionStorage.configRepository.get(
           sessionName,
         );
+        me = null;
       }
       return {
         name: sessionName,
         status: status,
         config: sessionConfig,
+        me: me,
       };
     });
     return await Promise.all(sessions);
