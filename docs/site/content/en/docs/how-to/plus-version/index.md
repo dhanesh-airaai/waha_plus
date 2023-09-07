@@ -86,6 +86,7 @@ Here's available tiers for our supporters:
 | Access to WAHA Plus  ![](/images/versions/plus.png) docker image.                   |   ✔️    |    ✔️    |   ✔️    |
 | An invitation to a private Github repository so you have the WAHA Plus source code. |   ➖️    |    ✔️    |   ✔️️   |
 | Access to a Telegram group where we provide support and assistance.                 |   ➖️    |    ➖     |   ✔️    |
+| Personal key to Docker Hub.                                                         |   ➖️    |    ➖     |   ✔️    |
 | **Donation**                                                                        | **$19** | **$39**  | **$99** |
 
 For **$19** donation you get:
@@ -131,7 +132,7 @@ Go ahead and get your own WhatsApp HTTP API!
 ### Install Plus
 After you get the password, use it to login and download docker image:
 ```bash
-docker login -u devlikeapro -p {PASSWORD}
+docker login -u devlikeapro -p {KEY}
 docker pull devlikeapro/whatsapp-http-api-plus
 docker logout
 ```
