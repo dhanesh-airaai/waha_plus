@@ -9,13 +9,13 @@ images: [ ]
 weight: 126
 ---
 
-**Available on NOWEB engine only**.
 
 Waiting for WEBJS engine to support it, and we'll add it ASAP!
 
 ![poll-example.jpg](poll-example.jpg)
 
 ## Endpoints
+See the list of engines [**that support the feature ->**]({{< relref "/docs/how-to/engines#features" >}}).
 
 ### Send poll
 
@@ -54,7 +54,8 @@ The response you get back:
 You must save the `id` field from the response in your database so that you can identify the poll for which you receive
 a vote (see webhook events below).
 
-## Events
+## Webhooks
+See the list of engines [**that support the feature ->**]({{< relref "/docs/how-to/engines#features" >}}).
 
 ### poll.vote
 

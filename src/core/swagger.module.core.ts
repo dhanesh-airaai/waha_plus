@@ -1,18 +1,34 @@
 import { INestApplication } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 
 import { WhatsappConfigService } from '../config.service';
 import { VERSION } from '../version';
+import { DECORATORS } from '@nestjs/swagger/dist/constants';
 
 export class SwaggerModuleCore {
-  configure(app: INestApplication) {
+  configure(app: INestApplication, webhooks: any[]) {
     this.setUpAuth(app);
     const builder = new DocumentBuilder();
 
     builder
       .setTitle('WAHA - WhatsApp HTTP API')
-      .setDescription('WhatsApp HTTP API that you can run in a click!')
-      .setExternalDoc('Documentation', 'https://waha.devlike.pro/')
+      .setDescription(
+        'WhatsApp HTTP API that you can run in a click!<br/>' +
+          '<ul>' +
+          '<li><a href="https://waha.devlike.pro/" target="_blank">Documentation</a></li>' +
+          '<li><a href="https://waha.devlike.pro/docs/how-to/engines/#features" target="_blank">Supported features in engines</a></li>' +
+          '<li><a href="https://github.com/devlikeapro/whatsapp-http-api" target="_blank">GitHub - WAHA Core</a></li>' +
+          '<li><a href="https://github.com/devlikeapro/whatsapp-http-api-plu' + // Separate line to pass pre-commit check
+          's" target="_blank">GitHub - WAHA Plus</a></li>' +
+          '</ul>' +
+          '<br/>' +
+          'Support the project and get WAHA Plus version!' +
+          '<ul>' +
+          '<li><a href="https://patreon.com/wa_http_api/" target="_blank">Patreon</a></li>' +
+          '<li><a href="https://boosty.to/wa-http-api/" target="_blank">Boosty</a></li>' +
+          '</ul>',
+      )
+      .setExternalDoc('WAHA', 'https://waha.devlike.pro/')
       .setVersion(VERSION.version)
       .addTag('sessions', 'Control WhatsApp sessions')
       .addTag('auth', 'Authentication')
@@ -63,11 +79,56 @@ export class SwaggerModuleCore {
       });
     }
 
-    const options = builder.build();
-    const document = SwaggerModule.createDocument(app, options);
+    const swaggerDocumentConfig = builder.build();
+    const swaggerDocumentOptions = {
+      extraModels: webhooks,
+    };
+    let document = SwaggerModule.createDocument(
+      app,
+      swaggerDocumentConfig,
+      swaggerDocumentOptions,
+    );
+    document = this.configureWebhooks(document, webhooks);
     SwaggerModule.setup('', app, document, {
       customSiteTitle: 'WAHA - WhatsApp HTTP API',
     });
+  }
+
+  private configureWebhooks(document: OpenAPIObject, supportedWebhooks) {
+    document.openapi = '3.1.0';
+    const webhooks = {};
+    for (const webhook of supportedWebhooks) {
+      const eventMetadata = Reflect.getMetadata(
+        DECORATORS.API_MODEL_PROPERTIES,
+        webhook.prototype,
+        'event',
+      );
+      const event = new webhook().event;
+      const schemaName = webhook.name;
+      webhooks[event] = {
+        post: {
+          summary: eventMetadata.description,
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: `#/components/schemas/${schemaName}`,
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description:
+                'Return a 200 status to indicate that the data was received successfully',
+            },
+          },
+        },
+      };
+    }
+    // @ts-ignore
+    document.webhooks = webhooks;
+    return document;
   }
 
   protected setUpAuth(app: INestApplication) {

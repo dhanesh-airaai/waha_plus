@@ -182,7 +182,9 @@ export abstract class WhatsappSession {
 
   abstract sendText(request: MessageTextRequest);
 
-  abstract sendContactVCard(request: MessageContactVcardRequest);
+  sendContactVCard(request: MessageContactVcardRequest) {
+    throw new NotImplementedByEngineError();
+  }
 
   sendPoll(request: MessagePollRequest) {
     throw new NotImplementedByEngineError();
@@ -190,7 +192,9 @@ export abstract class WhatsappSession {
 
   abstract sendLocation(request: MessageLocationRequest);
 
-  abstract sendLinkPreview(request: MessageLinkPreviewRequest);
+  sendLinkPreview(request: MessageLinkPreviewRequest) {
+    throw new NotImplementedByEngineError();
+  }
 
   abstract sendImage(request: MessageImageRequest);
 

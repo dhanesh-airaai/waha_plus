@@ -10,6 +10,7 @@ weight: 125
 ---
 
 ## Sessions
+See the list of engines [**that support the features ->**]({{< relref "/docs/how-to/engines#features" >}}).
 
 ### Start
 
@@ -152,6 +153,8 @@ null
 
 
 ## Authentication
+See the list of engines [**that support the features ->**]({{< relref "/docs/how-to/engines#features" >}}).
+
 ### Get QR
 The simplest way to authenticate a new session - get QR code and scan it on your device.
 ```bash
@@ -160,7 +163,6 @@ GET /api/{session}/auth/qr
 You'll get QR image that you can scan and get authenticated
 
 ### Get pairing code
-{{< alert icon="👉" text="Available in **NOWEB** engine only." />}}
 
 You can [link a session with phone number](https://faq.whatsapp.com/1324084875126592) - make a request to the endpoint.
 ```bash

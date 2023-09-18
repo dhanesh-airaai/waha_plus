@@ -30,6 +30,7 @@ When sending media (images, voice, files) you can either use:
 - `file.url` field with public available URL for that file
 
 ## Endpoints
+See the list of engines [**that support the feature ->**]({{< relref "/docs/how-to/engines#features" >}}).
 
 ### Send text
 To send text message - use `POST /api/sendText` with example payload.
@@ -204,7 +205,7 @@ You can send files in two ways:
 
 
 ### Send status (aka stories)
-With [NOWEB engine]({{< relref "/docs/how-to/engines" >}}) you can send statuses (aka stories)!
+You can send statuses (aka stories)!
 
 It is always necessary to inform the list of `contacts` that will have access to the posted status!
 

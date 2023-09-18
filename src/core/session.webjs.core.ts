@@ -185,10 +185,6 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     );
   }
 
-  sendContactVCard(request: MessageContactVcardRequest) {
-    throw new NotImplementedByEngineError();
-  }
-
   reply(request: MessageReplyRequest) {
     const options = {
       quotedMessageId: request.reply_to,
@@ -217,10 +213,6 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       request.title,
     );
     return this.whatsapp.sendMessage(request.chatId, location);
-  }
-
-  sendLinkPreview(request: MessageLinkPreviewRequest) {
-    throw new NotImplementedByEngineError();
   }
 
   async sendSeen(request: SendSeenRequest) {
