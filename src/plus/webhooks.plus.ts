@@ -74,7 +74,7 @@ export class WebhookSenderPlus extends WebhookSender {
       headers: headers,
     };
     this.log.log(`Sending POST to ${this.url}...`);
-    this.log.debug(`POST DATA: ${body}`);
+    this.log.verbose(`POST DATA: ${body}`);
 
     request.post(this.url, postParams, (error, res, body) => {
       if (error) {
@@ -82,7 +82,7 @@ export class WebhookSenderPlus extends WebhookSender {
         return;
       }
       this.log.log(`POST request was sent with status code: ${res.statusCode}`);
-      this.log.verbose(`Response: ${body}`);
+      this.log.debug(`Response: ${body}`);
     });
   }
 }

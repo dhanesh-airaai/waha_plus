@@ -26,6 +26,7 @@ import { WhatsappSessionVenomPlus } from './session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './session.webjs.plus';
 import { MediaStoragePlus, SessionStoragePlus } from './storage.plus';
 import { WebhookConductorPlus } from './webhooks.plus';
+import { buildLogger } from '../core/manager.core';
 
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
@@ -108,7 +109,7 @@ export class SessionManagerPlus extends SessionManager {
   private clearStorage() {
     /* We need to clear the local storage just once */
     const storage = new this.MediaStorageClass(
-      new ConsoleLogger(`Storage`),
+      buildLogger(`Storage`),
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
@@ -123,15 +124,15 @@ export class SessionManagerPlus extends SessionManager {
   async start(request: SessionStartRequest) {
     const name = request.name;
     this.log.log(`'${name}' - starting session...`);
-    const log = new ConsoleLogger(`WhatsappSession - ${name}`);
+    const log = buildLogger(`WhatsappSession - ${name}`);
     const storage = new this.MediaStorageClass(
-      new ConsoleLogger(`Storage - ${name}`),
+      buildLogger(`Storage - ${name}`),
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
       this.config.mimetypes,
     );
-    const webhookLog = new ConsoleLogger(`Webhook - ${name}`);
+    const webhookLog = buildLogger(`Webhook - ${name}`);
     const webhook = new this.WebhookConductorClass(webhookLog);
     const proxyConfig = this.getProxyConfig(request);
     const sessionConfig: SessionParams = {
@@ -149,9 +150,7 @@ export class SessionManagerPlus extends SessionManager {
 
     // configure webhooks
     const webhooks = this.getWebhooks(request);
-    session.events.on(WAHAInternalEvent.engine_start, () =>
-      webhook.configure(session, webhooks),
-    );
+    webhook.configure(session, webhooks);
 
     // start session
     await session.start();
