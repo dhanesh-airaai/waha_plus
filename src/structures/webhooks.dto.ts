@@ -86,11 +86,6 @@ export class WAMessageRevokedBody {
   after: WAMessage | null;
   before: WAMessage | null;
 }
-
-export class WAMessageRevokedBody {
-  after: WAMessage | null;
-  before: WAMessage | null;
-}
 export class WASessionStatusBody {
   @ApiProperty({
     example: 'default',
