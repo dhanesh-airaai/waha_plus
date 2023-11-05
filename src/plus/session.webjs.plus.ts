@@ -10,6 +10,7 @@ import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
 import {
   MessageFileRequest,
   MessageImageRequest,
+  MessageVideoRequest,
 } from '../structures/chatting.dto';
 import { BinaryFile, RemoteFile } from '../structures/files.dto';
 
@@ -56,6 +57,12 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   async sendVoice(request) {
     const media = await this.fileToMedia(request.file);
     const options = { sendAudioAsVoice: true };
+    return this.whatsapp.sendMessage(request.chatId, media, options);
+  }
+
+  async sendVideo(request: MessageVideoRequest) {
+    const media = await this.fileToMedia(request.file);
+    const options = { caption: request.caption };
     return this.whatsapp.sendMessage(request.chatId, media, options);
   }
 
