@@ -6,6 +6,7 @@ import { toJID, WhatsappSessionNoWebCore } from '../core/session.noweb.core';
 import {
   MessageFileRequest,
   MessageImageRequest,
+  MessageVideoRequest,
   MessageVoiceRequest,
 } from '../structures/chatting.dto';
 import { BinaryFile, RemoteFile } from '../structures/files.dto';
@@ -66,6 +67,11 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
 
   sendVoice(request: MessageVoiceRequest) {
     const message = this.fileToMessage(request.file, 'audio');
+    return this.sock.sendMessage(request.chatId, message);
+  }
+
+  sendVideo(request: MessageVideoRequest) {
+    const message = this.fileToMessage(request.file, 'video', request.caption);
     return this.sock.sendMessage(request.chatId, message);
   }
 
