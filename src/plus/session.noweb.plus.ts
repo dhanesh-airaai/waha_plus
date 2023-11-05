@@ -24,7 +24,6 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     file: RemoteFile | BinaryFile,
     type,
     caption = '',
-    filename = undefined,
   ) {
     if (!('url' in file || 'data' in file)) {
       throw new UnprocessableEntityException(
@@ -37,7 +36,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
         [type]: { url: file.url },
         caption: caption,
         mimetype: file.mimetype,
-        filename: filename,
+        fileName: file.filename,
         ptt: type === 'audio',
       };
     } else if ('data' in file) {
@@ -45,7 +44,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
         [type]: Buffer.from(file.data, 'base64'),
         mimetype: file.mimetype,
         caption: caption,
-        filename: filename,
+        fileName: file.filename,
         ptt: type === 'audio',
       };
     }
