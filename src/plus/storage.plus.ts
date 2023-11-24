@@ -15,16 +15,16 @@ const FileType = require('file-type');
 const writeFileAsync = promisify(fs.writeFile);
 
 export class MediaStoragePlus implements MediaStorage {
-  private readonly lifetime: number;
+  private readonly lifetimeMs: number;
 
   constructor(
     protected log: ConsoleLogger,
-    private filesFolder,
-    private baseUrl,
-    private lifetimeSeconds,
-    private mimetypes,
+    private filesFolder: string,
+    private baseUrl: string,
+    private mimetypes: string[],
+    lifetimeSeconds: number,
   ) {
-    this.lifetime = lifetimeSeconds * SECOND;
+    this.lifetimeMs = lifetimeSeconds * SECOND;
   }
 
   /**
@@ -62,7 +62,7 @@ export class MediaStoragePlus implements MediaStorage {
         fs.unlink(filepath, () => {
           this.log.log(`File ${filepath} was removed`);
         }),
-      this.lifetime,
+      this.lifetimeMs,
     );
   }
 

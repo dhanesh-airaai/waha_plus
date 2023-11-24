@@ -112,8 +112,8 @@ export class SessionManagerPlus extends SessionManager {
       buildLogger(`Storage`),
       this.config.filesFolder,
       this.config.filesURL,
-      this.config.filesLifetime,
       this.config.mimetypes,
+      this.config.filesLifetime,
     );
     storage.purge();
   }
@@ -129,8 +129,8 @@ export class SessionManagerPlus extends SessionManager {
       buildLogger(`Storage - ${name}`),
       this.config.filesFolder,
       this.config.filesURL,
-      this.config.filesLifetime,
       this.config.mimetypes,
+      this.config.filesLifetime,
     );
     const webhookLog = buildLogger(`Webhook - ${name}`);
     const webhook = new this.WebhookConductorClass(webhookLog);
