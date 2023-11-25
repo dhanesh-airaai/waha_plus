@@ -6,17 +6,17 @@ import { BasicAuthFunction } from './auth/basicAuth';
 
 export class SwaggerModulePlus extends SwaggerModuleCore {
   configure(app: INestApplication, webhooks: any[]) {
-    this.setUpAuth(app);
+    const config = app.get(WhatsappConfigService);
+    const credentials = config.getSwaggerUsernamePassword();
+    if (credentials) {
+      this.setUpAuth(app, credentials);
+    }
     super.configure(app, webhooks);
   }
 
-  setUpAuth(app: INestApplication): void {
-    const config = app.get(WhatsappConfigService);
-    const usernamePassword = config.getSwaggerUsernamePassword();
-    if (usernamePassword) {
-      const [username, password] = usernamePassword;
-      const authFunction = BasicAuthFunction(username, password, '/api/');
-      app.use(authFunction);
-    }
+  setUpAuth(app: INestApplication, credentials: [string, string]): void {
+    const [username, password] = credentials;
+    const authFunction = BasicAuthFunction(username, password, '/api/');
+    app.use(authFunction);
   }
 }
