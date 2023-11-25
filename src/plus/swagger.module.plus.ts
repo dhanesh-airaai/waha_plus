@@ -7,6 +7,11 @@ import { BasicAuthFunction } from './auth/basicAuth';
 export class SwaggerModulePlus extends SwaggerModuleCore {
   configure(app: INestApplication, webhooks: any[]) {
     const config = app.get(WhatsappConfigService);
+    if (!config.getSwaggerEnabled()) {
+      console.log('Swagger is disabled.');
+      return;
+    }
+
     const credentials = config.getSwaggerUsernamePassword();
     if (credentials) {
       this.setUpAuth(app, credentials);
