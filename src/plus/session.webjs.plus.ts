@@ -7,6 +7,7 @@ import {
 } from 'whatsapp-web.js';
 
 import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../core/session.webjs.core';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -66,41 +67,28 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return this.whatsapp.sendMessage(request.chatId, media, options);
   }
 
-  protected async downloadMedia(message: Message) {
-    if (!message.hasMedia) {
-      return message;
-    }
-    // Can't get media for revoked messages
-    if (message.type === 'revoked') {
-      return message;
-    }
+  protected downloadMedia(message: Message) {
+    const processor = new EngineMediaProcessor();
+    return this.mediaManager.processMedia(processor, message);
+  }
+}
 
-    this.log.log(
-      `The message ${message.id._serialized} has media, downloading it...`,
-    );
-    return message.downloadMedia().then(async (media: MessageMedia) => {
-      this.log.verbose(
-        `Writing file from the message ${message.id._serialized}...`,
-      );
+class EngineMediaProcessor extends CoreEngineMediaProcessor {
+  getMessageId(message: Message): string {
+    return message.id._serialized;
+  }
+
+  getMimetype(message: Message): string {
+    // @ts-ignore
+    return message.rawData.mimetype;
+  }
+
+  async getMediaBuffer(message: Message): Promise<Buffer | null> {
+    return message.downloadMedia().then((media: MessageMedia) => {
       if (!media) {
-        this.log.log(`No media found for ${message.id._serialized}.`);
-        // @ts-ignore
-        message.mediaUrl = null;
-        return message;
+        return null;
       }
-      const buffer = Buffer.from(media.data, 'base64');
-      const url = await this.storage.save(
-        message.id._serialized,
-        media.mimetype,
-        buffer,
-      );
-      this.log.log(
-        `The file from ${message.id._serialized} has been saved to ${url}`,
-      );
-
-      // @ts-ignore
-      message.mediaUrl = url;
-      return message;
+      return Buffer.from(media.data, 'base64');
     });
   }
 }

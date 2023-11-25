@@ -4,36 +4,30 @@ import { getProxyConfig } from 'src/core/helpers.proxy';
 
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
-import {
-  SessionParams,
-  WAHAInternalEvent,
-  WhatsappSession,
-} from '../core/abc/session.abc';
+import { SessionParams, WhatsappSession } from '../core/abc/session.abc';
+import { buildLogger } from '../core/manager.core';
 import { WAHAEngine, WAHASessionStatus } from '../structures/enums.dto';
 import {
   MeInfo,
   ProxyConfig,
   SessionConfig,
-  SessionDTO,
   SessionInfo,
   SessionLogoutRequest,
   SessionStartRequest,
   SessionStopRequest,
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
+import { MediaStoragePlus, PlusMediaManager } from './media.plus';
 import { WhatsappSessionNoWebPlus } from './session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './session.webjs.plus';
-import { MediaStoragePlus, SessionStoragePlus } from './storage.plus';
+import { SessionStoragePlus } from './storage.plus';
 import { WebhookConductorPlus } from './webhooks.plus';
-import { buildLogger } from '../core/manager.core';
 
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
   private readonly sessions: Record<string, WhatsappSession>;
 
-  // @ts-ignore
-  protected MediaStorageClass = MediaStoragePlus;
   // @ts-ignore
   protected WebhookConductorClass = WebhookConductorPlus;
   protected readonly EngineClass: typeof WhatsappSession;
@@ -108,11 +102,10 @@ export class SessionManagerPlus extends SessionManager {
 
   private clearStorage() {
     /* We need to clear the local storage just once */
-    const storage = new this.MediaStorageClass(
+    const storage = new MediaStoragePlus(
       buildLogger(`Storage`),
       this.config.filesFolder,
       this.config.filesURL,
-      this.config.mimetypes,
       this.config.filesLifetime,
     );
     storage.purge();
@@ -125,19 +118,23 @@ export class SessionManagerPlus extends SessionManager {
     const name = request.name;
     this.log.log(`'${name}' - starting session...`);
     const log = buildLogger(`WhatsappSession - ${name}`);
-    const storage = new this.MediaStorageClass(
+    const storage = new MediaStoragePlus(
       buildLogger(`Storage - ${name}`),
       this.config.filesFolder,
       this.config.filesURL,
-      this.config.mimetypes,
       this.config.filesLifetime,
+    );
+    const mediaManager = new PlusMediaManager(
+      storage,
+      this.config.mimetypes,
+      buildLogger(`MediaManager - ${name}`),
     );
     const webhookLog = buildLogger(`Webhook - ${name}`);
     const webhook = new this.WebhookConductorClass(webhookLog);
     const proxyConfig = this.getProxyConfig(request);
     const sessionConfig: SessionParams = {
       name,
-      storage,
+      mediaManager,
       log,
       sessionStorage: this.sessionStorage,
       proxyConfig: proxyConfig,
@@ -170,7 +167,9 @@ export class SessionManagerPlus extends SessionManager {
       webhooks = webhooks.concat(request.config.webhooks);
     }
     const globalWebhookConfig = this.config.getWebhookConfig();
-    webhooks.push(globalWebhookConfig);
+    if (globalWebhookConfig) {
+      webhooks.push(globalWebhookConfig);
+    }
     return webhooks;
   }
 
@@ -199,15 +198,12 @@ export class SessionManagerPlus extends SessionManager {
     await this.sessionStorage.clean(request.name);
   }
 
-  getSession(name: string, error = true): WhatsappSession {
+  getSession(name: string): WhatsappSession {
     const session = this.sessions[name];
     if (!session) {
-      if (error) {
-        throw new NotFoundException(
-          `We didn't find a session with name '${name}'. Please start it first by using POST /sessions/start request`,
-        );
-      }
-      return;
+      throw new NotFoundException(
+        `We didn't find a session with name '${name}'. Please start it first by using POST /sessions/start request`,
+      );
     }
     return session;
   }
@@ -222,7 +218,7 @@ export class SessionManagerPlus extends SessionManager {
     const sessions = sessionNames.map(async (sessionName) => {
       const status =
         this.sessions[sessionName]?.status || WAHASessionStatus.STOPPED;
-      let sessionConfig: SessionConfig;
+      let sessionConfig: SessionConfig | undefined;
       let me: MeInfo | null;
       if (status != WAHASessionStatus.STOPPED) {
         sessionConfig = this.sessions[sessionName].sessionConfig;

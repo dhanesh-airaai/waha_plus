@@ -5,7 +5,7 @@ import { SwaggerModuleCore } from '../core/swagger.module.core';
 import { BasicAuthFunction } from './auth/basicAuth';
 
 export class SwaggerModulePlus extends SwaggerModuleCore {
-  setUpAuth(app: INestApplication) {
+  setUpAuth(app: INestApplication): void {
     const config = app.get(WhatsappConfigService);
     const usernamePassword = config.getSwaggerUsernamePassword();
     if (usernamePassword) {

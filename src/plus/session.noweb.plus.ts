@@ -1,7 +1,6 @@
 import { downloadMediaMessage } from '@adiwajshing/baileys';
 import { UnprocessableEntityException } from '@nestjs/common';
 
-import { NotImplementedByEngineError } from '../core/exceptions';
 import { toJID, WhatsappSessionNoWebCore } from '../core/session.noweb.core';
 import {
   MessageFileRequest,
@@ -13,19 +12,15 @@ import { BinaryFile, RemoteFile } from '../structures/files.dto';
 import {
   BROADCAST_ID,
   ImageStatus,
-  TextStatus,
   VideoStatus,
   VoiceStatus,
 } from '../structures/status.dto';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const logger = require('pino')();
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../core/session.noweb.core';
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
-  fileToMessage(
-    file: RemoteFile | BinaryFile,
-    type,
-    caption = '',
-  ) {
+  fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
     if (!('url' in file || 'data' in file)) {
       throw new UnprocessableEntityException(
         'Either file.url or file.data must be specified.',
@@ -75,33 +70,9 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return this.sock.sendMessage(request.chatId, message);
   }
 
-  protected async downloadMedia(message) {
-    const messageType = Object.keys(message.message)[0];
-    const hasMedia =
-      messageType === 'imageMessage' ||
-      messageType == 'audioMessage' ||
-      messageType == 'documentMessage' ||
-      messageType == 'videoMessage';
-    if (!hasMedia) return message;
-
-    const mimetype = message.message[messageType].mimetype;
-    this.log.log(`The message ${message.key.id} has media, downloading it...`);
-    // download the message
-    await downloadMediaMessage(
-      message,
-      'buffer',
-      {},
-      {
-        logger: logger,
-        reuploadRequest: this.sock.updateMediaMessage,
-      },
-    ).then(async (buffer: Buffer) => {
-      this.log.verbose(`Writing file from the message ${message.key.id}...`);
-      const url = await this.storage.save(message.key.id, mimetype, buffer);
-      this.log.log(`The file from ${message.key.id} has been saved to ${url}`);
-      message.mediaUrl = url;
-    });
-    return message;
+  protected downloadMedia(message) {
+    const processor = new EngineMediaProcessor(this);
+    return this.mediaManager.processMedia(processor, message);
   }
 
   /**
@@ -130,5 +101,28 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       statusJidList: status.contacts.map(toJID),
     };
     return this.sock.sendMessage(BROADCAST_ID, message, options);
+  }
+}
+
+class EngineMediaProcessor extends CoreEngineMediaProcessor {
+  getMessageId(message: any): string {
+    return message.key.id;
+  }
+
+  getMimetype(message: any): string {
+    const messageType = Object.keys(message.message)[0];
+    return message.message[messageType].mimetype;
+  }
+
+  async getMediaBuffer(message: any): Promise<Buffer | null> {
+    return (await downloadMediaMessage(
+      message,
+      'buffer',
+      {},
+      {
+        logger: logger,
+        reuploadRequest: this.session.sock.updateMediaMessage,
+      },
+    )) as Buffer;
   }
 }

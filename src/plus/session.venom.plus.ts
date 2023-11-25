@@ -1,6 +1,7 @@
 import { create, CreateConfig, Message } from 'venom-bot';
 
 import { WhatsappSessionVenomCore } from '../core/session.venom.core';
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../core/session.venom.core';
 
 export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
   protected buildClient() {
@@ -20,20 +21,20 @@ export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
     this.addProxyConfig(venomOptions);
     return create(this.name, this.getCatchQR(), undefined, venomOptions);
   }
-  protected async downloadAndDecryptMedia(message: Message) {
-    if (!message.isMMS || !message.isMedia) {
-      return message;
-    }
+  protected async downloadMedia(message: Message) {
+    const processor = new EngineMediaProcessor(this);
+    return this.mediaManager.processMedia(processor, message);
+  }
+}
 
-    this.log.log(`The message ${message.id} has media, downloading it...`);
-    return this.whatsapp.decryptFile(message).then(async (buffer) => {
-      this.log.verbose(`Writing file from the message ${message.id}...`);
-      const url = await this.storage.save(message.id, message.mimetype, buffer);
-      this.log.log(`The file from ${message.id} has been saved to ${url}`);
-
-      // @ts-ignore
-      message.mediaUrl = url;
-      return message;
-    });
+class EngineMediaProcessor extends CoreEngineMediaProcessor {
+  getMessageId(message: Message): string {
+    return message.id;
+  }
+  getMimetype(message: Message): string {
+    return message.mimetype;
+  }
+  async getMediaBuffer(message: Message): Promise<Buffer> {
+    return this.session.whatsapp.decryptFile(message);
   }
 }
