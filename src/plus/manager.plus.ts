@@ -58,9 +58,8 @@ export class SessionManagerPlus extends SessionManager {
 
     const promises = stoppedSessions.map(async (sessionName) => {
       this.log.log(`Restarting STOPPED session - ${sessionName}...`);
-      const config = await this.sessionStorage.configRepository.get(
-        sessionName,
-      );
+      const config =
+        await this.sessionStorage.configRepository.get(sessionName);
       return this.start({ name: sessionName, config: config });
     });
     await Promise.all(promises);
@@ -73,9 +72,8 @@ export class SessionManagerPlus extends SessionManager {
       if (this.sessions[sessionName]) {
         return;
       }
-      const config = await this.sessionStorage.configRepository.get(
-        sessionName,
-      );
+      const config =
+        await this.sessionStorage.configRepository.get(sessionName);
       return this.start({ name: sessionName, config: config });
     });
     await Promise.all(promises);
@@ -226,9 +224,8 @@ export class SessionManagerPlus extends SessionManager {
           .getSessionMeInfo()
           .catch((err) => null);
       } else {
-        sessionConfig = await this.sessionStorage.configRepository.get(
-          sessionName,
-        );
+        sessionConfig =
+          await this.sessionStorage.configRepository.get(sessionName);
         me = null;
       }
       return {
