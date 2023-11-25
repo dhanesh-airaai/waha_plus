@@ -7,6 +7,7 @@ export class SessionStoragePlus extends SessionStorageCore {
     super(engine);
     this.sessionsFolder = './.sessions';
   }
+
   getFolderPath(name: string): string {
     return path.join(this.engineFolder, name);
   }
