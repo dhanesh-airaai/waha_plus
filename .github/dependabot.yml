@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: 'daily'
     allow:
-      - dependency-name: "whatsapp-web.js"
-      - dependency-name: "venom-bot"
+      - dependency-name: 'whatsapp-web.js'
+      - dependency-name: 'venom-bot'
     assignees:
-      - "allburov"
+      - 'allburov'
