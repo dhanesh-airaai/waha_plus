@@ -1,6 +1,7 @@
 import { PHONENUMBER_MCC } from '@adiwajshing/baileys';
 import { BadRequestException } from '@nestjs/common';
 import { parsePhoneNumber } from 'libphonenumber-js';
+import { sleep } from 'venom-bot/dist/utils/sleep';
 
 import { WAHAInternalEvent } from '../core/abc/session.abc';
 import { NotImplementedByEngineError } from '../core/exceptions';
@@ -91,6 +92,8 @@ export class WhatsappSessionMobilePlus extends WhatsappSessionNoWebPlus {
     try {
       const response = await this.sock.register(code);
       this.log.log('Successfully authorized');
+      this.log.log('Restarting the session...');
+      this.restart();
       return response;
     } catch (error) {
       if (error?.reason === 'code_checkpoint') {
@@ -99,6 +102,14 @@ export class WhatsappSessionMobilePlus extends WhatsappSessionNoWebPlus {
       }
       throw error;
     }
+  }
+
+  private async restart() {
+    this.log.log('Stopping the session...');
+    this.stop();
+    await sleep(2000);
+    this.log.log('Starting the session...');
+    this.start();
   }
 
   public async getCaptcha(): Promise<QR> {
