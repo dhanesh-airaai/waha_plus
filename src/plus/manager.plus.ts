@@ -18,6 +18,7 @@ import {
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { MediaStoragePlus, PlusMediaManager } from './media.plus';
+import { WhatsappSessionMobilePlus } from './session.mobile.plus';
 import { WhatsappSessionNoWebPlus } from './session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './session.webjs.plus';
@@ -86,6 +87,8 @@ export class SessionManagerPlus extends SessionManager {
       return WhatsappSessionVenomPlus;
     } else if (engine === WAHAEngine.NOWEB) {
       return WhatsappSessionNoWebPlus;
+    } else if (engine === WAHAEngine.MOBILE) {
+      return WhatsappSessionMobilePlus;
     } else {
       throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`);
     }
