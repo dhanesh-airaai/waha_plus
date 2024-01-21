@@ -87,9 +87,18 @@ export class WhatsappSessionMobilePlus extends WhatsappSessionNoWebPlus {
         registration,
       )}`,
     );
-    const response = await this.sock.register(code);
-    this.log.log('Successfully authorized');
-    return response;
+
+    try {
+      const response = await this.sock.register(code);
+      this.log.log('Successfully authorized');
+      return response;
+    } catch (error) {
+      if (error?.reason === 'code_checkpoint') {
+        this.log.log('Captcha code required');
+        throw new BadRequestException('Captcha code required.');
+      }
+      throw error;
+    }
   }
 
   public async getCaptcha(): Promise<QR> {
