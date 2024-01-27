@@ -29,7 +29,7 @@ export class WhatsappSessionMobilePlus extends WhatsappSessionNoWebPlus {
     );
   }
 
-  public async requestCode(phoneNumber: string, method: string) {
+  public async requestCode(phoneNumber: string, method: string, params?: any) {
     if (this.sock.authState.creds.registered) {
       const msg =
         'The session has already been registered. ' +
@@ -64,6 +64,8 @@ export class WhatsappSessionMobilePlus extends WhatsappSessionNoWebPlus {
       phoneNumberNationalNumber: phone.nationalNumber,
       phoneNumberMobileCountryCode: mcc,
       method: method,
+      localeLanguage: params.localeLanguage,
+      localeCountry: params.localeCountry,
     };
 
     this.log.log(
