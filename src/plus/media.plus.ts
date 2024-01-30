@@ -11,6 +11,7 @@ import { SECOND } from '../structures/enums.dto';
 import { WAMedia } from '../structures/responses.dto';
 import fs = require('fs');
 import del = require('del');
+import { sleep } from 'venom-bot/dist/utils/sleep';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -118,9 +119,26 @@ export class PlusMediaManager implements MediaManager {
       return message;
     }
 
-    this.log.log(`The message ${messageId} has media, downloading it...`);
+    this.log.log(`The message ${messageId} has media, processing it...`);
+    let buffer;
 
-    const buffer = await processor.getMediaBuffer(message);
+    // Repeat three times to avoid errors
+    const retries = 5;
+    for (let i = 0; i < retries; i++) {
+      this.log.log(
+        `Downloading media from WhatsApp the message '${messageId}, attempt ${
+          i + 1
+        }/${retries}...`,
+      );
+      buffer = await processor.getMediaBuffer(message);
+      if (buffer) {
+        break;
+      }
+      this.log.log(`Message ${messageId} has no media, but it has media flag.`);
+      this.log.log(`Waiting 2 seconds and trying again...`);
+      await sleep(2_000);
+    }
+
     if (!buffer) {
       this.log.log(`No media found for ${messageId}.`);
       return message;
