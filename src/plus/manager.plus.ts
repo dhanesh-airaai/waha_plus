@@ -1,11 +1,14 @@
 import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
 import * as lodash from 'lodash';
+import { MongoClient } from 'mongodb';
 import { getProxyConfig } from 'src/core/helpers.proxy';
 
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import { SessionParams, WhatsappSession } from '../core/abc/session.abc';
 import { buildLogger } from '../core/manager.core';
+import { LocalSessionAuthRepository } from '../core/storage/LocalSessionAuthRepository';
+import { LocalSessionConfigRepository } from '../core/storage/LocalSessionConfigRepository';
 import { WAHAEngine, WAHASessionStatus } from '../structures/enums.dto';
 import {
   MeInfo,
@@ -17,12 +20,15 @@ import {
   SessionStopRequest,
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
+import { WhatsappSessionMobilePlus } from './engines/mobile/session.mobile.plus';
+import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
+import { WhatsappSessionVenomPlus } from './engines/venom/session.venom.plus';
+import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
 import { MediaStoragePlus, PlusMediaManager } from './media.plus';
-import { WhatsappSessionMobilePlus } from './session.mobile.plus';
-import { WhatsappSessionNoWebPlus } from './session.noweb.plus';
-import { WhatsappSessionVenomPlus } from './session.venom.plus';
-import { WhatsappSessionWebJSPlus } from './session.webjs.plus';
-import { SessionStoragePlus } from './storage.plus';
+import { LocalStorePlus } from './storage/LocalStorePlus';
+import { MongoSessionAuthRepository } from './storage/MongoSessionAuthRepository';
+import { MongoSessionConfigRepository } from './storage/MongoSessionConfigRepository';
+import { MongoStore } from './storage/MongoStore';
 import { WebhookConductorPlus } from './webhooks.plus';
 
 @Injectable()
@@ -42,7 +48,31 @@ export class SessionManagerPlus extends SessionManager {
     this.sessions = {};
     const engineName = this.config.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
-    this.sessionStorage = new SessionStoragePlus(engineName.toLowerCase());
+  }
+
+  async init() {
+    const engineName = this.config.getDefaultEngineName().toLowerCase();
+    const mongoUrl = this.config.getSessionMongoUrl();
+    if (mongoUrl) {
+      this.log.log('Using mongo storage for session info.');
+      const mongo = new MongoClient(mongoUrl);
+      this.log.log(`Connecting to mongo '${mongoUrl}'...`);
+      await mongo.connect();
+      this.log.log(`Connected to mongo '${mongoUrl}'!`);
+
+      this.store = new MongoStore(mongo, engineName);
+      this.sessionAuthRepository = new MongoSessionAuthRepository(this.store);
+      this.sessionConfigRepository = new MongoSessionConfigRepository(
+        this.store,
+      );
+    } else {
+      this.log.log('Using local storage for session info.');
+      this.store = new LocalStorePlus(engineName);
+      this.sessionAuthRepository = new LocalSessionAuthRepository(this.store);
+      this.sessionConfigRepository = new LocalSessionConfigRepository(
+        this.store,
+      );
+    }
 
     this.clearStorage();
     this.restartStoppedSessions();
@@ -54,13 +84,11 @@ export class SessionManagerPlus extends SessionManager {
       return;
     }
 
-    await this.sessionStorage.init();
-    const stoppedSessions = await this.sessionStorage.getAll();
+    const stoppedSessions = await this.sessionAuthRepository.getAll();
 
     const promises = stoppedSessions.map(async (sessionName) => {
       this.log.log(`Restarting STOPPED session - ${sessionName}...`);
-      const config =
-        await this.sessionStorage.configRepository.get(sessionName);
+      const config = await this.sessionConfigRepository.get(sessionName);
       return this.start({ name: sessionName, config: config });
     });
     await Promise.all(promises);
@@ -73,8 +101,7 @@ export class SessionManagerPlus extends SessionManager {
       if (this.sessions[sessionName]) {
         return;
       }
-      const config =
-        await this.sessionStorage.configRepository.get(sessionName);
+      const config = await this.sessionConfigRepository.get(sessionName);
       return this.start({ name: sessionName, config: config });
     });
     await Promise.all(promises);
@@ -137,11 +164,11 @@ export class SessionManagerPlus extends SessionManager {
       name,
       mediaManager,
       log,
-      sessionStorage: this.sessionStorage,
+      sessionStore: this.store,
       proxyConfig: proxyConfig,
       sessionConfig: request.config,
     };
-    await this.sessionStorage.init(name);
+    await this.sessionAuthRepository.init(name);
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
     this.sessions[name] = session;
@@ -196,7 +223,8 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   async logout(request: SessionLogoutRequest) {
-    await this.sessionStorage.clean(request.name);
+    await this.sessionAuthRepository.clean(request.name);
+    await this.sessionConfigRepository.delete(request.name);
   }
 
   getSession(name: string): WhatsappSession {
@@ -212,7 +240,7 @@ export class SessionManagerPlus extends SessionManager {
   async getSessions(all): Promise<SessionInfo[]> {
     let sessionNames = Object.keys(this.sessions);
     if (all) {
-      const stoppedSession = await this.sessionStorage.getAll();
+      const stoppedSession = await this.sessionAuthRepository.getAll();
       sessionNames = lodash.union(sessionNames, stoppedSession);
     }
 
@@ -227,8 +255,7 @@ export class SessionManagerPlus extends SessionManager {
           .getSessionMeInfo()
           .catch((err) => null);
       } else {
-        sessionConfig =
-          await this.sessionStorage.configRepository.get(sessionName);
+        sessionConfig = await this.sessionConfigRepository.get(sessionName);
         me = null;
       }
       return {

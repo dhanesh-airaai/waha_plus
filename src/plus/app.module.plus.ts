@@ -10,7 +10,12 @@ import { SessionManagerPlus } from './manager.plus';
 const PROVIDERS = [
   {
     provide: SessionManager,
-    useClass: SessionManagerPlus,
+    inject: [WhatsappConfigService, ConsoleLogger],
+    useFactory: async (config: WhatsappConfigService, log: ConsoleLogger) => {
+      const manager = new SessionManagerPlus(config, log);
+      await manager.init();
+      return manager;
+    },
   },
   WhatsappConfigService,
   ConsoleLogger,

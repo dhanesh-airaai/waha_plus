@@ -28,6 +28,9 @@ export class MediaStoragePlus implements MediaStorage {
     lifetimeSeconds: number,
   ) {
     this.lifetimeMs = lifetimeSeconds * SECOND;
+    if (this.lifetimeMs === 0) {
+      this.log.log('Files lifetime is 0, files will not be removed');
+    }
   }
 
   public async save(messageId, mimetype, buffer): Promise<string> {
@@ -43,6 +46,9 @@ export class MediaStoragePlus implements MediaStorage {
   }
 
   private postponeRemoval(filepath: string) {
+    if (this.lifetimeMs === 0) {
+      return;
+    }
     setTimeout(
       () =>
         fs.unlink(filepath, () => {
@@ -53,6 +59,10 @@ export class MediaStoragePlus implements MediaStorage {
   }
 
   purge() {
+    if (this.lifetimeMs === 0) {
+      this.log.log('No need to purge files with lifetime 0');
+      return;
+    }
     if (fs.existsSync(this.filesFolder)) {
       del([`${this.filesFolder}/*`], { force: true }).then((paths) => {
         if (paths.length === 0) {

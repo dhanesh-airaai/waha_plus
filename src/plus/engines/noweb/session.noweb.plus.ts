@@ -1,25 +1,31 @@
 import { downloadMediaMessage } from '@adiwajshing/baileys';
 import { UnprocessableEntityException } from '@nestjs/common';
 
-import { toJID, WhatsappSessionNoWebCore } from '../core/session.noweb.core';
+import {
+  toJID,
+  WhatsappSessionNoWebCore,
+} from '../../../core/engines/noweb/session.noweb.core';
 import {
   MessageFileRequest,
   MessageImageRequest,
   MessageVideoRequest,
   MessageVoiceRequest,
-} from '../structures/chatting.dto';
-import { BinaryFile, RemoteFile } from '../structures/files.dto';
+} from '../../../structures/chatting.dto';
+import { BinaryFile, RemoteFile } from '../../../structures/files.dto';
 import {
   BROADCAST_ID,
   ImageStatus,
   VideoStatus,
   VoiceStatus,
-} from '../structures/status.dto';
+} from '../../../structures/status.dto';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const logger = require('pino')();
-import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../core/session.noweb.core';
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
+import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
+  authFactory = new NowebAuthFactoryPlus();
+
   fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
     if (!('url' in file || 'data' in file)) {
       throw new UnprocessableEntityException(

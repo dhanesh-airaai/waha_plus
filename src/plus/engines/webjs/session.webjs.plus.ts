@@ -6,22 +6,25 @@ import {
   MessageMedia,
 } from 'whatsapp-web.js';
 
-import { WhatsappSessionWebJSCore } from '../core/session.webjs.core';
-import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../core/session.webjs.core';
+import { WhatsappSessionWebJSCore } from '../../../core/engines/webjs/session.webjs.core';
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/webjs/session.webjs.core';
 import {
   MessageFileRequest,
   MessageImageRequest,
   MessageVideoRequest,
-} from '../structures/chatting.dto';
-import { BinaryFile, RemoteFile } from '../structures/files.dto';
+} from '../../../structures/chatting.dto';
+import { BinaryFile, RemoteFile } from '../../../structures/files.dto';
+import { WebJSAuthFactory } from './WebJSAuthFactory';
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
-  protected buildClient() {
+  authFactory = new WebJSAuthFactory();
+  protected async buildClient() {
+    const authStrategy = this.authFactory.buildAuth(
+      this.sessionStore,
+      this.name,
+    );
     const clientOptions: ClientOptions = {
-      authStrategy: new LocalAuth({
-        clientId: this.name,
-        dataPath: this.sessionStorage.getFolderPath(this.name),
-      }),
+      authStrategy: authStrategy,
       puppeteer: {
         headless: true,
         executablePath: this.getBrowserExecutablePath(),
