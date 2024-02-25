@@ -1,3 +1,4 @@
+import { Document } from 'bson';
 import { MongoClient } from 'mongodb';
 
 import { DataStore } from '../../core/abc/DataStore';
@@ -45,5 +46,9 @@ export class MongoStore extends DataStore {
     return databases
       .filter((db) => db.startsWith(prefix))
       .map((db) => db.replace(prefix, ''));
+  }
+
+  command(command: Document) {
+    return this.mongo.db().admin().command(command);
   }
 }
