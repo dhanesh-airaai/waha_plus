@@ -51,11 +51,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKER_IMAGE }}
+          images: ${{ vars.DOCKER_IMAGE }}
           flavor: latest=false
           tags: |
             type=raw,value=${{ matrix.tag }}
-            type=raw,value={{tag}}-${{ matrix.tag }}
 
       - name: Login to image repository
         if: github.ref_type == 'tag'
