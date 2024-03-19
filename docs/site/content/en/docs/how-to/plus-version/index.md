@@ -67,7 +67,6 @@ The more you support the project - the more you get!
 | Special badge ([![patron:TIER](https://img.shields.io/badge/patron-TIER-188a42)](https://waha.devlike.pro/docs/how-to/plus-version/#tiers)) and labels (`patron:TIER`) on [project's issues, PRs and Discussion](https://github.com/devlikeapro/whatsapp-http-api) to highlight your support to the project! |          | ✔️      |    ✔️    |   ✔️    |
 | An invitation to **a private Github repository** so you have the **WAHA Plus** source code.                                                                                                                                                                                                                  | ➖️       | ➖️      |    ✔️    |   ✔️️   |
 | Access to a Telegram group where we provide support and assistance.                                                                                                                                                                                                                                          | ➖️       | ➖️      |    ➖     |   ✔️    |
-| Access to an [experimental MOBILE engine]({{< relref "/docs/how-to/plus-version#tiers" >}})!.                                                                                                                                                                                                                | ➖️       | ➖️      |    ➖     |   ✔️    |
 | **Donation**                                                                                                                                                                                                                                                                                                 | **FREE** | **$19** | **$39**  | **$99** |
 
 For **$19** donation you get:
@@ -98,7 +97,7 @@ What is the difference between **WAHA Plus** and **other SaaS solutions** for Wh
 
 ### Patreon
 <p align="center">
-  <img src="patreon.png" alt="Patreon" />
+  <img src="patreon.png" alt="Patreon" style='width: 40%'/>
 </p>
 
 Support the project and get WAHA Plus version on
@@ -110,9 +109,11 @@ Support the project and get WAHA Plus version on
 
 Go ahead and get your own WhatsApp HTTP API!
 
+{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
+
 ### Boosty
 <p align="center">
-  <img src="boosty.svg" alt="Patreon" />
+  <img src="boosty.svg" alt="Patreon" style='width: 40%'/>
   <br/>
   <br/>
 </p>
@@ -125,6 +126,26 @@ Boosty ->
 </a>
 
 Go ahead and get your own WhatsApp HTTP API!
+
+{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
+
+### Patron Portal
+<p align="center">
+  <img src="patron-portal.png" alt="Patron Portal" />
+  <br/>
+  <br/>
+</p>
+
+After subscribing on Patreon or Boosty, you will get access to the [WAHA Patron Portal ->](https://portal.devlike.pro/)
+where you will get the password to download the Plus image and manage your perks!
+
+Read more about Patron Portal in
+**<a href="https://www.patreon.com/posts/waha-patron-97637416" target="_blank">Patreon -> </a>**
+or
+**<a href="https://boosty.to/wa-http-api/posts/1011" target="_blank">Boosty -></a>**
+posts.
+
+{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
 
 ## Install Plus
 After you get the password, get your login to Docker Hub in [Patron Portal ->](https://portal.devlike.pro/)
