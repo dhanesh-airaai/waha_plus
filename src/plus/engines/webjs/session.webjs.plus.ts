@@ -30,6 +30,12 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
         executablePath: this.getBrowserExecutablePath(),
         args: this.getBrowserArgsForPuppeteer(),
       },
+      webVersion: '2.2411.2',
+      webVersionCache: {
+        type: 'remote',
+        remotePath:
+          'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/{version}.html',
+      },
     };
     this.addProxyConfig(clientOptions);
     return new Client(clientOptions);
