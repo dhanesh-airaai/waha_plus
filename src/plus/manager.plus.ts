@@ -249,6 +249,12 @@ export class SessionManagerPlus extends SessionManager {
         this.sessions[sessionName]?.status || WAHASessionStatus.STOPPED;
       let sessionConfig: SessionConfig | undefined;
       let me: MeInfo | null;
+      const engine = {
+        engine: this.sessions[sessionName]?.engine,
+        ...(await this.sessions[sessionName]
+          ?.getEngineInfo()
+          .catch((err) => ({}))),
+      };
       if (status != WAHASessionStatus.STOPPED) {
         sessionConfig = this.sessions[sessionName].sessionConfig;
         me = await this.sessions[sessionName]
@@ -263,6 +269,7 @@ export class SessionManagerPlus extends SessionManager {
         status: status,
         config: sessionConfig,
         me: me,
+        engine: engine,
       };
     });
     return await Promise.all(sessions);
