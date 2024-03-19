@@ -34,7 +34,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       webVersionCache: {
         type: 'remote',
         remotePath:
-          'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/{version}.html',
+          'https://raw.githubusercontent.com/devlikeapro/wa-version/main/html/{version}.html',
       },
     };
     this.addProxyConfig(clientOptions);
