@@ -91,23 +91,9 @@ What is the difference between **WAHA Plus** and **other SaaS solutions** for Wh
 | **Message price**  |             ✔️ All messages are Free!             |                     ➖ Some solutions have a price for messages - $1/100 messages. |
 | **Expenses**       |               ✔️ $19 **donation**!                |                                                 ➖ Monthly payment starts from $50 |
 
+{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
 
 ## Get Plus ![](/images/versions/plus.png)
-
-
-### Patreon
-<p align="center">
-  <img src="patreon.png" alt="Patreon" style='width: 40%'/>
-</p>
-
-Support the project and get WAHA Plus version on
-<a href="https://patreon.com/wa_http_api" target="_blank">
-  <b>
-    Patreon ->
-  </b>
-</a>
-
-Go ahead and get your own WhatsApp HTTP API!
 
 {{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
 
@@ -127,7 +113,25 @@ Boosty ->
 
 Go ahead and get your own WhatsApp HTTP API!
 
-{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
+
+### Patreon
+
+<p align="center">
+  <img src="patreon.png" alt="Patreon" style='width: 40%'/>
+</p>
+
+{{< alert icon="🙏" text="Please consider using Boosty instead of Patreon due to its lower fees 🙏" />}}
+
+Support the project and get WAHA Plus version on
+<a href="https://patreon.com/wa_http_api" target="_blank">
+  <b>
+    Patreon ->
+  </b>
+</a>
+
+Go ahead and get your own WhatsApp HTTP API!
+
+
 
 ### Patron Portal
 <p align="center">
@@ -144,8 +148,6 @@ Read more about Patron Portal in
 or
 **<a href="https://boosty.to/wa-http-api/posts/1011" target="_blank">Boosty -></a>**
 posts.
-
-{{< alert icon="💡" text="If you stay subscribed - the donation amount will never change for you and always be $19 to get monthly updates!" />}}
 
 ## Install Plus
 After you get the password, get your login to Docker Hub in [Patron Portal ->](https://portal.devlike.pro/)
