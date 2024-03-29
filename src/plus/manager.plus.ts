@@ -9,6 +9,7 @@ import { SessionParams, WhatsappSession } from '../core/abc/session.abc';
 import { buildLogger } from '../core/manager.core';
 import { LocalSessionAuthRepository } from '../core/storage/LocalSessionAuthRepository';
 import { LocalSessionConfigRepository } from '../core/storage/LocalSessionConfigRepository';
+import { getLogLevels } from '../helpers';
 import { WAHAEngine, WAHASessionStatus } from '../structures/enums.dto';
 import {
   MeInfo,
@@ -129,9 +130,10 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   private clearStorage() {
+    const levels = getLogLevels(false);
     /* We need to clear the local storage just once */
     const storage = new MediaStoragePlus(
-      buildLogger(`Storage`),
+      buildLogger(`Storage`, levels),
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
@@ -145,9 +147,10 @@ export class SessionManagerPlus extends SessionManager {
   async start(request: SessionStartRequest) {
     const name = request.name;
     this.log.log(`'${name}' - starting session...`);
-    const log = buildLogger(`WhatsappSession - ${name}`);
+    const levels = getLogLevels(request.config?.debug);
+    const log = buildLogger(`WhatsappSession - ${name}`, levels);
     const storage = new MediaStoragePlus(
-      buildLogger(`Storage - ${name}`),
+      buildLogger(`Storage - ${name}`, levels),
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
@@ -155,9 +158,9 @@ export class SessionManagerPlus extends SessionManager {
     const mediaManager = new PlusMediaManager(
       storage,
       this.config.mimetypes,
-      buildLogger(`MediaManager - ${name}`),
+      buildLogger(`MediaManager - ${name}`, levels),
     );
-    const webhookLog = buildLogger(`Webhook - ${name}`);
+    const webhookLog = buildLogger(`Webhook - ${name}`, levels);
     const webhook = new this.WebhookConductorClass(webhookLog);
     const proxyConfig = this.getProxyConfig(request);
     const sessionConfig: SessionParams = {
