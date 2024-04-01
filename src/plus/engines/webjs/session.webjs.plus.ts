@@ -23,20 +23,8 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       this.sessionStore,
       this.name,
     );
-    const clientOptions: ClientOptions = {
-      authStrategy: authStrategy,
-      puppeteer: {
-        headless: true,
-        executablePath: this.getBrowserExecutablePath(),
-        args: this.getBrowserArgsForPuppeteer(),
-      },
-      webVersion: '2.2411.2',
-      webVersionCache: {
-        type: 'remote',
-        remotePath:
-          'https://raw.githubusercontent.com/devlikeapro/wa-version/main/html/{version}.html',
-      },
-    };
+    const clientOptions = this.getClientOptions();
+    clientOptions.authStrategy = authStrategy;
     this.addProxyConfig(clientOptions);
     return new Client(clientOptions);
   }
