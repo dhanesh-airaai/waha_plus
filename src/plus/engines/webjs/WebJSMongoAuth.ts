@@ -1,14 +1,17 @@
+import { ConsoleLogger } from '@nestjs/common';
 import * as fs from 'fs';
-import { GridFSBucket } from 'mongodb';
+import { GridFSBucket, GridFSFile } from 'mongodb';
 import { Store } from 'whatsapp-web.js';
 
 import { MongoStore } from '../../storage/MongoStore';
 
 class WebJSMongoAuth implements Store {
   private store: MongoStore;
+  private log: ConsoleLogger;
 
-  constructor(store: MongoStore) {
+  constructor(store: MongoStore, log: ConsoleLogger) {
     this.store = store;
+    this.log = log;
   }
 
   db(session: string) {
@@ -76,7 +79,6 @@ class WebJSMongoAuth implements Store {
   }
 
   async #deletePrevious(options, bucket) {
-    const session = this.getSessionName(options);
     const filename = this.getAuthFileName(options);
     const documents = await bucket
       .find({
@@ -84,10 +86,23 @@ class WebJSMongoAuth implements Store {
       })
       .toArray();
     if (documents.length > 1) {
-      const oldSession = documents.reduce((a, b) =>
-        a.uploadDate < b.uploadDate ? a : b,
+      this.log.debug('Deleting old auth files...');
+      // Got all, but not the last one
+      const oldDocuments = documents.slice();
+      // Sort by uploadDate, desc
+      oldDocuments.sort((a, b) => {
+        return a.uploadDate - b.uploadDate;
+      });
+      const keepDocument = oldDocuments.pop();
+      this.log.debug(
+        `Keeping document - '${keepDocument.uploadDate}', '${keepDocument._id}'`,
       );
-      return bucket.delete(oldSession._id);
+      oldDocuments.map((document: GridFSFile) => {
+        this.log.debug(
+          `Deleting document - '${document.uploadDate}', '${document._id}'`,
+        );
+        return bucket.delete(document._id);
+      });
     }
   }
 

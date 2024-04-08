@@ -22,6 +22,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     const authStrategy = this.authFactory.buildAuth(
       this.sessionStore,
       this.name,
+      this.sessionConfig?.debug,
     );
     const clientOptions = this.getClientOptions();
     clientOptions.authStrategy = authStrategy;
