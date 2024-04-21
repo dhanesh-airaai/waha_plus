@@ -10,6 +10,7 @@ import {
 import { SECOND } from '../structures/enums.dto';
 import { WAMedia } from '../structures/responses.dto';
 import fs = require('fs');
+import * as fsp from 'fs/promises';
 import del = require('del');
 import { sleep } from 'venom-bot/dist/utils/sleep';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -39,7 +40,11 @@ export class MediaStoragePlus implements MediaStorage {
     }
 
     const filename = `${messageId}.${mime.extension(mimetype)}`;
-    const filepath = path.resolve(`${this.filesFolder}/${filename}`);
+    const folder = path.resolve(this.filesFolder);
+    // create directory if not exist
+    await fsp.mkdir(folder, { recursive: true });
+
+    const filepath = path.resolve(`${folder}/${filename}`);
     await writeFileAsync(filepath, buffer);
     this.postponeRemoval(filepath);
     return this.baseUrl + filename;
