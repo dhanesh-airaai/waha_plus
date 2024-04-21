@@ -240,11 +240,15 @@ export class SessionManagerPlus extends SessionManager {
     return session;
   }
 
-  async getSessions(all): Promise<SessionInfo[]> {
+  async getSessions(all, name?: string): Promise<SessionInfo[]> {
     let sessionNames = Object.keys(this.sessions);
     if (all) {
       const stoppedSession = await this.sessionAuthRepository.getAll();
       sessionNames = lodash.union(sessionNames, stoppedSession);
+    }
+
+    if (name) {
+      sessionNames = sessionNames.filter((sessionName) => sessionName === name);
     }
 
     const sessions = sessionNames.map(async (sessionName) => {
@@ -276,5 +280,13 @@ export class SessionManagerPlus extends SessionManager {
       };
     });
     return await Promise.all(sessions);
+  }
+
+  async getSessionInfo(name: string): Promise<SessionInfo | null> {
+    const sessions = await this.getSessions(true, name);
+    if (sessions.length === 0) {
+      return null;
+    }
+    return sessions[0];
   }
 }
