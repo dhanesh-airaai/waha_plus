@@ -53,7 +53,7 @@ export class WebhookSenderPlus extends WebhookSender {
   }
 
   private calculateHmac(body, algorithm) {
-    if (!this.config.hmac) {
+    if (!this.config.hmac || !this.config.hmac.key) {
       return undefined;
     }
 
