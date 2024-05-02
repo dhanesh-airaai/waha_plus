@@ -41,6 +41,6 @@ const PROVIDERS = [
 })
 export class AppModulePlus {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('');
+    consumer.apply(AuthMiddleware).forRoutes('api', 'health');
   }
 }
