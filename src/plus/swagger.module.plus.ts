@@ -21,7 +21,11 @@ export class SwaggerModulePlus extends SwaggerModuleCore {
 
   setUpAuth(app: INestApplication, credentials: [string, string]): void {
     const [username, password] = credentials;
-    const authFunction = BasicAuthFunction(username, password, '/api/');
+    const authFunction = BasicAuthFunction(username, password, [
+      '/api/',
+      '/dashboard',
+      '/health',
+    ]);
     app.use(authFunction);
   }
 }
