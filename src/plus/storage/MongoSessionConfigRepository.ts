@@ -4,8 +4,12 @@ import { SessionConfig } from 'src/structures/sessions.dto';
 import { ISessionConfigRepository } from '../../core/storage/ISessionConfigRepository';
 import { MongoStore } from './MongoStore';
 
+class SessionConfigWithName extends SessionConfig {
+  name: string;
+}
+
 export class MongoSessionConfigRepository extends ISessionConfigRepository {
-  private collection: Collection<SessionConfig>;
+  private collection: Collection<SessionConfigWithName>;
 
   constructor(store: MongoStore) {
     super();
@@ -13,9 +17,9 @@ export class MongoSessionConfigRepository extends ISessionConfigRepository {
   }
 
   async save(sessionName: string, config: SessionConfig): Promise<void> {
-    await this.collection.updateOne(
+    await this.collection.replaceOne(
       { name: sessionName },
-      { $set: { ...config } },
+      { ...config, name: sessionName },
       { upsert: true },
     );
   }
@@ -25,7 +29,6 @@ export class MongoSessionConfigRepository extends ISessionConfigRepository {
       name: sessionName,
     });
     delete result._id;
-    // @ts-ignore
     delete result.name;
     return result;
   }
