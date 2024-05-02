@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TerminusModule } from '@nestjs/terminus';
+import { join } from 'path';
 
 import { AuthController } from '../api/auth.controller';
 import { ChatsController } from '../api/chats.controller';
@@ -33,12 +34,20 @@ export const IMPORTS = [
     extraProviders: [WhatsappConfigService],
     inject: [WhatsappConfigService],
     useFactory: (config: WhatsappConfigService) => {
-      return [
+      const options = [
+        // Serve files (media)
         {
           rootPath: config.filesFolder,
-          serveRoot: config.files_uri,
+          serveRoot: config.filesUri,
         },
       ];
+      if (config.getDashboardEnabled()) {
+        options.push({
+          rootPath: join(__dirname, '..', 'dashboard'),
+          serveRoot: config.dashboardUri,
+        });
+      }
+      return options;
     },
   }),
   PassportModule,
@@ -76,4 +85,6 @@ const PROVIDERS = [
   controllers: CONTROLLERS,
   providers: PROVIDERS,
 })
-export class AppModuleCore {}
+export class AppModuleCore {
+  constructor(protected config: WhatsappConfigService) {}
+}
