@@ -21,9 +21,10 @@ export class SwaggerModulePlus extends SwaggerModuleCore {
 
   setUpAuth(app: INestApplication, credentials: [string, string]): void {
     const [username, password] = credentials;
+    const config = app.get(WhatsappConfigService);
     const authFunction = BasicAuthFunction(username, password, [
       '/api/',
-      '/dashboard',
+      config.dashboardUri,
       '/health',
     ]);
     app.use(authFunction);
