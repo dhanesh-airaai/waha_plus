@@ -36,4 +36,8 @@ export class MongoSessionConfigRepository extends ISessionConfigRepository {
   async delete(sessionName: string): Promise<void> {
     await this.collection.deleteOne({ name: sessionName });
   }
+
+  async getAll(): Promise<SessionConfigWithName[]> {
+    return await this.collection.find().toArray();
+  }
 }

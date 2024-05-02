@@ -1,11 +1,14 @@
 import { ISessionAuthRepository } from '../../core/storage/ISessionAuthRepository';
+import { MongoSessionConfigRepository } from './MongoSessionConfigRepository';
 import { MongoStore } from './MongoStore';
 
 export class MongoSessionAuthRepository implements ISessionAuthRepository {
   private store: MongoStore;
+  private configRepository: MongoSessionConfigRepository;
 
   constructor(store: MongoStore) {
     this.store = store;
+    this.configRepository = new MongoSessionConfigRepository(this.store);
   }
 
   async init(sessionName?: string): Promise<void> {
@@ -18,6 +21,7 @@ export class MongoSessionAuthRepository implements ISessionAuthRepository {
   }
 
   async getAll(): Promise<string[]> {
-    return this.store.listSessions();
+    const sessions = await this.configRepository.getAll();
+    return sessions.map((session) => session.name);
   }
 }
