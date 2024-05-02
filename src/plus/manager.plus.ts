@@ -226,6 +226,17 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   async logout(request: SessionLogoutRequest) {
+    const name = request.name;
+    this.stop({ name: name, logout: false })
+      .then(() => {
+        this.log.log(`Session '${name}' has been stopped.`);
+      })
+      .catch((err) => {
+        this.log.error(
+          `Error while stopping session '${name}' while logging out`,
+          err,
+        );
+      });
     await this.sessionAuthRepository.clean(request.name);
     await this.sessionConfigRepository.delete(request.name);
   }
