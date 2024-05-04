@@ -6,7 +6,7 @@
     </div>
     <div class='col-lg-9 col-xl-9 text-center'>
       <div class='mb-4'>
-        <img src='/images/logo.svg' title='WhatsApp HTTP API' alt='logo' width='100' style='border-radius: 50%'/>
+        <img src='/images/logo.svg' title='WhatsApp HTTP API' alt='logo' style='border-radius: 50%; width: 10rem' />
       </div>
       <p class='lead'>{{ .Params.lead | safeHTML }}</p>
       <div class='code-block highlight'>
@@ -122,22 +122,28 @@
           </a>
           <br>
         </p>
-        <img src='/images/swagger.png' alt='Swagger' style='max-width: 100%'>
+        <img src='/images/swagger.png' alt='Swagger'
+             style='max-width: 100%; cursor: pointer'
+             onclick='window.open(this.src)'
+        >
       </div>
 
       <div class='col-12 pros-card' style='width: 80%'>
-        <h2 class='h4 color-accent'>WAHA Dashboard</h2>
+        <h2 class='h4 color-accent'>Dashboard</h2>
         <p>
           <a href='https://waha.devlike.pro/docs/how-to/plus-version/#plus' target='_blank'>
             <b>WAHA Plus</b>
           </a>
           provides
           <a href='https://waha.devlike.pro/docs/how-to/waha-dashboard' target='_blank'>
-            WAHA Dashboard
+            Dashboard
           </a> - a web interface to easily manage your WhatsApp sessions!
           <br>
         </p>
-        <img src='/images/waha-dashboard.png' alt='WAHA Dashboard' style='max-width: 100%'>
+        <img src='/images/waha-dashboard.png' alt='Dashboard'
+             style='max-width: 100%; cursor: pointer'
+             onclick='window.open(this.src)'
+        >
       </div>
     </div>
   </div>
@@ -235,10 +241,10 @@
   <div class='container hr'>
     <div class='text-center mt-4'>
       <h2>
-        Try it now!
+        Give it a try!
       </h2>
       <div class='mb-4'>
-        <img src='/images/logo.png' title='WhatsApp HTTP API' alt='logo' width='100' />
+        <img src='/images/logo.svg' title='WhatsApp HTTP API' alt='logo' style='border-radius: 50%; width: 10rem' />
       </div>
       <a class='btn btn-primary btn-lg px-4 mb-2'
          href='/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}overview/introduction/'

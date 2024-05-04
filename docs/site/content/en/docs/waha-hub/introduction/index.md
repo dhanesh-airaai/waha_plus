@@ -9,12 +9,22 @@ images: [ ]
 menu:
 docs:
 parent: "overview"
-weight: 100
+weight: 301
 toc: true
 ---
 
-⚠️ The project in **DEVELOPMENT** yet... Subscribe to [**WAHA PRO**]({{< relref "plus-version#pro" >}}) to speed up the
-development!
+
+---
+
+⚠️
+
+**WAHA Hub** in **DEVELOPMENT** yet...
+
+Consider using [Dashboard]({{< relref "/docs/how-to/waha-dashboard" >}}) for managing your sessions.
+
+Subscribe to [**WAHA PRO**]({{< relref "plus-version#pro" >}}) to speed up the development!
+
+⚠️
 
 ---
 
@@ -22,13 +32,13 @@ development!
 
 **WAHA Hub** - central management solution to help your build reliable infrastructure with multiple WAHA servers!
 
-While [WAHA Dashboard]({{< relref "/docs/how-to/waha-dashboard" >}}) is a UI to manage your WhatsApp sessions on
+While [Dashboard]({{< relref "/docs/how-to/waha-dashboard" >}}) is a UI to manage your WhatsApp sessions on
 **single server**, **WAHA Hub** is a central management server to control and manage **multiple servers** in a single
 place.
 
 👉 **WAHA Hub** is available in [**WAHA PRO**]({{< relref "plus-version#pro" >}}) version only.
 
-![WAHA Dashboard](waha-dashboard.png)
+![Dashboard](waha-dashboard.png)
 <div class="text-center">
   <a href="waha-dashboard.png" target="_blank">See full size image</a>
 </div>
