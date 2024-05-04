@@ -1,4 +1,9 @@
-import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConsoleLogger,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
 import { getProxyConfig } from 'src/core/helpers.proxy';
@@ -146,6 +151,11 @@ export class SessionManagerPlus extends SessionManager {
   //
   async start(request: SessionStartRequest) {
     const name = request.name;
+    if (this.sessions[name]) {
+      throw new UnprocessableEntityException(
+        `Session '${name}' is already started.`,
+      );
+    }
     this.log.log(`'${name}' - starting session...`);
     const levels = getLogLevels(request.config?.debug);
     const log = buildLogger(`WhatsappSession - ${name}`, levels);
