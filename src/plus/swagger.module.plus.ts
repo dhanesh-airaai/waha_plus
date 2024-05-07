@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 
-import { WhatsappConfigService } from '../config.service';
 import { SwaggerModuleCore } from '../core/swagger.module.core';
 import { BasicAuthFunction } from './auth/basicAuth';
+import { DashboardConfigServicePlus } from './config/DashboardConfigServicePlus';
 import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 
 export class SwaggerModulePlus extends SwaggerModuleCore {
@@ -22,10 +22,10 @@ export class SwaggerModulePlus extends SwaggerModuleCore {
 
   setUpAuth(app: INestApplication, credentials: [string, string]): void {
     const [username, password] = credentials;
-    const config = app.get(WhatsappConfigService);
+    const dashboardConfig = app.get(DashboardConfigServicePlus);
     const authFunction = BasicAuthFunction(username, password, [
       '/api/',
-      config.dashboardUri,
+      dashboardConfig.dashboardUri,
       '/health',
     ]);
     app.use(authFunction);

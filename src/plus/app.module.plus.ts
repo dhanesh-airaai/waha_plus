@@ -4,10 +4,13 @@ import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import { WAHAHealthCheckService } from '../core/abc/WAHAHealthCheckService';
 import { AppModuleCore, CONTROLLERS, IMPORTS } from '../core/app.module.core';
+import { DashboardConfigServiceCore } from '../core/config/DashboardConfigServiceCore';
 import { SwaggerConfigServiceCore } from '../core/config/SwaggerConfigServiceCore';
+import { noSlashAtTheEnd } from '../utils/string';
 import { ApiKeyStrategy } from './auth/apiKey.strategy';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { BasicAuthFunction } from './auth/basicAuth';
+import { DashboardConfigServicePlus } from './config/DashboardConfigServicePlus';
 import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 import { CheckFreeDiskSpaceIndicator } from './health/CheckFreeDiskSpaceIndicator';
 import { MongoStoreHealthIndicator } from './health/MongoStoreHealthIndicator';
@@ -36,6 +39,14 @@ const PROVIDERS = [
     provide: SwaggerConfigServicePlus,
     useClass: SwaggerConfigServicePlus,
   },
+  {
+    provide: DashboardConfigServiceCore,
+    useClass: DashboardConfigServicePlus,
+  },
+  {
+    provide: DashboardConfigServicePlus,
+    useClass: DashboardConfigServicePlus,
+  },
   SwaggerConfigServicePlus,
   MongoStoreHealthIndicator,
   CheckFreeDiskSpaceIndicator,
@@ -51,13 +62,20 @@ const PROVIDERS = [
   providers: PROVIDERS,
 })
 export class AppModulePlus extends AppModuleCore {
+  constructor(
+    protected config: WhatsappConfigService,
+    private dashboardConfig: DashboardConfigServicePlus,
+  ) {
+    super(config);
+  }
+
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AuthMiddleware).forRoutes('api', 'health');
-    const dashboardCredentials = this.config.getDashboardUsernamePassword();
+    const dashboardCredentials = this.dashboardConfig.credentials;
     if (dashboardCredentials) {
       const username = dashboardCredentials[0];
       const password = dashboardCredentials[1];
-      const route = WhatsappConfigService.noSlash(this.config.dashboardUri);
+      const route = noSlashAtTheEnd(this.dashboardConfig.dashboardUri);
       consumer.apply(BasicAuthFunction(username, password)).forRoutes(route);
     }
   }
