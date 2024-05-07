@@ -25,4 +25,16 @@ export class SwaggerConfigServicePlus extends SwaggerConfigServiceCore {
     }
     return [user, password];
   }
+
+  get title() {
+    return this.configService.get('WHATSAPP_SWAGGER_TITLE', '');
+  }
+
+  get description() {
+    return this.configService.get('WHATSAPP_SWAGGER_DESCRIPTION', '');
+  }
+
+  get externalDocUrl() {
+    return this.configService.get('WHATSAPP_SWAGGER_EXTERNAL_DOC_URL', '');
+  }
 }

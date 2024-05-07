@@ -1,17 +1,37 @@
+import { INestApplication } from '@nestjs/common';
+
 import { SwaggerConfiguratorCore } from '../core/SwaggerConfiguratorCore';
 import { BasicAuthFunction } from './auth/basicAuth';
 import { DashboardConfigServicePlus } from './config/DashboardConfigServicePlus';
 import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 
 export class SwaggerConfiguratorPlus extends SwaggerConfiguratorCore {
+  private config: SwaggerConfigServicePlus;
+
+  constructor(protected app: INestApplication) {
+    super(app);
+    this.config = app.get(SwaggerConfigServicePlus);
+  }
+
+  get title() {
+    return this.config.title || super.title;
+  }
+
+  get description() {
+    return this.config.description || super.description;
+  }
+
+  get externalDocUrl() {
+    return this.config.externalDocUrl || super.externalDocUrl;
+  }
+
   configure(webhooks: any[]) {
-    const swaggerConfig = this.app.get(SwaggerConfigServicePlus);
-    if (!swaggerConfig.enabled) {
+    if (!this.config.enabled) {
       console.log('Swagger is disabled.');
       return;
     }
 
-    const credentials = swaggerConfig.credentials;
+    const credentials = this.config.credentials;
     if (credentials) {
       this.setUpAuth(credentials);
     }
