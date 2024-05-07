@@ -22,6 +22,8 @@ import { VersionController } from '../api/version.controller';
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from './abc/manager.abc';
 import { WAHAHealthCheckService } from './abc/WAHAHealthCheckService';
+import { DashboardConfigServiceCore } from './config/DashboardConfigServiceCore';
+import { SwaggerConfigServiceCore } from './config/SwaggerConfigServiceCore';
 import { WAHAHealthCheckServiceCore } from './health/WAHAHealthCheckServiceCore';
 import { SessionManagerCore } from './manager.core';
 
@@ -31,9 +33,12 @@ export const IMPORTS = [
   }),
   ServeStaticModule.forRootAsync({
     imports: [],
-    extraProviders: [WhatsappConfigService],
-    inject: [WhatsappConfigService],
-    useFactory: (config: WhatsappConfigService) => {
+    extraProviders: [WhatsappConfigService, DashboardConfigServiceCore],
+    inject: [WhatsappConfigService, DashboardConfigServiceCore],
+    useFactory: (
+      config: WhatsappConfigService,
+      dashboardConfig: DashboardConfigServiceCore,
+    ) => {
       const options = [
         // Serve files (media)
         {
@@ -41,10 +46,10 @@ export const IMPORTS = [
           serveRoot: config.filesUri,
         },
       ];
-      if (config.getDashboardEnabled()) {
+      if (dashboardConfig.enabled) {
         options.push({
           rootPath: join(__dirname, '..', 'dashboard'),
-          serveRoot: config.dashboardUri,
+          serveRoot: dashboardConfig.dashboardUri,
         });
       }
       return options;
@@ -76,6 +81,8 @@ const PROVIDERS = [
     provide: WAHAHealthCheckService,
     useClass: WAHAHealthCheckServiceCore,
   },
+  DashboardConfigServiceCore,
+  SwaggerConfigServiceCore,
   WhatsappConfigService,
   ConsoleLogger,
 ];
