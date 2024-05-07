@@ -1,13 +1,11 @@
-import { INestApplication } from '@nestjs/common';
-
-import { SwaggerModuleCore } from '../core/swagger.module.core';
+import { SwaggerConfiguratorCore } from '../core/SwaggerConfiguratorCore';
 import { BasicAuthFunction } from './auth/basicAuth';
 import { DashboardConfigServicePlus } from './config/DashboardConfigServicePlus';
 import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 
-export class SwaggerModulePlus extends SwaggerModuleCore {
-  configure(app: INestApplication, webhooks: any[]) {
-    const swaggerConfig = app.get(SwaggerConfigServicePlus);
+export class SwaggerConfiguratorPlus extends SwaggerConfiguratorCore {
+  configure(webhooks: any[]) {
+    const swaggerConfig = this.app.get(SwaggerConfigServicePlus);
     if (!swaggerConfig.enabled) {
       console.log('Swagger is disabled.');
       return;
@@ -15,19 +13,19 @@ export class SwaggerModulePlus extends SwaggerModuleCore {
 
     const credentials = swaggerConfig.credentials;
     if (credentials) {
-      this.setUpAuth(app, credentials);
+      this.setUpAuth(credentials);
     }
-    super.configure(app, webhooks);
+    super.configure(webhooks);
   }
 
-  setUpAuth(app: INestApplication, credentials: [string, string]): void {
+  setUpAuth(credentials: [string, string]): void {
     const [username, password] = credentials;
-    const dashboardConfig = app.get(DashboardConfigServicePlus);
+    const dashboardConfig = this.app.get(DashboardConfigServicePlus);
     const authFunction = BasicAuthFunction(username, password, [
       '/api/',
       dashboardConfig.dashboardUri,
       '/health',
     ]);
-    app.use(authFunction);
+    this.app.use(authFunction);
   }
 }
