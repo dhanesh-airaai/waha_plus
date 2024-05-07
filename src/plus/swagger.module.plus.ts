@@ -3,16 +3,17 @@ import { INestApplication } from '@nestjs/common';
 import { WhatsappConfigService } from '../config.service';
 import { SwaggerModuleCore } from '../core/swagger.module.core';
 import { BasicAuthFunction } from './auth/basicAuth';
+import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 
 export class SwaggerModulePlus extends SwaggerModuleCore {
   configure(app: INestApplication, webhooks: any[]) {
-    const config = app.get(WhatsappConfigService);
-    if (!config.getSwaggerEnabled()) {
+    const swaggerConfig = app.get(SwaggerConfigServicePlus);
+    if (!swaggerConfig.enabled) {
       console.log('Swagger is disabled.');
       return;
     }
 
-    const credentials = config.getSwaggerUsernamePassword();
+    const credentials = swaggerConfig.credentials;
     if (credentials) {
       this.setUpAuth(app, credentials);
     }

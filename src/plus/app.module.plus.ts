@@ -4,9 +4,11 @@ import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import { WAHAHealthCheckService } from '../core/abc/WAHAHealthCheckService';
 import { AppModuleCore, CONTROLLERS, IMPORTS } from '../core/app.module.core';
+import { SwaggerConfigServiceCore } from '../core/config/SwaggerConfigServiceCore';
 import { ApiKeyStrategy } from './auth/apiKey.strategy';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { BasicAuthFunction } from './auth/basicAuth';
+import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 import { CheckFreeDiskSpaceIndicator } from './health/CheckFreeDiskSpaceIndicator';
 import { MongoStoreHealthIndicator } from './health/MongoStoreHealthIndicator';
 import { WAHAHealthCheckServicePlus } from './health/WAHAHealthCheckServicePlus';
@@ -26,6 +28,15 @@ const PROVIDERS = [
     provide: WAHAHealthCheckService,
     useClass: WAHAHealthCheckServicePlus,
   },
+  {
+    provide: SwaggerConfigServiceCore,
+    useClass: SwaggerConfigServicePlus,
+  },
+  {
+    provide: SwaggerConfigServicePlus,
+    useClass: SwaggerConfigServicePlus,
+  },
+  SwaggerConfigServicePlus,
   MongoStoreHealthIndicator,
   CheckFreeDiskSpaceIndicator,
   WhatsappConfigService,
