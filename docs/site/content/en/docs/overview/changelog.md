@@ -1,5 +1,5 @@
 ---
-title: "Changelog"
+title: "🔄 Changelog"
 description: "WAHA's changelog"
 lead: "You can find here the list of changes made to WAHA."
 date: 2020-10-06T08:49:31+00:00
@@ -15,7 +15,7 @@ toc: true
 
 If you wish to get and read Release Notes - read them on one of our platforms, **these posts are FREE**.
 - [**Boosty ->**](https://boosty.to/wa-http-api)
-- [**Patreon ->**](patreon.com/wa_http_api)
+- [**Patreon ->**](https://patreon.com/wa_http_api)
 
 **Subscribe for FREE to get new updates** there!
 

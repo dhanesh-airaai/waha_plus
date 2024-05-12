@@ -1,5 +1,5 @@
 ---
-title: "Swagger (OpenAPI)"
+title: "📚 Swagger (OpenAPI)"
 description: "Swagger (OpenAPI)"
 lead: ""
 date: 2020-10-06t08:48:45+00:00
@@ -40,12 +40,11 @@ Read more about security settings for Swagger and API on [**Security page** ->](
 ### White label
 You can show your own brand in the Swagger documentation.
 
-👉 Swagger White Label is available in [**WAHA Plus**]({{< relref "plus-version#plus" >}}) ![](/images/versions/plus.png) version only.
-
 <img src="swagger-white-label.png" onclick="window.open(this.src)" style="cursor: pointer;">
 <br/>
 <br/>
 
+👉 Swagger White Label is available in [**WAHA Plus**]({{< relref "plus-version#plus" >}}) ![](/images/versions/plus.png) version only.
 
 Use the following environment variables to customize the Swagger documentation:
 - `WHATSAPP_SWAGGER_TITLE` - the title of the Swagger documentation and some other places.
