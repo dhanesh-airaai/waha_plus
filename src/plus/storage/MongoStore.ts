@@ -34,20 +34,6 @@ export class MongoStore extends DataStore {
     return this.mongo.db(this.getSessionDbName(name));
   }
 
-  protected async listDatabases() {
-    const result = await this.mongo.db().admin().listDatabases();
-    return result.databases.map((db) => db.name);
-  }
-
-  async listSessions() {
-    const mainDb = this.getMainDbName();
-    const databases = await this.listDatabases();
-    const prefix = `${mainDb}_`;
-    return databases
-      .filter((db) => db.startsWith(prefix))
-      .map((db) => db.replace(prefix, ''));
-  }
-
   command(command: Document) {
     return this.mongo.db().admin().command(command);
   }
