@@ -5,7 +5,7 @@
       <div class='col-11 col-lg-9 text-center'>
         <h1 class='display-5 fw-normal mt-1'>{{ .Summary }}</h1>
       </div>
-      <div class="d-flex justify-content-center mb-4">
+      <div class='d-flex justify-content-center mb-4'>
         <img src='/images/logo.svg' title='WhatsApp HTTP API' alt='logo'
              style='border-radius: 50%; width: 10rem' />
       </div>
@@ -128,7 +128,7 @@
             ✔️ <a href='{{ relref . "/docs/how-to/webhooks" }}'>Webhooks retries</a>
           </div>
           <div>
-            ✔️ <a href='{{ relref . "/docs/how-to/storages" }}'>Simple file storage</a>
+            ✔️ <a href='{{ relref . "/docs/how-to/storages" }}'>File storage</a>
           </div>
           <div>
             ✔️ <a href='{{ relref . "/docs/how-to/storages" }}'>MongoDB storage</a>
@@ -142,10 +142,29 @@
           <div>
             &nbsp;<b>∞</b>&nbsp; <a href='{{ relref . "/docs/how-to/sessions"}}'>Unlimited Sessions</a>
           </div>
+
+
         </div>
       </div>
 
       <div class='mt-4 pt-2'>
+        <div class='mb-4'>
+          <hr>
+          <p class='text-center'>
+            <b><span class='fs-4'>⚡50% OFF</span> Yearly Crypto Offer!⚡</b>
+          </p>
+          <p>
+            Save the fees and get <b>Plus</b> for a year donating in <a href='#crypto'>Crypto</a>!
+          </p>
+          <div class='text-center'>
+            <span class='fs-3 fw-light text-secondary'><del>$228</del></span>
+            <span class='fs-3 fw-bold text-primary'>
+                <a href='#crypto'>$110</a>
+              </span>
+          </div>
+          <hr>
+        </div>
+
         <a class='btn btn-primary btn-lg px-4 mb-2'
            href='#donations'
            role='button'>Support project →</a>
@@ -186,11 +205,216 @@
       </div>
 
       <div class='mt-4 pt-2'>
+        <div class='mb-4'>
+          <hr>
+          <p class='text-center'>
+            <b><span class='fs-4'>⚡50% OFF</span> Yearly Crypto Offer!⚡</b>
+          </p>
+          <p>
+            Save the fees and get <b>PRO</b> for a year donating in <a href='#crypto'>Crypto</a>!
+          </p>
+          <div class='text-center'>
+            <span class='fs-3 fw-light text-secondary'><del>$1,118</del></span>
+            <span class='fs-3 fw-bold text-primary'>
+                <a href='#crypto'>$590</a>
+              </span>
+          </div>
+          <hr>
+        </div>
+
         <a class='btn btn-primary btn-lg px-4 mb-2'
            href='#donations'
            role='button'>Support project →</a>
       </div>
     </div>
+  </div>
+</section>
+
+<section class='section section-md pb-0' id='tiers-compare'>
+  <div class='text-center'>
+    <h1 class='display-5 fw-normal mt-1'>Compare Features</h1>
+  </div>
+  <div class='row justify-content-center'>
+    <table class='table-highlight-first-column'>
+      <tr>
+        <th></th>
+        <th>
+          Core
+        </th>
+        <th>Plus</th>
+        <th>PRO</th>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/sessions"}}'>Sessions</a>
+        </td>
+        <td>1</td>
+        <td>∞</td>
+        <td>∞</td>
+      </tr>
+      <tr>
+        <td>
+          Messages
+        </td>
+        <td>∞</td>
+        <td>∞</td>
+        <td>∞</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/send-messages" }}'> Send text messages </a>
+        </td>
+        <td>✔️</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/receive-messages" }}'> Receive text messages </a>
+        </td>
+        <td>✔️</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/send-messages" }}'> Send files, voices, video </a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/receive-messages" }}'> Receive files, voices, video</a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/storages" }}'>Webhooks</a>
+        </td>
+        <td>✔️</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/webhooks" }}'>Webhooks retries</a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/storages" }}'>File storage</a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/storages" }}'>MongoDB storage</a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/waha-dashboard" }}'>Built-in Dashboard</a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/security" }}'>Built-in Security</a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/engines#webjs" }}'>Web based engine (WEBJS)</a>
+        </td>
+        <td>✔️</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/engines#noweb" }}'>Light non-chrome engine (NOWEB)</a>
+        </td>
+        <td>✔️</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{{ relref . "/docs/how-to/plus-version" }}'>Personal Docker Key to <b>WAHA Plus</b></a>
+        </td>
+        <td>➖</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='https://github.com/devlikeapro/whatsapp-http-api' target='_blank'>WAHA Core Source Code -></a>
+        </td>
+        <td>✔️</td>
+        <td>✔️</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          <a href='https://github.com/devlikeapro/whatsapp-http-api-plus' target='_blank'>WAHA Plus Source Code -></a>
+        </td>
+        <td>➖</td>
+        <td>➖</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          Membership in <b>WAHA PRO</b> Discord server
+        </td>
+        <td>➖</td>
+        <td>➖</td>
+        <td>✔️</td>
+      </tr>
+      <tr>
+        <td>
+          Special Badge on GitHub
+        </td>
+        <td>➖</td>
+        <td>
+          <img src='https://img.shields.io/badge/patron-PLUS-a0e6ba'>
+        </td>
+        <td>
+          <img src='https://img.shields.io/badge/patron-PRO-188a42'>
+        </td>
+      </tr>
+      <tr>
+        <th></th>
+        <th>
+          <a
+            href='/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}overview/introduction/'
+          >Get Started -></a>
+        </th>
+        <th>
+          <a href='#donations'>Support project -></a>
+        </th>
+        <th>
+          <a href='#donations'>Support project -></a>
+        </th>
+      </tr>
+    </table>
   </div>
 </section>
 
@@ -299,9 +523,64 @@
   </div>
 
   <div class='row justify-content-center mt-4'>
-    <!-- Boosty -->
+    <!-- Crypto -->
     <div
       class='col-12 col-lg-4 pros-card pros-card--highlighted h-full d-flex flex-column justify-content-between'
+      id='crypto'
+    >
+      <div>
+        <div class='text-center mb-4'>
+          <img
+            src='/logos/tether-usdt-logo.svg' alt='Tether' style='height: 5rem'
+          />
+        </div>
+        <p>
+          <b>Cryptocurrency</b> - support the project with crypto!
+          <br />
+        </p>
+        <div>
+          <p>
+            If you wish to donate in crypto (any currencies, any network) - please contact us at <a
+            href='mailto:crypto@devlike.pro'>crypto@devlike.pro</a>.
+          </p>
+
+          <blockquote>
+            <p>e.g. "I want to donate as PRO patron in crypto."</p>
+          </blockquote>
+
+          <hr>
+          <p class='text-center mx-0'>
+            <b>⚡50% OFF Yearly Offer!⚡</b>
+          </p>
+          <ul style='margin-left: 0'>
+            <li><b>Plus</b> -
+              <del>$228</del>
+              <b>$110</b></li>
+            <li><b>PRO</b> -
+              <del>$1,188</del>
+              <b>$590</b></li>
+          </ul>
+          <p>
+            Save the fees and get <b>Plus</b> or <b>PRO</b> for a year donating in crypto!
+            Mention the Yearly offer in the email if you want to get it.
+          </p>
+          <hr>
+        </div>
+      </div>
+      <div class='text-center pt-4'>
+        <a
+          class='btn btn-outline-info btn-lg'
+          href='mailto:crypto@devlike.pro?subject=I%20want%20to%20donate%20as%20PRO%20patron.'
+          target='_blank'
+          role='button'>
+          Support with Crypto →
+        </a>
+      </div>
+    </div>
+
+    <!-- Boosty -->
+    <div
+      class='col-12 col-lg-4 pros-card h-full d-flex flex-column justify-content-between'
     >
       <div>
         <div class='text-center mb-4'>
@@ -321,40 +600,6 @@
           href='https://boosty.to/wa-http-api'
           target='_blank'
           role='button'>Support on Boosty →</a>
-      </div>
-    </div>
-
-    <!-- Crypto -->
-    <div
-      class='col-12 col-lg-4 pros-card h-full d-flex flex-column justify-content-between'
-    >
-      <div>
-        <div class='text-center mb-4'>
-          <img
-            src='/logos/tether-usdt-logo.svg' alt='Tether' style='height: 5rem'
-          />
-        </div>
-        <p>
-          <b>Cryptocurrency</b> - support the project with crypto!
-          <br />
-        </p>
-        <div>
-          <p>If you wish to donate in crypto - please contact us at <a href='mailto:crypto@devlike.pro'>crypto@devlike.pro</a>
-            with the desired <strong>amount</strong>, <strong>currency</strong> and <strong>network</strong>.</p>
-
-          <blockquote>
-            <p>e.g. "I want to donate $99 in USDT using TRC20 network."</p>
-          </blockquote>
-        </div>
-      </div>
-      <div class='text-center pt-4'>
-        <a
-          class='btn btn-outline-info btn-lg'
-          href='mailto:crypto@devlike.pro?subject=I%20want%20to%20donate%20%2499%20in%20USDT%20using%20TRC20%20network.'
-          target='_blank'
-          role='button'>
-          Support with Crypto →
-        </a>
       </div>
     </div>
 
