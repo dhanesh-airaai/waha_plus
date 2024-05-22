@@ -36,11 +36,26 @@ If you wish to get and read Release Notes - read them on one of our platforms, *
 ### 🐛 Fixes
 ----
 
+Important **NOWEB** Engine Update!
+WhatsApp has deprecated the version currently being used in the NOWEB engine
+
+- [Read on Patreon](https://www.patreon.com/posts/important-noweb-104631614)
+- [Read on Boosty](https://boosty.to/wa-http-api/posts/6ccedda7-ddae-413b-b15f-f2f22192c0d8)
+- Build: `2024.5.8`
+- Engine: **NOWEB**
+
+----
+
 Fix send video issue `POST /api/sendVideo` in **WEBJS**.
 - Issue: [#321](https://github.com/devlikeapro/whatsapp-http-api/issues/321)
 - Issue: [#328](https://github.com/devlikeapro/whatsapp-http-api/issues/328)
-- Build: `2024.5.6`
+- Build: `2024.5.9`
 - Engine: **WEBJS**
+
+💡 If you're experiencing **"forever loading" issue** - set up `WAHA_WEBJS_WEB_VERSION=2.2412.54-videofix` environment variable:
+```bash
+docker run -it -p 3000:3000/tcp -e WAHA_WEBJS_WEB_VERSION=2.2412.54-videofix devlikeapro/whatsapp-http-api-plus:chrome
+```
 
 ----
 

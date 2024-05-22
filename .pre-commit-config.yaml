@@ -1,7 +1,8 @@
 exclude: |
   (?x)^(
     ^src/dashboard/.*|
-    ^src/core/engines/webjs/.*html
+    ^src/core/engines/webjs/.*html|
+    ^src/plus/engines/webjs/.*html
   )$
 
 repos:
