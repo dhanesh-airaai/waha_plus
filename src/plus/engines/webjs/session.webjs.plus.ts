@@ -18,6 +18,11 @@ import { WebJSAuthFactory } from './WebJSAuthFactory';
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   authFactory = new WebJSAuthFactory();
+
+  protected getClassDirName() {
+    return __dirname;
+  }
+
   protected async buildClient() {
     const authStrategy = this.authFactory.buildAuth(
       this.sessionStore,

@@ -12,6 +12,7 @@ import { AuthMiddleware } from './auth/auth.middleware';
 import { BasicAuthFunction } from './auth/basicAuth';
 import { DashboardConfigServicePlus } from './config/DashboardConfigServicePlus';
 import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
+import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
 import { CheckFreeDiskSpaceIndicator } from './health/CheckFreeDiskSpaceIndicator';
 import { MongoStoreHealthIndicator } from './health/MongoStoreHealthIndicator';
 import { WAHAHealthCheckServicePlus } from './health/WAHAHealthCheckServicePlus';
@@ -20,9 +21,17 @@ import { SessionManagerPlus } from './manager.plus';
 const PROVIDERS = [
   {
     provide: SessionManager,
-    inject: [WhatsappConfigService, ConsoleLogger],
-    useFactory: async (config: WhatsappConfigService, log: ConsoleLogger) => {
-      const manager = new SessionManagerPlus(config, log);
+    inject: [WhatsappConfigService, ConsoleLogger, WebJSEngineConfigService],
+    useFactory: async (
+      config: WhatsappConfigService,
+      log: ConsoleLogger,
+      webJSEngineConfigService: WebJSEngineConfigService,
+    ) => {
+      const manager = new SessionManagerPlus(
+        config,
+        log,
+        webJSEngineConfigService,
+      );
       await manager.init();
       return manager;
     },
@@ -51,6 +60,7 @@ const PROVIDERS = [
   MongoStoreHealthIndicator,
   CheckFreeDiskSpaceIndicator,
   WhatsappConfigService,
+  WebJSEngineConfigService,
   ConsoleLogger,
   ApiKeyStrategy,
 ];

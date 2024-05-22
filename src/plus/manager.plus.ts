@@ -26,6 +26,7 @@ import {
   SessionStopRequest,
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
+import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
 import { WhatsappSessionMobilePlus } from './engines/mobile/session.mobile.plus';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './engines/venom/session.venom.plus';
@@ -48,6 +49,7 @@ export class SessionManagerPlus extends SessionManager {
   constructor(
     private config: WhatsappConfigService,
     private log: ConsoleLogger,
+    private webjsEngineConfigService: WebJSEngineConfigService,
   ) {
     super();
     this.log.setContext('SessionManager');
@@ -181,6 +183,9 @@ export class SessionManagerPlus extends SessionManager {
       proxyConfig: proxyConfig,
       sessionConfig: request.config,
     };
+    if (this.EngineClass === WhatsappSessionWebJSPlus) {
+      sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
+    }
     await this.sessionAuthRepository.init(name);
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
