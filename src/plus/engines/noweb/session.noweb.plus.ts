@@ -5,6 +5,8 @@ import {
   toJID,
   WhatsappSessionNoWebCore,
 } from '../../../core/engines/noweb/session.noweb.core';
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
+import { extractMediaContent } from '../../../core/engines/noweb/utils';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -18,10 +20,10 @@ import {
   VideoStatus,
   VoiceStatus,
 } from '../../../structures/status.dto';
+import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const logger = require('pino')();
-import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
-import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   authFactory = new NowebAuthFactoryPlus();
@@ -116,8 +118,8 @@ class EngineMediaProcessor extends CoreEngineMediaProcessor {
   }
 
   getMimetype(message: any): string {
-    const messageType = Object.keys(message.message)[0];
-    return message.message[messageType].mimetype;
+    const content = extractMediaContent(message.message);
+    return content.mimetype;
   }
 
   async getMediaBuffer(message: any): Promise<Buffer | null> {
