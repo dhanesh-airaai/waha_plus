@@ -47,7 +47,8 @@ export async function makeSureJsonFile(filepath: string) {
     // valid json
     return;
   } catch (error) {
-    console.error(`Invalid '${filepath}' file, fixing.`);
+    console.error(`Invalid '${filepath}' JSON file, fixing it...`);
+    console.error(`Previous '${filepath}' content: ${content}`);
     const data = fixJson(content);
     if (!data) {
       throw new Error(`Failed to fix '${filepath}' file. Content: ${content}`);
@@ -55,7 +56,6 @@ export async function makeSureJsonFile(filepath: string) {
     const fixedContent = JSON.stringify(data);
     await fs.writeFile(filepath, fixedContent, { encoding: 'utf-8' });
     console.error(`Fixed ${filepath} file!`);
-    console.error(`Previous '${filepath}' content: ${content}`);
     console.error(`Fixed '${filepath}' content: ${fixedContent}`);
   }
 }
