@@ -1,6 +1,7 @@
 import { ConsoleLogger } from '@nestjs/common';
 import * as fs from 'fs';
 import { GridFSBucket, GridFSFile } from 'mongodb';
+import { pipeline } from 'stream/promises';
 import { Store } from 'whatsapp-web.js';
 
 import { MongoStore } from '../../storage/MongoStore';
@@ -19,14 +20,18 @@ class WebJSMongoAuth implements Store {
   }
 
   async sessionExists(options) {
+    this.log.log('Checking if session exists...');
     const session = this.getSessionName(options);
     const filesCollection = this.getFilesCollectionName();
     const multiDeviceCollection = this.db(session).collection(filesCollection);
     const hasExistingSession = await multiDeviceCollection.countDocuments();
-    return !!hasExistingSession;
+    const result = !!hasExistingSession;
+    this.log.log(`Session exists: ${result}`);
+    return result;
   }
 
   async save(options) {
+    this.log.debug('Saving session...');
     const session = this.getSessionName(options);
     const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
@@ -34,16 +39,15 @@ class WebJSMongoAuth implements Store {
     const bucket = new GridFSBucket(this.db(session), {
       bucketName: bucketName,
     });
-    await new Promise((resolve, reject) => {
-      fs.createReadStream(filename)
-        .pipe(bucket.openUploadStream(filename))
-        .on('error', (err) => reject(err))
-        .on('close', () => resolve(undefined));
-    });
+    const readStream = fs.createReadStream(filename);
+    const uploadStream = bucket.openUploadStream(filename);
+    await pipeline(readStream, uploadStream);
+    this.log.debug('Session saved.');
     await this.#deletePrevious(options, bucket);
   }
 
   async extract(options) {
+    this.log.log('Extracting existing session...');
     const session = this.getSessionName(options);
     const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
@@ -51,16 +55,14 @@ class WebJSMongoAuth implements Store {
     const bucket = new GridFSBucket(this.db(session), {
       bucketName: bucketName,
     });
-    return new Promise((resolve, reject) => {
-      bucket
-        .openDownloadStreamByName(filename)
-        .pipe(fs.createWriteStream(options.path))
-        .on('error', (err) => reject(err))
-        .on('close', () => resolve(undefined));
-    });
+    const downloadStream = bucket.openDownloadStreamByName(filename);
+    const writeStream = fs.createWriteStream(options.path);
+    await pipeline(downloadStream, writeStream);
+    this.log.log('Session has been extracted.');
   }
 
   async delete(options) {
+    this.log.debug('Deleting session...');
     const session = this.getSessionName(options);
     const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
@@ -76,6 +78,7 @@ class WebJSMongoAuth implements Store {
     documents.map(async (doc) => {
       return bucket.delete(doc._id);
     });
+    this.log.debug('Session deleted.');
   }
 
   async #deletePrevious(options, bucket) {
