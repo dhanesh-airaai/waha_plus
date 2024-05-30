@@ -5,6 +5,7 @@ import { SessionManager } from '../core/abc/manager.abc';
 import { WAHAHealthCheckService } from '../core/abc/WAHAHealthCheckService';
 import { AppModuleCore, CONTROLLERS, IMPORTS } from '../core/app.module.core';
 import { DashboardConfigServiceCore } from '../core/config/DashboardConfigServiceCore';
+import { EngineConfigService } from '../core/config/EngineConfigService';
 import { SwaggerConfigServiceCore } from '../core/config/SwaggerConfigServiceCore';
 import { noSlashAtTheEnd } from '../utils/string';
 import { ApiKeyStrategy } from './auth/apiKey.strategy';
@@ -21,15 +22,22 @@ import { SessionManagerPlus } from './manager.plus';
 const PROVIDERS = [
   {
     provide: SessionManager,
-    inject: [WhatsappConfigService, ConsoleLogger, WebJSEngineConfigService],
+    inject: [
+      WhatsappConfigService,
+      ConsoleLogger,
+      EngineConfigService,
+      WebJSEngineConfigService,
+    ],
     useFactory: async (
       config: WhatsappConfigService,
       log: ConsoleLogger,
+      engineConfigService: EngineConfigService,
       webJSEngineConfigService: WebJSEngineConfigService,
     ) => {
       const manager = new SessionManagerPlus(
         config,
         log,
+        engineConfigService,
         webJSEngineConfigService,
       );
       await manager.init();
@@ -60,6 +68,7 @@ const PROVIDERS = [
   MongoStoreHealthIndicator,
   CheckFreeDiskSpaceIndicator,
   WhatsappConfigService,
+  EngineConfigService,
   WebJSEngineConfigService,
   ConsoleLogger,
   ApiKeyStrategy,

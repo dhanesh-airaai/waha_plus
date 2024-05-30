@@ -11,6 +11,7 @@ import { getProxyConfig } from 'src/core/helpers.proxy';
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import { SessionParams, WhatsappSession } from '../core/abc/session.abc';
+import { EngineConfigService } from '../core/config/EngineConfigService';
 import { buildLogger } from '../core/manager.core';
 import { LocalSessionAuthRepository } from '../core/storage/LocalSessionAuthRepository';
 import { LocalSessionConfigRepository } from '../core/storage/LocalSessionConfigRepository';
@@ -49,6 +50,7 @@ export class SessionManagerPlus extends SessionManager {
   constructor(
     private config: WhatsappConfigService,
     private log: ConsoleLogger,
+    private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
   ) {
     super();
@@ -179,6 +181,7 @@ export class SessionManagerPlus extends SessionManager {
       name,
       mediaManager,
       log,
+      printQR: this.engineConfigService.shouldPrintQR,
       sessionStore: this.store,
       proxyConfig: proxyConfig,
       sessionConfig: request.config,
