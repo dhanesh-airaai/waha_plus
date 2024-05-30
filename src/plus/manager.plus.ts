@@ -56,12 +56,14 @@ export class SessionManagerPlus extends SessionManager {
     super();
     this.log.setContext('SessionManager');
     this.sessions = {};
-    const engineName = this.config.getDefaultEngineName();
+    const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
   }
 
   async init() {
-    const engineName = this.config.getDefaultEngineName().toLowerCase();
+    const engineName = this.engineConfigService
+      .getDefaultEngineName()
+      .toLowerCase();
     const mongoUrl = this.config.getSessionMongoUrl();
     if (mongoUrl) {
       this.log.log('Using mongo storage for session info.');
