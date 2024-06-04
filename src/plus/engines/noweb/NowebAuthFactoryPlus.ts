@@ -23,7 +23,7 @@ export class NowebAuthFactoryPlus extends NowebAuthFactoryCore {
 
   protected async buildLocalAuth(store: LocalStore, name: string) {
     // Quick fix for
-    // https://github.com/devlikeapro/whatsapp-http-api/issues/347
+    // https://github.com/devlikeapro/waha/issues/347
     // We can remove it after some time and the fix
     // https://github.com/WhiskeySockets/Baileys/pull/824
     await this.makeCredsJsonValid(store, name);
