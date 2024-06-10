@@ -28,6 +28,9 @@ export class MongoSessionConfigRepository extends ISessionConfigRepository {
     const result = await this.collection.findOne({
       name: sessionName,
     });
+    if (!result) {
+      return null;
+    }
     delete result._id;
     delete result.name;
     return result;
