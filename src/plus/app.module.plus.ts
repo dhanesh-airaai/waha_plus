@@ -1,4 +1,6 @@
 import { ConsoleLogger, MiddlewareConsumer, Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { BufferJsonReplacerInterceptor } from '@waha/api/BufferJsonReplacerInterceptor';
 
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
@@ -63,6 +65,10 @@ const PROVIDERS = [
   {
     provide: DashboardConfigServicePlus,
     useClass: DashboardConfigServicePlus,
+  },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: BufferJsonReplacerInterceptor,
   },
   SwaggerConfigServicePlus,
   MongoStoreHealthIndicator,

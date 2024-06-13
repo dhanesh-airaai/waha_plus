@@ -1,25 +1,26 @@
 import { downloadMediaMessage } from '@adiwajshing/baileys';
 import { UnprocessableEntityException } from '@nestjs/common';
-
 import {
   toJID,
   WhatsappSessionNoWebCore,
-} from '../../../core/engines/noweb/session.noweb.core';
-import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
-import { extractMediaContent } from '../../../core/engines/noweb/utils';
+} from '@waha/core/engines/noweb/session.noweb.core';
+import { extractMediaContent } from '@waha/core/engines/noweb/utils';
+import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
 import {
   MessageFileRequest,
   MessageImageRequest,
   MessageVideoRequest,
   MessageVoiceRequest,
-} from '../../../structures/chatting.dto';
-import { BinaryFile, RemoteFile } from '../../../structures/files.dto';
+} from '@waha/structures/chatting.dto';
+import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import {
   BROADCAST_ID,
   ImageStatus,
   VideoStatus,
   VoiceStatus,
-} from '../../../structures/status.dto';
+} from '@waha/structures/status.dto';
+
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
 import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -27,6 +28,7 @@ const logger = require('pino')();
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   authFactory = new NowebAuthFactoryPlus();
+  storageFactory = new NowebStorageFactoryPlus();
 
   fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
     if (!('url' in file || 'data' in file)) {
@@ -55,27 +57,39 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   }
 
   sendImage(request: MessageImageRequest) {
-    const message = this.fileToMessage(request.file, 'image', request.caption);
-    return this.sock.sendMessage(request.chatId, message);
+    const message: any = this.fileToMessage(
+      request.file,
+      'image',
+      request.caption,
+    );
+    const chatId = toJID(this.ensureSuffix(request.chatId));
+    return this.sock.sendMessage(chatId, message);
   }
 
   sendFile(request: MessageFileRequest) {
-    const message = this.fileToMessage(
+    const message: any = this.fileToMessage(
       request.file,
       'document',
       request.caption,
     );
-    return this.sock.sendMessage(request.chatId, message);
+    const chatId = toJID(this.ensureSuffix(request.chatId));
+    return this.sock.sendMessage(chatId, message);
   }
 
   sendVoice(request: MessageVoiceRequest) {
-    const message = this.fileToMessage(request.file, 'audio');
-    return this.sock.sendMessage(request.chatId, message);
+    const message: any = this.fileToMessage(request.file, 'audio');
+    const chatId = toJID(this.ensureSuffix(request.chatId));
+    return this.sock.sendMessage(chatId, message);
   }
 
   sendVideo(request: MessageVideoRequest) {
-    const message = this.fileToMessage(request.file, 'video', request.caption);
-    return this.sock.sendMessage(request.chatId, message);
+    const message: any = this.fileToMessage(
+      request.file,
+      'video',
+      request.caption,
+    );
+    const chatId = toJID(this.ensureSuffix(request.chatId));
+    return this.sock.sendMessage(chatId, message);
   }
 
   protected downloadMedia(message) {
@@ -87,26 +101,40 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
    * Status methods
    */
   public sendImageStatus(status: ImageStatus) {
-    const message = this.fileToMessage(status.file, 'image', status.caption);
+    const message: any = this.fileToMessage(
+      status.file,
+      'image',
+      status.caption,
+    );
+    const JIDs = status.contacts.map(toJID);
+    this.upsertMeInJIDs(JIDs);
     const options = {
-      statusJidList: status.contacts.map(toJID),
+      statusJidList: JIDs,
     };
     return this.sock.sendMessage(BROADCAST_ID, message, options);
   }
 
   public sendVoiceStatus(status: VoiceStatus) {
-    const message = this.fileToMessage(status.file, 'audio');
+    const message: any = this.fileToMessage(status.file, 'audio');
+    const JIDs = status.contacts.map(toJID);
+    this.upsertMeInJIDs(JIDs);
     const options = {
       backgroundColor: status.backgroundColor,
-      statusJidList: status.contacts.map(toJID),
+      statusJidList: JIDs,
     };
     return this.sock.sendMessage(BROADCAST_ID, message, options);
   }
 
   public sendVideoStatus(status: VideoStatus) {
-    const message = this.fileToMessage(status.file, 'video', status.caption);
+    const message: any = this.fileToMessage(
+      status.file,
+      'video',
+      status.caption,
+    );
+    const JIDs = status.contacts.map(toJID);
+    this.upsertMeInJIDs(JIDs);
     const options = {
-      statusJidList: status.contacts.map(toJID),
+      statusJidList: JIDs,
     };
     return this.sock.sendMessage(BROADCAST_ID, message, options);
   }

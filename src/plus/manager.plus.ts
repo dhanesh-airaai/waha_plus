@@ -4,9 +4,9 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { getProxyConfig } from '@waha/core/helpers.proxy';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
-import { getProxyConfig } from 'src/core/helpers.proxy';
 
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
@@ -28,7 +28,6 @@ import {
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
-import { WhatsappSessionMobilePlus } from './engines/mobile/session.mobile.plus';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './engines/venom/session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
@@ -126,8 +125,6 @@ export class SessionManagerPlus extends SessionManager {
       return WhatsappSessionVenomPlus;
     } else if (engine === WAHAEngine.NOWEB) {
       return WhatsappSessionNoWebPlus;
-    } else if (engine === WAHAEngine.MOBILE) {
-      return WhatsappSessionMobilePlus;
     } else {
       throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`);
     }

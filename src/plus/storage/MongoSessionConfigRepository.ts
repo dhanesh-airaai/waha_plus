@@ -1,5 +1,5 @@
+import { SessionConfig } from '@waha/structures/sessions.dto';
 import { Collection, Db } from 'mongodb';
-import { SessionConfig } from 'src/structures/sessions.dto';
 
 import { ISessionConfigRepository } from '../../core/storage/ISessionConfigRepository';
 import { MongoStore } from './MongoStore';
