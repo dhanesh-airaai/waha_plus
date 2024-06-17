@@ -1,19 +1,14 @@
-import {
-  Client,
-  ClientOptions,
-  LocalAuth,
-  Message,
-  MessageMedia,
-} from 'whatsapp-web.js';
-
-import { WhatsappSessionWebJSCore } from '../../../core/engines/webjs/session.webjs.core';
-import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/webjs/session.webjs.core';
+import { WhatsappSessionWebJSCore } from '@waha/core/engines/webjs/session.webjs.core';
+import { WebjsClient } from '@waha/core/engines/webjs/WebjsClient';
 import {
   MessageFileRequest,
   MessageImageRequest,
   MessageVideoRequest,
-} from '../../../structures/chatting.dto';
-import { BinaryFile, RemoteFile } from '../../../structures/files.dto';
+} from '@waha/structures/chatting.dto';
+import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
+import { Message, MessageMedia } from 'whatsapp-web.js';
+
+import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/webjs/session.webjs.core';
 import { WebJSAuthFactory } from './WebJSAuthFactory';
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
@@ -32,7 +27,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     const clientOptions = this.getClientOptions();
     clientOptions.authStrategy = authStrategy;
     this.addProxyConfig(clientOptions);
-    return new Client(clientOptions);
+    return new WebjsClient(clientOptions);
   }
 
   private async fileToMedia(file: BinaryFile | RemoteFile) {
