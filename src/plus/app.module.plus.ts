@@ -1,6 +1,16 @@
-import { ConsoleLogger, MiddlewareConsumer, Module } from '@nestjs/common';
+import * as fs from 'node:fs';
+import * as process from 'node:process';
+
+import {
+  ConsoleLogger,
+  INestApplication,
+  MiddlewareConsumer,
+  Module,
+} from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { BufferJsonReplacerInterceptor } from '@waha/api/BufferJsonReplacerInterceptor';
+import { parseBool } from '@waha/helpers';
+import { HttpsExpress } from '@waha/plus/HttpsExpress';
 
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
@@ -103,5 +113,24 @@ export class AppModulePlus extends AppModuleCore {
       const route = noSlashAtTheEnd(this.dashboardConfig.dashboardUri);
       consumer.apply(BasicAuthFunction(username, password)).forRoutes(route);
     }
+  }
+
+  static getHttpsOptions() {
+    const httpsEnabled = parseBool(process.env.WAHA_HTTPS_ENABLED);
+    if (!httpsEnabled) {
+      return undefined;
+    }
+    const httpsExpress = new HttpsExpress();
+    return httpsExpress.readSync();
+  }
+
+  static appReady(app: INestApplication) {
+    const httpsEnabled = parseBool(process.env.WAHA_HTTPS_ENABLED);
+    if (!httpsEnabled) {
+      return;
+    }
+    const httpd = app.getHttpServer();
+    const httpsExpress = new HttpsExpress();
+    httpsExpress.watchCertChanges(httpd);
   }
 }
