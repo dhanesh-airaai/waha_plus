@@ -23,9 +23,6 @@ import {
 import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
 import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const logger = require('pino')();
-
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   authFactory = new NowebAuthFactoryPlus();
   storageFactory = new NowebStorageFactoryPlus();
@@ -156,7 +153,7 @@ class EngineMediaProcessor extends CoreEngineMediaProcessor {
       'buffer',
       {},
       {
-        logger: logger,
+        logger: this.session.logger,
         reuploadRequest: this.session.sock.updateMediaMessage,
       },
     )) as Buffer;
