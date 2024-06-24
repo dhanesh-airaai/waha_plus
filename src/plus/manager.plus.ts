@@ -308,7 +308,7 @@ export class SessionManagerPlus extends SessionManager {
       if (this.sessions[sessionName]) {
         try {
           engineInfo = await promiseTimeout(
-            1_000,
+            10,
             this.sessions[sessionName].getEngineInfo(),
           );
         } catch (e) {
