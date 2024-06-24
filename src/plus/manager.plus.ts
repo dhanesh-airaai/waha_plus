@@ -5,6 +5,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
+import { promiseTimeout } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
@@ -301,11 +302,23 @@ export class SessionManagerPlus extends SessionManager {
         this.sessions[sessionName]?.status || WAHASessionStatus.STOPPED;
       let sessionConfig: SessionConfig | undefined;
       let me: MeInfo | null;
+
+      // Get engine info
+      let engineInfo = {};
+      if (this.sessions[sessionName]) {
+        try {
+          engineInfo = await promiseTimeout(
+            1_000,
+            this.sessions[sessionName].getEngineInfo(),
+          );
+        } catch (e) {
+          this.log.error('Error while getting engine info', e);
+        }
+      }
+
       const engine = {
         engine: this.sessions[sessionName]?.engine,
-        ...(await this.sessions[sessionName]
-          ?.getEngineInfo()
-          .catch((err) => ({}))),
+        ...engineInfo,
       };
       if (status != WAHASessionStatus.STOPPED) {
         sessionConfig = this.sessions[sessionName].sessionConfig;
