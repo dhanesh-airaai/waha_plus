@@ -9,7 +9,9 @@ import {
 } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { BufferJsonReplacerInterceptor } from '@waha/api/BufferJsonReplacerInterceptor';
+import { WebsocketGatewayCore } from '@waha/core/api/websocket.gateway.core';
 import { parseBool } from '@waha/helpers';
+import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
 import { HttpsExpress } from '@waha/plus/HttpsExpress';
 
 import { WhatsappConfigService } from '../config.service';
@@ -88,6 +90,7 @@ const PROVIDERS = [
   WebJSEngineConfigService,
   ConsoleLogger,
   ApiKeyStrategy,
+  WebsocketGatewayPlus,
 ];
 
 @Module({
@@ -105,7 +108,7 @@ export class AppModulePlus extends AppModuleCore {
   }
 
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('api', 'health');
+    consumer.apply(AuthMiddleware).forRoutes('api', 'health', 'ws');
     const dashboardCredentials = this.dashboardConfig.credentials;
     if (dashboardCredentials) {
       const username = dashboardCredentials[0];

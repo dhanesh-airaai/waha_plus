@@ -5,6 +5,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
+import { EventEmitter } from 'events';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
 
@@ -16,7 +17,11 @@ import { buildLogger } from '../core/manager.core';
 import { LocalSessionAuthRepository } from '../core/storage/LocalSessionAuthRepository';
 import { LocalSessionConfigRepository } from '../core/storage/LocalSessionConfigRepository';
 import { getLogLevels } from '../helpers';
-import { WAHAEngine, WAHASessionStatus } from '../structures/enums.dto';
+import {
+  WAHAEngine,
+  WAHAEvents,
+  WAHASessionStatus,
+} from '../structures/enums.dto';
 import {
   MeInfo,
   ProxyConfig,
@@ -57,6 +62,7 @@ export class SessionManagerPlus extends SessionManager {
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
+    this.events = new EventEmitter();
   }
 
   async init() {
@@ -130,11 +136,16 @@ export class SessionManagerPlus extends SessionManager {
     }
   }
 
-  async onApplicationShutdown(signal?: string) {
+  async beforeApplicationShutdown(signal?: string) {
     this.log.log('Stop all sessions...');
     for (const name of Object.keys(this.sessions)) {
-      await this.stop({ name: name, logout: false });
+      try {
+        await this.stop({ name: name, logout: false });
+      } catch (err) {
+        this.log.error(`Error while stopping session '${name}'`, err);
+      }
     }
+    this.log.log('All sessions have been stopped.');
   }
 
   private clearStorage() {
@@ -196,6 +207,12 @@ export class SessionManagerPlus extends SessionManager {
     // configure webhooks
     const webhooks = this.getWebhooks(request);
     webhook.configure(session, webhooks);
+
+    // configure events
+    session.events.on(
+      WAHAEvents.SESSION_STATUS,
+      this.handleSessionEvent(WAHAEvents.SESSION_STATUS, session),
+    );
 
     // start session
     await session.start();
