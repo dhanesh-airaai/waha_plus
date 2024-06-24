@@ -309,9 +309,7 @@ export class SessionManagerPlus extends SessionManager {
       };
       if (status != WAHASessionStatus.STOPPED) {
         sessionConfig = this.sessions[sessionName].sessionConfig;
-        me = await this.sessions[sessionName]
-          .getSessionMeInfo()
-          .catch((err) => null);
+        me = this.sessions[sessionName].getSessionMeInfo();
       } else {
         sessionConfig = await this.sessionConfigRepository.get(sessionName);
         me = null;
