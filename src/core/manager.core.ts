@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { promiseTimeout } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
 
 import { WhatsappConfigService } from '../config.service';
@@ -245,10 +246,19 @@ export class SessionManagerCore extends SessionManager {
         },
       ];
     }
-    const me = await this.session.getSessionMeInfo().catch((err) => null);
+    const me = this.session.getSessionMeInfo();
+    // Get engine info
+    let engineInfo = {};
+    if (this.session) {
+      try {
+        engineInfo = await promiseTimeout(1_000, this.session.getEngineInfo());
+      } catch (e) {
+        this.log.error('Error while getting engine info', e);
+      }
+    }
     const engine = {
       engine: this.session?.engine,
-      ...(await this.session?.getEngineInfo().catch((err) => ({}))),
+      ...engineInfo,
     };
     return [
       {
