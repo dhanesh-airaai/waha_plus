@@ -312,7 +312,7 @@ export class SessionManagerPlus extends SessionManager {
             this.sessions[sessionName].getEngineInfo(),
           );
         } catch (e) {
-          this.log.error('Error while getting engine info', e);
+          this.log.warn('Error while getting engine info', e);
         }
       }
 
