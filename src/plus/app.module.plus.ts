@@ -38,19 +38,16 @@ const PROVIDERS = [
     provide: SessionManager,
     inject: [
       WhatsappConfigService,
-      ConsoleLogger,
       EngineConfigService,
       WebJSEngineConfigService,
     ],
     useFactory: async (
       config: WhatsappConfigService,
-      log: ConsoleLogger,
       engineConfigService: EngineConfigService,
       webJSEngineConfigService: WebJSEngineConfigService,
     ) => {
       const manager = new SessionManagerPlus(
         config,
-        log,
         engineConfigService,
         webJSEngineConfigService,
       );

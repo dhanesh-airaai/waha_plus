@@ -1,6 +1,7 @@
 import {
   ConsoleLogger,
   Injectable,
+  LoggerService,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -51,15 +52,16 @@ export class SessionManagerPlus extends SessionManager {
   // @ts-ignore
   protected WebhookConductorClass = WebhookConductorPlus;
   protected readonly EngineClass: typeof WhatsappSession;
+  private log: LoggerService;
 
   constructor(
     private config: WhatsappConfigService,
-    private log: ConsoleLogger,
     private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
   ) {
     super();
-    this.log.setContext('SessionManager');
+    const levels = getLogLevels(false);
+    this.log = buildLogger('SessionManager', levels);
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
