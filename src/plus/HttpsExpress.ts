@@ -1,5 +1,8 @@
 import * as fs from 'node:fs';
 
+import { LoggerBuilder } from '@waha/utils/logging';
+import { Logger } from 'pino';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const chokidar = require('chokidar');
 
@@ -8,7 +11,7 @@ export class HttpsExpress {
   private readonly certPath: string;
   private readonly caPath: string;
 
-  constructor() {
+  constructor(private logger: Logger) {
     //
     // Let's encrypt certificates default paths
     // cert.pem  chain.pem  fullchain.pem  privkey.pem
@@ -22,17 +25,17 @@ export class HttpsExpress {
   }
 
   readSync() {
-    console.log('Reading HTTPS certificates...');
-    console.log('HTTPS Key Path:', this.keyPath);
+    this.logger.info('Reading HTTPS certificates...');
+    this.logger.info('HTTPS Key Path:', this.keyPath);
     const key = fs.readFileSync(this.keyPath);
 
-    console.log('HTTPS Cert Path:', this.certPath);
+    this.logger.info('HTTPS Cert Path:', this.certPath);
     const cert = fs.readFileSync(this.certPath);
 
-    console.log('HTTPS CA Path:', this.caPath);
+    this.logger.info('HTTPS CA Path:', this.caPath);
     const ca = this.caPath ? fs.readFileSync(this.caPath) : undefined;
 
-    console.log('HTTPS certificates read successfully');
+    this.logger.info('HTTPS certificates read successfully');
     return { key: key, cert: cert, ca: ca };
   }
 
@@ -54,10 +57,10 @@ export class HttpsExpress {
     // 1. It issues 'add' event at the start, even tho ignoreInitial is set to true
     // 2. It issues additional 'add' for the same file, but without full path
     watcher.on('all', (eventName, path, stats) => {
-      console.log(`HTTPS file '${path}' has been '${eventName}'...`);
+      this.logger.info(`HTTPS file '${path}' has been '${eventName}'...`);
       clearTimeout(waitForCertAndFullChainToGetUpdatedTooTimeout);
       waitForCertAndFullChainToGetUpdatedTooTimeout = setTimeout(() => {
-        console.log('Updating HTTPS configuration...');
+        this.logger.info('Updating HTTPS configuration...');
         httpd.setSecureContext(this.readSync());
       }, 1000);
     });

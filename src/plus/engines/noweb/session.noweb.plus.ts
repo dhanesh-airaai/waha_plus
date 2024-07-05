@@ -1,4 +1,5 @@
 import { downloadMediaMessage } from '@adiwajshing/baileys';
+import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
 import {
   toJID,
@@ -19,6 +20,8 @@ import {
   VideoStatus,
   VoiceStatus,
 } from '@waha/structures/status.dto';
+import { LoggerBuilder } from '@waha/utils/logging';
+import { Logger } from 'pino';
 
 import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
 import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
@@ -90,7 +93,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   }
 
   protected downloadMedia(message) {
-    const processor = new EngineMediaProcessor(this);
+    const processor = new EngineMediaProcessor(this, this.loggerBuilder);
     return this.mediaManager.processMedia(processor, message);
   }
 
@@ -138,6 +141,15 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
 }
 
 class EngineMediaProcessor extends CoreEngineMediaProcessor {
+  private readonly logger: BaileysLogger;
+
+  constructor(session: WhatsappSessionNoWebPlus, loggerBuilder: LoggerBuilder) {
+    super(session);
+    this.logger = loggerBuilder.child({
+      name: EngineMediaProcessor.name,
+    }) as unknown as BaileysLogger;
+  }
+
   getMessageId(message: any): string {
     return message.key.id;
   }
@@ -153,7 +165,7 @@ class EngineMediaProcessor extends CoreEngineMediaProcessor {
       'buffer',
       {},
       {
-        logger: this.session.logger,
+        logger: this.logger,
         reuploadRequest: this.session.sock.updateMediaMessage,
       },
     )) as Buffer;

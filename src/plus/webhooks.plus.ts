@@ -1,4 +1,5 @@
 import request = require('requestretry');
+import { LoggerBuilder } from '@waha/utils/logging';
 import * as crypto from 'crypto';
 
 import { WebhookSender } from '../core/abc/webhooks.abc';
@@ -15,8 +16,8 @@ export class WebhookSenderPlus extends WebhookSender {
   private readonly delayMs: number;
   private readonly config: WebhookConfig;
 
-  constructor(log, config: WebhookConfig) {
-    super(log, config);
+  constructor(loggerBuilder: LoggerBuilder, config: WebhookConfig) {
+    super(loggerBuilder, config);
     this.attempts = config.retries?.attempts || DEFAULT_RETRY_ATTEMPTS;
     const delaySeconds =
       config.retries?.delaySeconds || DEFAULT_RETRY_DELAY_SECONDS;
@@ -73,22 +74,24 @@ export class WebhookSenderPlus extends WebhookSender {
       retryStrategy: request.RetryStrategies.HTTPOrNetworkError,
       headers: headers,
     };
-    this.log.log(`Sending POST to ${this.url}...`);
-    this.log.verbose(`POST DATA: ${body}`);
+    this.logger.info(`Sending POST to ${this.url}...`);
+    this.logger.debug(`POST DATA: ${body}`);
 
     request.post(this.url, postParams, (error, res, body) => {
       if (error) {
-        this.log.error(error);
+        this.logger.error(error);
         return;
       }
-      this.log.log(`POST request was sent with status code: ${res.statusCode}`);
-      this.log.debug(`Response: ${body}`);
+      this.logger.info(
+        `POST request was sent with status code: ${res.statusCode}`,
+      );
+      this.logger.debug(`Response: ${body}`);
     });
   }
 }
 
 export class WebhookConductorPlus extends WebhookConductorCore {
   protected buildSender(webhookConfig: WebhookConfig): WebhookSender {
-    return new WebhookSenderPlus(this.log, webhookConfig);
+    return new WebhookSenderPlus(this.loggerBuilder, webhookConfig);
   }
 }

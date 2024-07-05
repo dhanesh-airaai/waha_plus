@@ -1,4 +1,3 @@
-import * as fs from 'node:fs';
 import * as process from 'node:process';
 
 import {
@@ -9,10 +8,11 @@ import {
 } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { BufferJsonReplacerInterceptor } from '@waha/api/BufferJsonReplacerInterceptor';
-import { WebsocketGatewayCore } from '@waha/core/api/websocket.gateway.core';
 import { parseBool } from '@waha/helpers';
 import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
 import { HttpsExpress } from '@waha/plus/HttpsExpress';
+import { PinoLogger } from 'nestjs-pino';
+import { Logger } from 'pino';
 
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
@@ -40,16 +40,19 @@ const PROVIDERS = [
       WhatsappConfigService,
       EngineConfigService,
       WebJSEngineConfigService,
+      PinoLogger,
     ],
     useFactory: async (
       config: WhatsappConfigService,
       engineConfigService: EngineConfigService,
       webJSEngineConfigService: WebJSEngineConfigService,
+      logger: PinoLogger,
     ) => {
       const manager = new SessionManagerPlus(
         config,
         engineConfigService,
         webJSEngineConfigService,
+        logger,
       );
       await manager.init();
       return manager;
@@ -115,22 +118,22 @@ export class AppModulePlus extends AppModuleCore {
     }
   }
 
-  static getHttpsOptions() {
+  static getHttpsOptions(logger: Logger) {
     const httpsEnabled = parseBool(process.env.WAHA_HTTPS_ENABLED);
     if (!httpsEnabled) {
       return undefined;
     }
-    const httpsExpress = new HttpsExpress();
+    const httpsExpress = new HttpsExpress(logger);
     return httpsExpress.readSync();
   }
 
-  static appReady(app: INestApplication) {
+  static appReady(app: INestApplication, logger: Logger) {
     const httpsEnabled = parseBool(process.env.WAHA_HTTPS_ENABLED);
     if (!httpsEnabled) {
       return;
     }
     const httpd = app.getHttpServer();
-    const httpsExpress = new HttpsExpress();
+    const httpsExpress = new HttpsExpress(logger);
     httpsExpress.watchCertChanges(httpd);
   }
 }

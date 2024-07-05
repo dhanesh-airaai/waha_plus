@@ -27,7 +27,7 @@ export class SwaggerConfiguratorPlus extends SwaggerConfiguratorCore {
 
   configure(webhooks: any[]) {
     if (!this.config.enabled) {
-      console.log('Swagger is disabled.');
+      this.logger.info('Swagger is disabled.');
       return;
     }
 

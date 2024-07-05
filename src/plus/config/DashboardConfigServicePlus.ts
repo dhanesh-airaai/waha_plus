@@ -8,7 +8,7 @@ export class DashboardConfigServicePlus extends DashboardConfigServiceCore {
     const user = this.configService.get('WAHA_DASHBOARD_USERNAME', 'waha');
     const password = this.configService.get('WAHA_DASHBOARD_PASSWORD', 'waha');
     if (!user || !password) {
-      console.log(
+      this.logger.info(
         'Please set up both WAHA_DASHBOARD_USERNAME and WAHA_DASHBOARD_PASSWORD ' +
           'to enable swagger authentication.',
       );

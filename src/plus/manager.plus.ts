@@ -1,24 +1,22 @@
 import {
-  ConsoleLogger,
   Injectable,
-  LoggerService,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
+import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
+import { PinoLogger } from 'nestjs-pino';
 
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import { SessionParams, WhatsappSession } from '../core/abc/session.abc';
 import { EngineConfigService } from '../core/config/EngineConfigService';
-import { buildLogger } from '../core/manager.core';
 import { LocalSessionAuthRepository } from '../core/storage/LocalSessionAuthRepository';
 import { LocalSessionConfigRepository } from '../core/storage/LocalSessionConfigRepository';
-import { getLogLevels } from '../helpers';
 import {
   WAHAEngine,
   WAHAEvents,
@@ -52,16 +50,15 @@ export class SessionManagerPlus extends SessionManager {
   // @ts-ignore
   protected WebhookConductorClass = WebhookConductorPlus;
   protected readonly EngineClass: typeof WhatsappSession;
-  private log: LoggerService;
 
   constructor(
     private config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
+    private log: PinoLogger,
   ) {
     super();
-    const levels = getLogLevels(false);
-    this.log = buildLogger('SessionManager', levels);
+    this.log.setContext(SessionManagerPlus.name);
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
@@ -74,11 +71,11 @@ export class SessionManagerPlus extends SessionManager {
       .toLowerCase();
     const mongoUrl = this.config.getSessionMongoUrl();
     if (mongoUrl) {
-      this.log.log('Using mongo storage for session info.');
+      this.log.info('Using mongo storage for session info.');
       const mongo = new MongoClient(mongoUrl);
-      this.log.log(`Connecting to mongo '${mongoUrl}'...`);
+      this.log.info(`Connecting to mongo '${mongoUrl}'...`);
       await mongo.connect();
-      this.log.log(`Connected to mongo '${mongoUrl}'!`);
+      this.log.info(`Connected to mongo '${mongoUrl}'!`);
 
       this.store = new MongoStore(mongo, engineName);
       this.sessionAuthRepository = new MongoSessionAuthRepository(this.store);
@@ -86,7 +83,7 @@ export class SessionManagerPlus extends SessionManager {
         this.store,
       );
     } else {
-      this.log.log('Using local storage for session info.');
+      this.log.info('Using local storage for session info.');
       this.store = new LocalStorePlus(engineName);
       this.sessionAuthRepository = new LocalSessionAuthRepository(this.store);
       this.sessionConfigRepository = new LocalSessionConfigRepository(
@@ -107,7 +104,7 @@ export class SessionManagerPlus extends SessionManager {
     const stoppedSessions = await this.sessionAuthRepository.getAll();
 
     const promises = stoppedSessions.map(async (sessionName) => {
-      this.log.log(`Restarting STOPPED session - ${sessionName}...`);
+      this.log.info(`Restarting STOPPED session - ${sessionName}...`);
       const config = await this.sessionConfigRepository.get(sessionName);
       return this.start({ name: sessionName, config: config });
     });
@@ -140,7 +137,7 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   async beforeApplicationShutdown(signal?: string) {
-    this.log.log('Stop all sessions...');
+    this.log.info('Stop all sessions...');
     for (const name of Object.keys(this.sessions)) {
       try {
         await this.stop({ name: name, logout: false });
@@ -148,14 +145,13 @@ export class SessionManagerPlus extends SessionManager {
         this.log.error(`Error while stopping session '${name}'`, err);
       }
     }
-    this.log.log('All sessions have been stopped.');
+    this.log.info('All sessions have been stopped.');
   }
 
   private clearStorage() {
-    const levels = getLogLevels(false);
     /* We need to clear the local storage just once */
     const storage = new MediaStoragePlus(
-      buildLogger(`Storage`, levels),
+      this.log.logger.child({ name: 'Storage' }),
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
@@ -173,11 +169,13 @@ export class SessionManagerPlus extends SessionManager {
         `Session '${name}' is already started.`,
       );
     }
-    this.log.log(`'${name}' - starting session...`);
-    const levels = getLogLevels(request.config?.debug);
-    const log = buildLogger(`WhatsappSession - ${name}`, levels);
+    this.log.info(`starting session...`, { session: name });
+    const logger = this.log.logger.child({ session: name });
+    logger.level = getPinoLogLevel(request.config?.debug);
+    const loggerBuilder: LoggerBuilder = logger;
+
     const storage = new MediaStoragePlus(
-      buildLogger(`Storage - ${name}`, levels),
+      loggerBuilder.child({ name: 'Storage' }),
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
@@ -185,15 +183,14 @@ export class SessionManagerPlus extends SessionManager {
     const mediaManager = new PlusMediaManager(
       storage,
       this.config.mimetypes,
-      buildLogger(`MediaManager - ${name}`, levels),
+      loggerBuilder.child({ name: 'MediaManager' }),
     );
-    const webhookLog = buildLogger(`Webhook - ${name}`, levels);
-    const webhook = new this.WebhookConductorClass(webhookLog);
+    const webhook = new this.WebhookConductorClass(loggerBuilder);
     const proxyConfig = this.getProxyConfig(request);
     const sessionConfig: SessionParams = {
       name,
       mediaManager,
-      log,
+      loggerBuilder,
       printQR: this.engineConfigService.shouldPrintQR,
       sessionStore: this.store,
       proxyConfig: proxyConfig,
@@ -255,10 +252,10 @@ export class SessionManagerPlus extends SessionManager {
 
   async stop(request: SessionStopRequest) {
     const name = request.name;
-    this.log.log(`Stopping ${name} session...`);
+    this.log.info(`Stopping ${name} session...`);
     const session = this.getSession(name);
     await session.stop();
-    this.log.log(`"${name}" has been stopped.`);
+    this.log.info(`"${name}" has been stopped.`);
     delete this.sessions[name];
   }
 
@@ -266,7 +263,7 @@ export class SessionManagerPlus extends SessionManager {
     const name = request.name;
     this.stop({ name: name, logout: false })
       .then(() => {
-        this.log.log(`Session '${name}' has been stopped.`);
+        this.log.info(`Session '${name}' has been stopped.`);
       })
       .catch((err) => {
         this.log.error(

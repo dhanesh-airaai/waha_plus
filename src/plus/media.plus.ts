@@ -1,4 +1,4 @@
-import { ConsoleLogger } from '@nestjs/common';
+import { LoggerService } from '@nestjs/common';
 import * as path from 'path';
 import { promisify } from 'util';
 
@@ -12,6 +12,7 @@ import { WAMedia } from '../structures/responses.dto';
 import fs = require('fs');
 import * as fsp from 'fs/promises';
 import del = require('del');
+import { Logger } from 'pino';
 import { sleep } from 'venom-bot/dist/utils/sleep';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
@@ -23,14 +24,14 @@ export class MediaStoragePlus implements MediaStorage {
   private readonly lifetimeMs: number;
 
   constructor(
-    protected log: ConsoleLogger,
+    protected log: Logger,
     private filesFolder: string,
     private baseUrl: string,
     lifetimeSeconds: number,
   ) {
     this.lifetimeMs = lifetimeSeconds * SECOND;
     if (this.lifetimeMs === 0) {
-      this.log.log('Files lifetime is 0, files will not be removed');
+      this.log.info('Files lifetime is 0, files will not be removed');
     }
   }
 
@@ -57,7 +58,7 @@ export class MediaStoragePlus implements MediaStorage {
     setTimeout(
       () =>
         fs.unlink(filepath, () => {
-          this.log.log(`File ${filepath} was removed`);
+          this.log.info(`File ${filepath} was removed`);
         }),
       this.lifetimeMs,
     );
@@ -65,7 +66,7 @@ export class MediaStoragePlus implements MediaStorage {
 
   purge() {
     if (this.lifetimeMs === 0) {
-      this.log.log('No need to purge files with lifetime 0');
+      this.log.info('No need to purge files with lifetime 0');
       return;
     }
     if (fs.existsSync(this.filesFolder)) {
@@ -73,11 +74,11 @@ export class MediaStoragePlus implements MediaStorage {
         if (paths.length === 0) {
           return;
         }
-        this.log.log('Deleted files and directories:\n', paths.join('\n'));
+        this.log.info('Deleted files and directories:\n', paths.join('\n'));
       });
     } else {
       fs.mkdirSync(this.filesFolder);
-      this.log.log(`Directory '${this.filesFolder}' created from scratch`);
+      this.log.info(`Directory '${this.filesFolder}' created from scratch`);
     }
   }
 }
@@ -86,10 +87,10 @@ export class PlusMediaManager implements MediaManager {
   constructor(
     private storage: MediaStorage,
     private mimetypes: string[],
-    protected log: ConsoleLogger,
+    protected log: Logger,
   ) {
     if (this.mimetypes && this.mimetypes.length > 0) {
-      this.log.log(
+      this.log.info(
         `Only '${this.mimetypes.join(
           ',',
         )}' mimetypes will be downloaded for the session`,
@@ -121,7 +122,7 @@ export class PlusMediaManager implements MediaManager {
     const mimetype = processor.getMimetype(message);
     const filename = processor.getFilename(message);
     if (!this.shouldProcessMimetype(mimetype)) {
-      this.log.log(
+      this.log.info(
         `The message '${messageId}' has '${mimetype}' mimetype media, skip it.`,
       );
       const media: WAMedia = {
@@ -134,13 +135,13 @@ export class PlusMediaManager implements MediaManager {
       return message;
     }
 
-    this.log.log(`The message ${messageId} has media, processing it...`);
+    this.log.info(`The message ${messageId} has media, processing it...`);
     let buffer;
 
     // Repeat three times to avoid errors
     const retries = 5;
     for (let i = 0; i < retries; i++) {
-      this.log.log(
+      this.log.info(
         `Downloading media from WhatsApp the message '${messageId}, attempt ${
           i + 1
         }/${retries}...`,
@@ -149,13 +150,15 @@ export class PlusMediaManager implements MediaManager {
       if (buffer) {
         break;
       }
-      this.log.log(`Message ${messageId} has no media, but it has media flag.`);
-      this.log.log(`Waiting 2 seconds and trying again...`);
+      this.log.info(
+        `Message ${messageId} has no media, but it has media flag.`,
+      );
+      this.log.info(`Waiting 2 seconds and trying again...`);
       await sleep(2_000);
     }
 
     if (!buffer) {
-      this.log.log(`No media found for ${messageId}.`);
+      this.log.info(`No media found for ${messageId}.`);
       return message;
     }
 
@@ -163,7 +166,7 @@ export class PlusMediaManager implements MediaManager {
       `Downloading media from WhatsApp the message ${messageId}...`,
     );
     const url = await this.storage.save(messageId, mimetype, buffer);
-    this.log.log(`The file from ${messageId} has been saved to ${url}`);
+    this.log.info(`The file from ${messageId} has been saved to ${url}`);
 
     const media: WAMedia = {
       mimetype: mimetype,

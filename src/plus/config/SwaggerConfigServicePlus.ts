@@ -17,7 +17,7 @@ export class SwaggerConfigServicePlus extends SwaggerConfigServiceCore {
       undefined,
     );
     if (!user || !password) {
-      console.log(
+      this.logger.info(
         'Please set up both WHATSAPP_SWAGGER_USERNAME and WHATSAPP_SWAGGER_PASSWORD ' +
           'to enable swagger authentication.',
       );

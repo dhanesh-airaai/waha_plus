@@ -1,6 +1,6 @@
-import { ConsoleLogger } from '@nestjs/common';
 import * as fs from 'fs';
 import { GridFSBucket, GridFSFile } from 'mongodb';
+import { Logger } from 'pino';
 import { pipeline } from 'stream/promises';
 import { Store } from 'whatsapp-web.js';
 
@@ -8,11 +8,11 @@ import { MongoStore } from '../../storage/MongoStore';
 
 class WebJSMongoAuth implements Store {
   private store: MongoStore;
-  private log: ConsoleLogger;
+  private logger: Logger;
 
-  constructor(store: MongoStore, log: ConsoleLogger) {
+  constructor(store: MongoStore, logger: Logger) {
     this.store = store;
-    this.log = log;
+    this.logger = logger;
   }
 
   db(session: string) {
@@ -20,18 +20,18 @@ class WebJSMongoAuth implements Store {
   }
 
   async sessionExists(options) {
-    this.log.log('Checking if session exists...');
+    this.logger.info('Checking if session exists...');
     const session = this.getSessionName(options);
     const filesCollection = this.getFilesCollectionName();
     const multiDeviceCollection = this.db(session).collection(filesCollection);
     const hasExistingSession = await multiDeviceCollection.countDocuments();
     const result = !!hasExistingSession;
-    this.log.log(`Session exists: ${result}`);
+    this.logger.info(`Session exists: ${result}`);
     return result;
   }
 
   async save(options) {
-    this.log.debug('Saving session...');
+    this.logger.debug('Saving session...');
     const session = this.getSessionName(options);
     const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
@@ -42,12 +42,12 @@ class WebJSMongoAuth implements Store {
     const readStream = fs.createReadStream(filename);
     const uploadStream = bucket.openUploadStream(filename);
     await pipeline(readStream, uploadStream);
-    this.log.debug('Session saved.');
+    this.logger.debug('Session saved.');
     await this.#deletePrevious(options, bucket);
   }
 
   async extract(options) {
-    this.log.log('Extracting existing session...');
+    this.logger.info('Extracting existing session...');
     const session = this.getSessionName(options);
     const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
@@ -58,11 +58,11 @@ class WebJSMongoAuth implements Store {
     const downloadStream = bucket.openDownloadStreamByName(filename);
     const writeStream = fs.createWriteStream(options.path);
     await pipeline(downloadStream, writeStream);
-    this.log.log('Session has been extracted.');
+    this.logger.info('Session has been extracted.');
   }
 
   async delete(options) {
-    this.log.debug('Deleting session...');
+    this.logger.debug('Deleting session...');
     const session = this.getSessionName(options);
     const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
@@ -78,7 +78,7 @@ class WebJSMongoAuth implements Store {
     documents.map(async (doc) => {
       return bucket.delete(doc._id);
     });
-    this.log.debug('Session deleted.');
+    this.logger.debug('Session deleted.');
   }
 
   async #deletePrevious(options, bucket) {
@@ -89,7 +89,7 @@ class WebJSMongoAuth implements Store {
       })
       .toArray();
     if (documents.length > 1) {
-      this.log.debug('Deleting old auth files...');
+      this.logger.debug('Deleting old auth files...');
       // Got all, but not the last one
       const oldDocuments = documents.slice();
       // Sort by uploadDate, desc
@@ -97,11 +97,11 @@ class WebJSMongoAuth implements Store {
         return a.uploadDate - b.uploadDate;
       });
       const keepDocument = oldDocuments.pop();
-      this.log.debug(
+      this.logger.debug(
         `Keeping document - '${keepDocument.uploadDate}', '${keepDocument._id}'`,
       );
       oldDocuments.map((document: GridFSFile) => {
-        this.log.debug(
+        this.logger.debug(
           `Deleting document - '${document.uploadDate}', '${document._id}'`,
         );
         return bucket.delete(document._id);
