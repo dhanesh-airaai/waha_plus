@@ -1,12 +1,18 @@
-import { downloadMediaMessage } from '@adiwajshing/baileys';
+import {
+  downloadMediaMessage,
+  getHttpStream,
+  getStream,
+} from '@adiwajshing/baileys';
 import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
+import { isNewsletter } from '@waha/core/abc/session.abc';
 import {
   toJID,
   WhatsappSessionNoWebCore,
 } from '@waha/core/engines/noweb/session.noweb.core';
 import { extractMediaContent } from '@waha/core/engines/noweb/utils';
 import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
+import { CreateChannelRequest } from '@waha/structures/channels.dto';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -137,6 +143,29 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       statusJidList: JIDs,
     };
     return this.sock.sendMessage(BROADCAST_ID, message, options);
+  }
+
+  /**
+   * Channels methods
+   */
+  public async channelsCreateChannel(request: CreateChannelRequest) {
+    const channel = await super.channelsCreateChannel(request);
+
+    if (request.picture) {
+      let file = request.picture;
+      let picture: any;
+      // @ts-ignore
+      if (file.url) {
+        file = file as RemoteFile;
+        picture = await getStream({ url: file.url });
+        // @ts-ignore
+      } else if (file.data) {
+        file = file as BinaryFile;
+        picture = Buffer.from(file.data, 'base64');
+      }
+      await this.sock.newsletterUpdatePicture(channel.id, picture);
+    }
+    return channel;
   }
 }
 

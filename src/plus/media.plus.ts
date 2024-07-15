@@ -146,7 +146,14 @@ export class PlusMediaManager implements MediaManager {
           i + 1
         }/${retries}...`,
       );
-      buffer = await processor.getMediaBuffer(message);
+      try {
+        buffer = await processor.getMediaBuffer(message);
+      } catch (e) {
+        this.log.error(`Error downloading media: ${e}`);
+        this.log.info(`Waiting 1 second and trying again...`);
+        await sleep(1_000);
+        continue;
+      }
       if (buffer) {
         break;
       }
