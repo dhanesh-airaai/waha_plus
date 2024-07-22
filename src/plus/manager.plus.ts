@@ -78,6 +78,7 @@ export class SessionManagerPlus extends SessionManager {
       this.log.info(`Connected to mongo '${mongoUrl}'!`);
 
       this.store = new MongoStore(mongo, engineName);
+      await this.store.init();
       this.sessionAuthRepository = new MongoSessionAuthRepository(this.store);
       this.sessionConfigRepository = new MongoSessionConfigRepository(
         this.store,
@@ -85,6 +86,7 @@ export class SessionManagerPlus extends SessionManager {
     } else {
       this.log.info('Using local storage for session info.');
       this.store = new LocalStorePlus(engineName);
+      await this.store.init();
       this.sessionAuthRepository = new LocalSessionAuthRepository(this.store);
       this.sessionConfigRepository = new LocalSessionConfigRepository(
         this.store,

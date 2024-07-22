@@ -37,4 +37,11 @@ export class MongoStore extends DataStore {
   command(command: Document) {
     return this.mongo.db().admin().command(command);
   }
+
+  async init(sessionName?: string): Promise<void> {
+    if (!sessionName) {
+      const collection = this.getMainDb().collection('sessions');
+      await collection.createIndex({ name: 1 }, { unique: true });
+    }
+  }
 }
