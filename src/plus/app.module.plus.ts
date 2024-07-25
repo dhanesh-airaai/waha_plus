@@ -108,7 +108,11 @@ export class AppModulePlus extends AppModuleCore {
   }
 
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('api', 'health', 'ws');
+    const exclude = this.config.getExcludedPaths();
+    consumer
+      .apply(AuthMiddleware)
+      .exclude(...exclude)
+      .forRoutes('api', 'health', 'ws');
     const dashboardCredentials = this.dashboardConfig.credentials;
     if (dashboardCredentials) {
       const username = dashboardCredentials[0];
