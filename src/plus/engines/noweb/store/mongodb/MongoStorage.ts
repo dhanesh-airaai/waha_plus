@@ -1,21 +1,27 @@
 import { WAMessage } from '@adiwajshing/baileys';
-import { Db } from 'mongodb';
-
-import { INowebStorage } from '../../../../../core/engines/noweb/store/INowebStorage';
+import { LabelAssociation } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
+import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
+import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
 import {
   Field,
   Index,
   NOWEB_STORE_SCHEMA,
   Schema,
-} from '../../../../../core/engines/noweb/store/Schema';
+} from '@waha/core/engines/noweb/store/Schema';
+import { MongoLabelAssociationsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelAssociationsRepository';
+import { MongoLabelsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelsRepository';
+import { Db } from 'mongodb';
+
+import { INowebStorage } from '../../../../../core/engines/noweb/store/INowebStorage';
 import { MongoChatRepository } from './MongoChatRepository';
 import { MongoContactRepository } from './MongoContactRepository';
 import { MongoMessagesRepository } from './MongoMessagesRepository';
 
-export class MongoStorage implements INowebStorage {
+export class MongoStorage extends INowebStorage {
   private readonly tables: Schema[];
 
   constructor(private db: Db) {
+    super();
     this.tables = NOWEB_STORE_SCHEMA;
   }
 
@@ -43,6 +49,25 @@ export class MongoStorage implements INowebStorage {
       .collection('messages')
       .createIndex({ jid: 1, messageTimestamp: 1 });
     await this.db.collection('messages').createIndex({ messageTimestamp: 1 });
+
+    //
+    // Labels
+    //
+    await this.db.collection('labels').createIndex({ id: 1 }, { unique: true });
+    // Label associations
+    await this.db
+      .collection('labelAssociations')
+      .createIndex({ id: 1 }, { unique: true });
+    await this.db
+      .collection('labelAssociations')
+      .createIndex({ type: 1, labelId: 1 });
+    await this.db
+      .collection('labelAssociations')
+      .createIndex({ type: 1, chatId: 1 });
+    await this.db
+      .collection('labelAssociations')
+      .createIndex({ type: 1, messageId: 1 });
+
     return;
   }
 
@@ -59,13 +84,23 @@ export class MongoStorage implements INowebStorage {
   }
 
   getMessagesRepository() {
-    const metadata = new Map()
-      .set('jid', (msg: WAMessage) => msg.key.remoteJid)
-      .set('id', (msg: WAMessage) => msg.key.id)
-      .set('messageTimestamp', (msg: WAMessage) => msg.messageTimestamp);
+    const metadata = this.getMessagesMetadata();
     return new MongoMessagesRepository(
       this.db,
       this.getSchema('messages'),
+      metadata,
+    );
+  }
+
+  getLabelsRepository(): ILabelsRepository {
+    return new MongoLabelsRepository(this.db, this.getSchema('labels'));
+  }
+
+  getLabelAssociationRepository(): ILabelAssociationRepository {
+    const metadata = this.getLabelAssociationMetadata();
+    return new MongoLabelAssociationsRepository(
+      this.db,
+      this.getSchema('labelAssociations'),
       metadata,
     );
   }

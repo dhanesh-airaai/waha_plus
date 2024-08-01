@@ -42,6 +42,16 @@ export class MongoRepository<Entity> {
     return rows.map(MongoRepository.revive);
   }
 
+  async getAllBy(filters: any) {
+    const rows = await this.collection.find(filters).toArray();
+    return rows.map(MongoRepository.revive);
+  }
+
+  async getAllByIds(ids: string[]) {
+    const rows = await this.collection.find({ id: { $in: ids } }).toArray();
+    return rows.map(MongoRepository.revive);
+  }
+
   protected async getBy(filters: any) {
     return await this.collection.findOne(filters).then(MongoRepository.revive);
   }
