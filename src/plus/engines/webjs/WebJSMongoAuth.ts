@@ -1,3 +1,4 @@
+import { sleep } from '@nestjs/terminus/dist/utils';
 import * as fs from 'fs';
 import { GridFSBucket, GridFSFile } from 'mongodb';
 import { Logger } from 'pino';
@@ -58,6 +59,8 @@ class WebJSMongoAuth implements Store {
     const downloadStream = bucket.openDownloadStreamByName(filename);
     const writeStream = fs.createWriteStream(options.path);
     await pipeline(downloadStream, writeStream);
+    // Wait a second before giving the zip file to next phase
+    await sleep(1_000);
     this.logger.info('Session has been extracted.');
   }
 
