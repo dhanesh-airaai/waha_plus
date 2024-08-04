@@ -12,13 +12,14 @@ import {
 } from '@waha/core/exceptions';
 import { QR } from '@waha/core/QR';
 import { parseBool } from '@waha/helpers';
+import { CallData } from '@waha/structures/calls.dto';
 import {
   Channel,
   ChannelRole,
   CreateChannelRequest,
   ListChannelsQuery,
 } from '@waha/structures/channels.dto';
-import { GetChatsQuery } from '@waha/structures/chats.dto';
+import { ChatArchiveEvent, GetChatsQuery } from '@waha/structures/chats.dto';
 import {
   ChatRequest,
   CheckNumberStatusQuery,
@@ -50,16 +51,19 @@ import {
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
 } from '@waha/structures/groups.dto';
+import { Label, LabelID } from '@waha/structures/labels.dto';
 import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { WAMessageRevokedBody } from '@waha/structures/webhooks.dto';
 import {
+  Call,
   Channel as WEBJSChannel,
   Chat,
   ClientOptions,
   Contact,
   Events,
   GroupChat,
+  Label as WEBJSLabel,
   Location,
   Message,
   Reaction,
@@ -467,6 +471,52 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return chat.clearMessages();
   }
 
+  public chatsArchiveChat(chatId: string): Promise<any> {
+    const id = this.ensureSuffix(chatId);
+    return this.whatsapp.archiveChat(id);
+  }
+
+  public chatsUnarchiveChat(chatId: string): Promise<any> {
+    const id = this.ensureSuffix(chatId);
+    return this.whatsapp.unarchiveChat(id);
+  }
+
+  /**
+   *
+   * Label methods
+   */
+
+  public async getLabels(): Promise<Label[]> {
+    const labels = await this.whatsapp.getLabels();
+    return labels.map(this.toLabel);
+  }
+
+  public getChatsByLabelId(labelId: string) {
+    return this.whatsapp.getChatsByLabelId(labelId);
+  }
+
+  public async getChatLabels(chatId: string): Promise<Label[]> {
+    const id = this.ensureSuffix(chatId);
+    const labels = await this.whatsapp.getChatLabels(id);
+    return labels.map(this.toLabel);
+  }
+
+  public async putLabelsToChat(chatId: string, labels: LabelID[]) {
+    const labelIds = labels.map((label) => label.id);
+    const chatIds = [this.ensureSuffix(chatId)];
+    await this.whatsapp.addOrRemoveLabels(labelIds, chatIds);
+  }
+
+  protected toLabel(label: WEBJSLabel): Label {
+    const color = label.colorIndex;
+    return {
+      id: label.id,
+      name: label.name,
+      color: color,
+      colorHex: Label.toHex(color),
+    };
+  }
+
   /**
    * Contacts methods
    */
@@ -809,6 +859,28 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         return true;
       case WAHAEvents.GROUP_LEAVE:
         this.whatsapp.on(Events.GROUP_LEAVE, handler);
+        return true;
+      case WAHAEvents.CHAT_ARCHIVE:
+        this.whatsapp.on('chat_archived', (chat, archived, _) => {
+          const body: ChatArchiveEvent = {
+            id: chat.id._serialized,
+            archived: archived,
+            timestamp: chat.timestamp,
+          };
+          handler(body);
+        });
+        return true;
+      case WAHAEvents.CALL_RECEIVED:
+        this.whatsapp.on('call', (call: Call) => {
+          const body: CallData = {
+            id: call.id,
+            from: call.from,
+            timestamp: call.timestamp,
+            isVideo: call.isVideo,
+            isGroup: call.isGroup,
+          };
+          handler(body);
+        });
         return true;
       default:
         return false;

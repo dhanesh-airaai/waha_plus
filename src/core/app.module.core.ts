@@ -18,6 +18,8 @@ import { ChattingController } from '../api/chatting.controller';
 import { ContactsController } from '../api/contacts.controller';
 import { GroupsController } from '../api/groups.controller';
 import { HealthController } from '../api/health.controller';
+import { LabelsController } from '../api/labels.controller';
+import { PingController } from '../api/ping.controller';
 import { PresenceController } from '../api/presence.controller';
 import { ScreenshotController } from '../api/screenshot.controller';
 import {
@@ -99,12 +101,14 @@ export const CONTROLLERS = [
   ChatsController,
   ChannelsController,
   StatusController,
+  LabelsController,
   ContactsController,
   GroupsController,
   PresenceController,
   ScreenshotController,
   VersionController,
   HealthController,
+  PingController,
 ];
 const PROVIDERS = [
   {

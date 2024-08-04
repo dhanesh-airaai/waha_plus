@@ -13,6 +13,14 @@ export enum WAHAEvents {
   PRESENCE_UPDATE = 'presence.update',
   POLL_VOTE = 'poll.vote',
   POLL_VOTE_FAILED = 'poll.vote.failed',
+  CHAT_ARCHIVE = 'chat.archive',
+  CALL_RECEIVED = 'call.received',
+  CALL_ACCEPTED = 'call.accepted',
+  CALL_REJECTED = 'call.rejected',
+  LABEL_UPSERT = 'label.upsert',
+  LABEL_DELETED = 'label.deleted',
+  LABEL_CHAT_ADDED = 'label.chat.added',
+  LABEL_CHAT_DELETED = 'label.chat.deleted',
 }
 
 export enum WAHASessionStatus {

@@ -18,12 +18,16 @@ import makeWASocket, {
   WAMessageContent,
   WAMessageKey,
 } from '@adiwajshing/baileys';
+import { WACallEvent } from '@adiwajshing/baileys/lib/Types/Call';
+import { Label as NOWEBLabel } from '@adiwajshing/baileys/lib/Types/Label';
+import { LabelAssociationType } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { isLidUser } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { NowebInMemoryStore } from '@waha/core/engines/noweb/store/NowebInMemoryStore';
 import { flipObject, parseBool, splitAt } from '@waha/helpers';
 import { PairingCodeResponse } from '@waha/structures/auth.dto';
+import { CallData } from '@waha/structures/calls.dto';
 import {
   Channel,
   ChannelRole,
@@ -32,6 +36,11 @@ import {
 } from '@waha/structures/channels.dto';
 import { GetChatsQuery } from '@waha/structures/chats.dto';
 import { ContactQuery, ContactRequest } from '@waha/structures/contacts.dto';
+import {
+  Label,
+  LabelChatAssociation,
+  LabelID,
+} from '@waha/structures/labels.dto';
 import {
   PollVote,
   PollVotePayload,
@@ -700,6 +709,73 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return chats;
   }
 
+  protected async chatsPutArchive(
+    chatId: string,
+    archive: boolean,
+  ): Promise<any> {
+    const jid = toJID(chatId);
+    const messages = await this.store.getMessagesByJid(jid, 1);
+    return await this.sock.chatModify(
+      { archive: archive, lastMessages: messages },
+      jid,
+    );
+  }
+
+  public chatsArchiveChat(chatId: string): Promise<any> {
+    return this.chatsPutArchive(chatId, true);
+  }
+
+  public chatsUnarchiveChat(chatId: string): Promise<any> {
+    return this.chatsPutArchive(chatId, false);
+  }
+
+  /**
+   * Labels methods
+   */
+
+  public async getLabels(): Promise<Label[]> {
+    const labels = await this.store.getLabels();
+    return labels.map(this.toLabel);
+  }
+
+  public async getChatsByLabelId(labelId: string) {
+    const chats = await this.store.getChatsByLabelId(labelId);
+    // Remove unreadCount, it's not ready yet
+    chats.forEach((chat) => delete chat.unreadCount);
+    return chats;
+  }
+
+  public async getChatLabels(chatId: string): Promise<Label[]> {
+    const jid = toJID(chatId);
+    const labels = await this.store.getChatLabels(jid);
+    return labels.map(this.toLabel);
+  }
+
+  public async putLabelsToChat(chatId: string, labels: LabelID[]) {
+    const jid = toJID(chatId);
+    const labelsIds = labels.map((label) => label.id);
+    const currentLabels = await this.store.getChatLabels(jid);
+    const currentLabelsIds = currentLabels.map((label) => label.id);
+    const addLabelsIds = lodash.difference(labelsIds, currentLabelsIds);
+    const removeLabelsIds = lodash.difference(currentLabelsIds, labelsIds);
+    for (const labelId of addLabelsIds) {
+      await this.sock.addChatLabel(jid, labelId);
+    }
+    for (const labelId of removeLabelsIds) {
+      await this.sock.removeChatLabel(jid, labelId);
+    }
+  }
+
+  protected toLabel(label: NOWEBLabel): Label {
+    const color = label.color;
+    return {
+      id: label.id,
+      name: label.name,
+      color: color,
+      colorHex: Label.toHex(color),
+    };
+  }
+
   /**
    * Contacts methods
    */
@@ -1013,6 +1089,99 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
           );
         });
         return true;
+      case WAHAEvents.CALL_RECEIVED:
+        this.sock.ev.on('call', (calls: WACallEvent[]) => {
+          calls = lodash.filter(calls, { status: 'offer' });
+          for (const call of calls) {
+            const body = this.toCallData(call);
+            handler(body);
+          }
+        });
+        return true;
+      case WAHAEvents.CALL_ACCEPTED:
+        this.sock.ev.on('call', (calls: WACallEvent[]) => {
+          calls = lodash.filter(calls, { status: 'accept' });
+          for (const call of calls) {
+            const body = this.toCallData(call);
+            handler(body);
+          }
+        });
+        return true;
+      case WAHAEvents.CALL_REJECTED:
+        this.sock.ev.on('call', (calls: WACallEvent[]) => {
+          const acceptCalls = lodash.filter(calls, { status: 'accept' });
+          if (acceptCalls.length > 0) {
+            // We got two events when accepting calls - reject and accept
+            // Like for each device
+            // So if we see accepted call - ignore rejected
+            return;
+          }
+
+          calls = lodash.filter(calls, { status: 'reject' });
+          for (const call of calls) {
+            const body = this.toCallData(call);
+            if (body.isGroup == null) {
+              // We get two "reject" events, one with null property, ignore it
+              return;
+            }
+            handler(body);
+          }
+        });
+        return true;
+      case WAHAEvents.LABEL_UPSERT:
+        this.sock.ev.on('labels.edit', (data: NOWEBLabel) => {
+          if (data.deleted) {
+            return;
+          }
+          const body = this.toLabel(data);
+          handler(body);
+        });
+        return true;
+      case WAHAEvents.LABEL_DELETED:
+        this.sock.ev.on('labels.edit', (data: NOWEBLabel) => {
+          if (!data.deleted) {
+            return;
+          }
+          const body = this.toLabel(data);
+          handler(body);
+        });
+        return true;
+      case WAHAEvents.LABEL_CHAT_ADDED:
+        this.sock.ev.on('labels.association', async ({ association, type }) => {
+          if (type !== 'add') {
+            return;
+          }
+          if (association.type !== LabelAssociationType.Chat) {
+            return;
+          }
+          const labelData = await this.store.getLabelById(association.labelId);
+          const label = labelData ? this.toLabel(labelData) : null;
+          const body: LabelChatAssociation = {
+            labelId: association.labelId,
+            chatId: toCusFormat(association.chatId),
+            label: label,
+          };
+          handler(body);
+        });
+        return true;
+      case WAHAEvents.LABEL_CHAT_DELETED:
+        this.sock.ev.on('labels.association', async ({ association, type }) => {
+          if (type !== 'remove') {
+            return;
+          }
+          if (association.type !== LabelAssociationType.Chat) {
+            return;
+          }
+          const labelData = await this.store.getLabelById(association.labelId);
+          const label = labelData ? this.toLabel(labelData) : null;
+          const body: LabelChatAssociation = {
+            labelId: association.labelId,
+            chatId: toCusFormat(association.chatId),
+            label: label,
+          };
+          handler(body);
+        });
+        return true;
       default:
         return false;
     }
@@ -1248,6 +1417,20 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       poll: getDestination(pollCreationMessageKey),
     };
     handler(payload);
+  }
+
+  private toCallData(call: WACallEvent): CallData {
+    // call.date can be either string 2024-07-18T09:45:55.000Z or Date
+    const date = new Date(call.date);
+    // convert to timestamp in seconds
+    const timestamp: number = date.getTime() / 1000;
+    return {
+      id: call.id,
+      from: toCusFormat(call.from),
+      timestamp: timestamp,
+      isVideo: call.isVideo,
+      isGroup: call.isGroup,
+    };
   }
 
   private toWahaPresences(

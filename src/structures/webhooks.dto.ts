@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CallData } from '@waha/structures/calls.dto';
+import { Label, LabelChatAssociation } from '@waha/structures/labels.dto';
 
+import { ChatArchiveEvent } from './chats.dto';
 import { MessageDestination } from './chatting.dto';
 import {
   WAHAEngine,
@@ -86,6 +89,7 @@ export class WAMessageRevokedBody {
   after?: WAMessage;
   before?: WAMessage;
 }
+
 export class WASessionStatusBody {
   @ApiProperty({
     example: 'default',
@@ -117,6 +121,7 @@ export class WAHAWebhook {
     // eslint-disable-next-line @typescript-eslint/ban-types
     | object;
 }
+
 class WAHAWebhookSessionStatus extends WAHAWebhook {
   @ApiProperty({
     description: 'The event is triggered when the session status changes.',
@@ -229,6 +234,82 @@ class WAHAWebhookPollVoteFailed extends WAHAWebhook {
   payload: PollVotePayload;
 }
 
+class WAHAWebhookChatArchive extends WAHAWebhook {
+  @ApiProperty({
+    description:
+      'The event is triggered when the chat is archived or unarchived',
+  })
+  event = WAHAEvents.CHAT_ARCHIVE;
+
+  payload: ChatArchiveEvent;
+}
+
+class WAHAWebhookCallReceived extends WAHAWebhook {
+  @ApiProperty({
+    description:
+      'The event is triggered when the call is received by the user.',
+  })
+  event = WAHAEvents.CALL_RECEIVED;
+
+  payload: CallData;
+}
+
+class WAHAWebhookCallAccepted extends WAHAWebhook {
+  @ApiProperty({
+    description:
+      'The event is triggered when the call is accepted by the user.',
+  })
+  event = WAHAEvents.CALL_ACCEPTED;
+
+  payload: CallData;
+}
+
+class WAHAWebhookCallRejected extends WAHAWebhook {
+  @ApiProperty({
+    description:
+      'The event is triggered when the call is rejected by the user.',
+  })
+  event = WAHAEvents.CALL_REJECTED;
+
+  payload: CallData;
+}
+
+class WAHAWebhookLabelUpsert extends WAHAWebhook {
+  @ApiProperty({
+    description: 'The event is triggered when a label is created or updated',
+  })
+  event = WAHAEvents.LABEL_UPSERT;
+
+  payload: Label;
+}
+
+class WAHAWebhookLabelDeleted extends WAHAWebhook {
+  @ApiProperty({
+    description: 'The event is triggered when a label is deleted',
+  })
+  event = WAHAEvents.LABEL_DELETED;
+
+  payload: Label;
+}
+
+class WAHAWebhookLabelChatAdded extends WAHAWebhook {
+  @ApiProperty({
+    description: 'The event is triggered when a label is added to a chat',
+  })
+  event = WAHAEvents.LABEL_CHAT_ADDED;
+
+  payload: LabelChatAssociation;
+}
+
+class WAHAWebhookLabelChatDeleted extends WAHAWebhook {
+  @ApiProperty({
+    description: 'The event is triggered when a label is deleted from a chat',
+  })
+  event = WAHAEvents.LABEL_CHAT_DELETED;
+
+  payload: LabelChatAssociation;
+}
+
 const WAHA_WEBHOOKS = [
   WAHAWebhookSessionStatus,
   WAHAWebhookMessage,
@@ -242,5 +323,13 @@ const WAHA_WEBHOOKS = [
   WAHAWebhookPresenceUpdate,
   WAHAWebhookPollVote,
   WAHAWebhookPollVoteFailed,
+  WAHAWebhookChatArchive,
+  WAHAWebhookCallReceived,
+  WAHAWebhookCallAccepted,
+  WAHAWebhookCallRejected,
+  WAHAWebhookLabelUpsert,
+  WAHAWebhookLabelDeleted,
+  WAHAWebhookLabelChatAdded,
+  WAHAWebhookLabelChatDeleted,
 ];
 export { WAHA_WEBHOOKS };

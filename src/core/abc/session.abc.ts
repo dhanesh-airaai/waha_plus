@@ -4,6 +4,7 @@ import {
   ListChannelsQuery,
 } from '@waha/structures/channels.dto';
 import { GetChatsQuery } from '@waha/structures/chats.dto';
+import { Label, LabelID } from '@waha/structures/labels.dto';
 import { LoggerBuilder } from '@waha/utils/logging';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
@@ -321,6 +322,34 @@ export abstract class WhatsappSession {
   }
 
   public clearMessages(chatId) {
+    throw new NotImplementedByEngineError();
+  }
+
+  public chatsArchiveChat(chatId: string): Promise<any> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public chatsUnarchiveChat(chatId: string): Promise<any> {
+    throw new NotImplementedByEngineError();
+  }
+
+  /**
+   * Labels methods
+   */
+
+  public getLabels(): Promise<Label[]> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public getChatsByLabelId(labelId: string) {
+    throw new NotImplementedByEngineError();
+  }
+
+  public getChatLabels(chatId: string): Promise<Label[]> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public putLabelsToChat(chatId: string, labels: LabelID[]) {
     throw new NotImplementedByEngineError();
   }
 
