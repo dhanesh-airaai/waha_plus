@@ -1,6 +1,7 @@
 import { DataStore } from '@waha/core/abc/DataStore';
 import { LocalStore } from '@waha/core/storage/LocalStore';
 import { RemoteAuth } from '@waha/plus/engines/webjs/RemoteAuth';
+import { StreamZipper } from '@waha/plus/engines/webjs/StreamZipper';
 import { WebJSMongoAuth } from '@waha/plus/engines/webjs/WebJSMongoAuth';
 import { MongoStore } from '@waha/plus/storage/MongoStore';
 import { LoggerBuilder } from '@waha/utils/logging';
@@ -38,6 +39,7 @@ export class WebJSAuthFactory {
       dataPath: null,
       backupSyncIntervalMs: 60 * 1000,
       logger: loggerBuilder.child({ name: RemoteAuth.name }),
+      zipper: new StreamZipper(),
     });
   }
 }
