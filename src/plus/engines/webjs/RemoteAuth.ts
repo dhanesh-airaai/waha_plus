@@ -182,6 +182,10 @@ export class RemoteAuth implements AuthStrategy {
       this.client.emit(Events.REMOTE_SESSION_SAVED);
     }
 
+    if (this.backupSync) {
+      return;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     this.backupSync = setInterval(async function () {
@@ -219,6 +223,7 @@ export class RemoteAuth implements AuthStrategy {
       session: this.sessionName,
       path: this.compressedSessionPath,
     });
+    await this.removePathSilently(this.userDataDir);
     await this.unCompressSession();
     await this.removePathSilently(this.compressedSessionPath);
   }
