@@ -1,9 +1,10 @@
 import { DataStore } from '@waha/core/abc/DataStore';
 import { LocalStore } from '@waha/core/storage/LocalStore';
+import { RemoteAuth } from '@waha/plus/engines/webjs/RemoteAuth';
 import { WebJSMongoAuth } from '@waha/plus/engines/webjs/WebJSMongoAuth';
 import { MongoStore } from '@waha/plus/storage/MongoStore';
 import { LoggerBuilder } from '@waha/utils/logging';
-import { AuthStrategy, LocalAuth, RemoteAuth } from 'whatsapp-web.js';
+import { AuthStrategy, LocalAuth } from 'whatsapp-web.js';
 
 export class WebJSAuthFactory {
   buildAuth(
@@ -34,7 +35,9 @@ export class WebJSAuthFactory {
     return new RemoteAuth({
       clientId: name,
       store: authStore,
+      dataPath: null,
       backupSyncIntervalMs: 60 * 1000,
+      logger: loggerBuilder.child({ name: RemoteAuth.name }),
     });
   }
 }
