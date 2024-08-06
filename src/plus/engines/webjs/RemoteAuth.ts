@@ -1,3 +1,4 @@
+import { SinglePeriodicJobRunner } from '@waha/utils/SinglePeriodicJobRunner';
 import * as path from 'path';
 import pino, { Logger } from 'pino';
 import { AuthStrategy, Client, Events, Store } from 'whatsapp-web.js';
@@ -58,7 +59,6 @@ export class RemoteAuth implements AuthStrategy {
   private INITIAL_DELAY_MS = 60000;
 
   private readonly clientId: string;
-  private readonly backupSyncIntervalMs: number;
   private readonly dataPath: string;
   private readonly tempDir: string;
   private readonly store: Store;
@@ -67,7 +67,7 @@ export class RemoteAuth implements AuthStrategy {
   private client: any;
   private userDataDir: string;
   private sessionName: string;
-  private backupSync: NodeJS.Timeout;
+  private backupSyncRunner: SinglePeriodicJobRunner;
   private zipper: Zipper;
 
   constructor(
@@ -100,11 +100,15 @@ export class RemoteAuth implements AuthStrategy {
 
     this.store = store;
     this.clientId = clientId;
-    this.backupSyncIntervalMs = backupSyncIntervalMs;
     this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
     this.tempDir = `${this.dataPath}/wwebjs_temp_session_${this.clientId}`;
     this.zipper = zipper;
     this.logger = logger || pino({ name: RemoteAuth.name });
+    this.backupSyncRunner = new SinglePeriodicJobRunner(
+      'RemoteAuth Backup Sync',
+      backupSyncIntervalMs,
+      this.logger,
+    );
   }
 
   get compressedSessionPath() {
@@ -163,7 +167,7 @@ export class RemoteAuth implements AuthStrategy {
   }
 
   async destroy() {
-    clearInterval(this.backupSync);
+    this.backupSyncRunner.stop();
   }
 
   async disconnect() {
@@ -182,15 +186,9 @@ export class RemoteAuth implements AuthStrategy {
       this.client.emit(Events.REMOTE_SESSION_SAVED);
     }
 
-    if (this.backupSync) {
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    this.backupSync = setInterval(async function () {
-      await self.storeRemoteSession();
-    }, this.backupSyncIntervalMs);
+    this.backupSyncRunner.start(async () => {
+      await this.storeRemoteSession();
+    });
   }
 
   async storeRemoteSession() {
