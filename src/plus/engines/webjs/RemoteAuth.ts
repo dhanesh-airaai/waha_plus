@@ -1,3 +1,4 @@
+import { sleep } from '@waha/utils/promiseTimeout';
 import { SinglePeriodicJobRunner } from '@waha/utils/SinglePeriodicJobRunner';
 import * as path from 'path';
 import pino, { Logger } from 'pino';
@@ -15,10 +16,6 @@ try {
 } catch {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   fs = undefined;
-}
-
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function isValidPath(path: string) {
