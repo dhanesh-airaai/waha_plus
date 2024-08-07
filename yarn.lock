@@ -10074,6 +10074,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pretty-bytes@npm:5.6.0":
+  version: 5.6.0
+  resolution: "pretty-bytes@npm:5.6.0"
+  checksum: 9c082500d1e93434b5b291bd651662936b8bd6204ec9fa17d563116a192d6d86b98f6d328526b4e8d783c07d5499e2614a807520249692da9ec81564b2f439cd
+  languageName: node
+  linkType: hard
+
 "pretty-format@npm:^25.2.1, pretty-format@npm:^25.5.0":
   version: 25.5.0
   resolution: "pretty-format@npm:25.5.0"
@@ -12921,6 +12928,7 @@ __metadata:
     pino-http: ^10.2.0
     pino-pretty: ^11.2.1
     prettier: ^1.19.1
+    pretty-bytes: 5.6.0
     puppeteer: ^21.0.0
     qrcode: ^1.5.1
     qrcode-terminal: ^0.12.0
@@ -13037,7 +13045,7 @@ __metadata:
 
 "whatsapp-web.js@github:devlikeapro/whatsapp-web.js#fork-webpack-exodus-channels":
   version: 1.24.0
-  resolution: "whatsapp-web.js@https://github.com/devlikeapro/whatsapp-web.js.git#commit=ec31dbb7207599b602169c70923f114dbc7c526e"
+  resolution: "whatsapp-web.js@https://github.com/devlikeapro/whatsapp-web.js.git#commit=f28dad2d12136192e9ee45370d768323196c10c0"
   dependencies:
     "@pedroslopez/moduleraid": ^5.0.2
     adm-zip: ^0.5.10
@@ -13056,7 +13064,7 @@ __metadata:
       optional: true
     unzipper:
       optional: true
-  checksum: 65dc78c2e057ef5c366f7e4d2d9940017e5a37eb740c70aaabb1bcf2fc54b8886d41a925cfad87757922c7966bcca328c483438934725958a92e4519e11b6197
+  checksum: 0bd28b1f332aafaa6f9d467de04c33da99c139208d03bef78c5323c0e3ada6762f31e156d63cc2f6a46bb90e298ad08ddd2db25e13fb045fc2d1a2e69595758b
   languageName: node
   linkType: hard
 
