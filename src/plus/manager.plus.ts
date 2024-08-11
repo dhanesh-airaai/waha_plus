@@ -103,7 +103,7 @@ export class SessionManagerPlus extends SessionManager {
       return;
     }
 
-    const stoppedSessions = await this.sessionAuthRepository.getAll();
+    const stoppedSessions = await this.sessionConfigRepository.getAll();
 
     const promises = stoppedSessions.map(async (sessionName) => {
       this.log.info(`Restarting STOPPED session - ${sessionName}...`);
@@ -290,7 +290,7 @@ export class SessionManagerPlus extends SessionManager {
   async getSessions(all, name?: string): Promise<SessionInfo[]> {
     let sessionNames = Object.keys(this.sessions);
     if (all) {
-      const stoppedSession = await this.sessionAuthRepository.getAll();
+      const stoppedSession = await this.sessionConfigRepository.getAll();
       sessionNames = lodash.union(sessionNames, stoppedSession);
     }
 

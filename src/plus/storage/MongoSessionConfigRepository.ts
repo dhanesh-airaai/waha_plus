@@ -40,7 +40,12 @@ export class MongoSessionConfigRepository extends ISessionConfigRepository {
     await this.collection.deleteOne({ name: sessionName });
   }
 
-  async getAll(): Promise<SessionConfigWithName[]> {
+  private async getAllWithName(): Promise<SessionConfigWithName[]> {
     return await this.collection.find().toArray();
+  }
+
+  async getAll(): Promise<string[]> {
+    const sessions = await this.getAllWithName();
+    return sessions.map((session) => session.name);
   }
 }
