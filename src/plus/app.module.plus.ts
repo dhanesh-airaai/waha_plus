@@ -7,8 +7,8 @@ import {
   Module,
 } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { BufferJsonReplacerInterceptor } from '@waha/api/BufferJsonReplacerInterceptor';
 import { parseBool } from '@waha/helpers';
+import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
 import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
 import { HttpsExpress } from '@waha/plus/HttpsExpress';
 import { PinoLogger } from 'nestjs-pino';
