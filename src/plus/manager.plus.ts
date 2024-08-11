@@ -108,7 +108,7 @@ export class SessionManagerPlus extends SessionManager {
     const promises = stoppedSessions.map(async (sessionName) => {
       this.log.info(`Restarting STOPPED session - ${sessionName}...`);
       const config = await this.sessionConfigRepository.get(sessionName);
-      return this.start({ name: sessionName, config: config });
+      return this.startOld({ name: sessionName, config: config });
     });
     await Promise.all(promises);
   }
@@ -121,7 +121,7 @@ export class SessionManagerPlus extends SessionManager {
         return;
       }
       const config = await this.sessionConfigRepository.get(sessionName);
-      return this.start({ name: sessionName, config: config });
+      return this.startOld({ name: sessionName, config: config });
     });
     await Promise.all(promises);
   }
@@ -142,7 +142,7 @@ export class SessionManagerPlus extends SessionManager {
     this.log.info('Stop all sessions...');
     for (const name of Object.keys(this.sessions)) {
       try {
-        await this.stop({ name: name, logout: false });
+        await this.stopOld({ name: name, logout: false });
       } catch (err) {
         this.log.error(`Error while stopping session '${name}'`, err);
       }
@@ -164,7 +164,7 @@ export class SessionManagerPlus extends SessionManager {
   //
   // API Methods
   //
-  async start(request: SessionStartRequest) {
+  async startOld(request: SessionStartRequest) {
     const name = request.name;
     if (this.sessions[name]) {
       throw new UnprocessableEntityException(
@@ -252,7 +252,7 @@ export class SessionManagerPlus extends SessionManager {
     return getProxyConfig(this.config, this.sessions, request.name);
   }
 
-  async stop(request: SessionStopRequest) {
+  async stopOld(request: SessionStopRequest) {
     const name = request.name;
     this.log.info(`Stopping ${name} session...`);
     const session = this.getSession(name);
@@ -261,9 +261,9 @@ export class SessionManagerPlus extends SessionManager {
     delete this.sessions[name];
   }
 
-  async logout(request: SessionLogoutRequest) {
+  async logoutOld(request: SessionLogoutRequest) {
     const name = request.name;
-    this.stop({ name: name, logout: false })
+    this.stopOld({ name: name, logout: false })
       .then(() => {
         this.log.info(`Session '${name}' has been stopped.`);
       })
