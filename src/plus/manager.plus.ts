@@ -26,10 +26,8 @@ import {
   MeInfo,
   ProxyConfig,
   SessionConfig,
+  SessionDTO,
   SessionInfo,
-  SessionLogoutRequest,
-  SessionStartRequest,
-  SessionStopRequest,
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
@@ -107,8 +105,7 @@ export class SessionManagerPlus extends SessionManager {
 
     const promises = stoppedSessions.map(async (sessionName) => {
       this.log.info(`Restarting STOPPED session - ${sessionName}...`);
-      const config = await this.sessionConfigRepository.get(sessionName);
-      return this.startOld({ name: sessionName, config: config });
+      return this.start(sessionName);
     });
     await Promise.all(promises);
   }
@@ -120,8 +117,7 @@ export class SessionManagerPlus extends SessionManager {
       if (this.sessions[sessionName]) {
         return;
       }
-      const config = await this.sessionConfigRepository.get(sessionName);
-      return this.startOld({ name: sessionName, config: config });
+      return this.start(sessionName);
     });
     await Promise.all(promises);
   }
@@ -142,7 +138,7 @@ export class SessionManagerPlus extends SessionManager {
     this.log.info('Stop all sessions...');
     for (const name of Object.keys(this.sessions)) {
       try {
-        await this.stopOld({ name: name, logout: false });
+        await this.stop(name, false);
       } catch (err) {
         this.log.error(`Error while stopping session '${name}'`, err);
       }
@@ -164,16 +160,33 @@ export class SessionManagerPlus extends SessionManager {
   //
   // API Methods
   //
-  async startOld(request: SessionStartRequest) {
-    const name = request.name;
-    if (this.sessions[name]) {
-      throw new UnprocessableEntityException(
-        `Session '${name}' is already started.`,
-      );
-    }
+  isRunning(name: string): boolean {
+    return !!this.sessions[name];
+  }
+
+  async upsert(name: string, config?: SessionConfig): Promise<void> {
+    this.log.info(`Saving session...`, { session: name });
+    await this.sessionAuthRepository.init(name);
+    await this.sessionConfigRepository.save(name, config || null);
+    this.log.info(`Session saved.`, { session: name });
+  }
+
+  async delete(name: string): Promise<void> {
+    this.log.info(`Deleting session...`, { session: name });
+    await this.sessionConfigRepository.delete(name);
+    this.log.info(`Session deleted.`, { session: name });
+  }
+
+  async start(name: string): Promise<SessionDTO> {
     this.log.info(`starting session...`, { session: name });
+    if (this.isRunning(name)) {
+      const msg = `Session '${name}' is already started.`;
+      throw new UnprocessableEntityException(msg);
+    }
+
     const logger = this.log.logger.child({ session: name });
-    logger.level = getPinoLogLevel(request.config?.debug);
+    const config = await this.sessionConfigRepository.get(name);
+    logger.level = getPinoLogLevel(config?.debug);
     const loggerBuilder: LoggerBuilder = logger;
 
     const storage = new MediaStoragePlus(
@@ -188,7 +201,7 @@ export class SessionManagerPlus extends SessionManager {
       loggerBuilder.child({ name: 'MediaManager' }),
     );
     const webhook = new this.WebhookConductorClass(loggerBuilder);
-    const proxyConfig = this.getProxyConfig(request);
+    const proxyConfig = this.getProxyConfig(name, config);
     const sessionConfig: SessionParams = {
       name,
       mediaManager,
@@ -196,18 +209,17 @@ export class SessionManagerPlus extends SessionManager {
       printQR: this.engineConfigService.shouldPrintQR,
       sessionStore: this.store,
       proxyConfig: proxyConfig,
-      sessionConfig: request.config,
+      sessionConfig: config,
     };
     if (this.EngineClass === WhatsappSessionWebJSPlus) {
       sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
     }
-    await this.sessionAuthRepository.init(name);
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
     this.sessions[name] = session;
 
     // configure webhooks
-    const webhooks = this.getWebhooks(request);
+    const webhooks = this.getWebhooks(config);
     webhook.configure(session, webhooks);
 
     // configure events
@@ -226,12 +238,43 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   /**
+   * Stop session
+   * @param name
+   * @param silent - if true, throw error if session is not stopped successfully
+   */
+  async stop(name: string, silent: boolean): Promise<void> {
+    this.log.info(`Stopping session...`, { session: name });
+    if (!this.isRunning(name)) {
+      this.log.info(`Session is not running.`, { session: name });
+      return;
+    }
+    try {
+      const session = this.getSession(name);
+      await session.stop();
+    } catch (err) {
+      this.log.warn(`Error while stopping session '${name}'`);
+      if (silent) {
+        return;
+      }
+      throw err;
+    }
+    this.log.info(`Session has been stopped.`, { session: name });
+    delete this.sessions[name];
+  }
+
+  async logout(name: string): Promise<void> {
+    this.log.info(`Logging out session...`, { session: name });
+    await this.sessionAuthRepository.clean(name);
+    this.log.info(`Session has been logged out.`, { session: name });
+  }
+
+  /**
    * Combine per session and global webhooks
    */
-  private getWebhooks(request: SessionStartRequest) {
+  private getWebhooks(config: SessionConfig) {
     let webhooks: WebhookConfig[] = [];
-    if (request.config?.webhooks) {
-      webhooks = webhooks.concat(request.config.webhooks);
+    if (config?.webhooks) {
+      webhooks = webhooks.concat(config.webhooks);
     }
     const globalWebhookConfig = this.config.getWebhookConfig();
     if (globalWebhookConfig) {
@@ -244,37 +287,13 @@ export class SessionManagerPlus extends SessionManager {
    * Get either session's or global proxy if defined
    */
   protected getProxyConfig(
-    request: SessionStartRequest,
+    name: string,
+    config?: SessionConfig,
   ): ProxyConfig | undefined {
-    if (request.config?.proxy) {
-      return request.config.proxy;
+    if (config?.proxy) {
+      return config.proxy;
     }
-    return getProxyConfig(this.config, this.sessions, request.name);
-  }
-
-  async stopOld(request: SessionStopRequest) {
-    const name = request.name;
-    this.log.info(`Stopping ${name} session...`);
-    const session = this.getSession(name);
-    await session.stop();
-    this.log.info(`"${name}" has been stopped.`);
-    delete this.sessions[name];
-  }
-
-  async logoutOld(request: SessionLogoutRequest) {
-    const name = request.name;
-    this.stopOld({ name: name, logout: false })
-      .then(() => {
-        this.log.info(`Session '${name}' has been stopped.`);
-      })
-      .catch((err) => {
-        this.log.error(
-          `Error while stopping session '${name}' while logging out`,
-          err,
-        );
-      });
-    await this.sessionAuthRepository.clean(request.name);
-    await this.sessionConfigRepository.delete(request.name);
+    return getProxyConfig(this.config, this.sessions, name);
   }
 
   getSession(name: string): WhatsappSession {
