@@ -16,6 +16,10 @@ export class MongoSessionConfigRepository extends ISessionConfigRepository {
     this.collection = store.getMainDb().collection('sessions');
   }
 
+  async exists(sessionName: string): Promise<boolean> {
+    return !!(await this.collection.findOne({ name: sessionName }));
+  }
+
   async save(sessionName: string, config: SessionConfig): Promise<void> {
     await this.collection.replaceOne(
       { name: sessionName },
