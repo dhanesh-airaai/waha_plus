@@ -161,7 +161,7 @@ export class SessionManagerPlus extends SessionManager {
   // API Methods
   //
   async exists(name: string): Promise<boolean> {
-    return !!(await this.sessionConfigRepository.get(name));
+    return await this.sessionConfigRepository.exists(name);
   }
 
   isRunning(name: string): boolean {
