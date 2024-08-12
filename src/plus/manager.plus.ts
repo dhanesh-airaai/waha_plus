@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
-import { promiseTimeout } from '@waha/utils/promiseTimeout';
+import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
@@ -43,6 +43,7 @@ import { WebhookConductorPlus } from './webhooks.plus';
 
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
+  SESSION_STOP_TIMEOUT = 5000;
   private readonly sessions: Record<string, WhatsappSession>;
 
   // @ts-ignore
@@ -261,13 +262,13 @@ export class SessionManagerPlus extends SessionManager {
       await session.stop();
     } catch (err) {
       this.log.warn(`Error while stopping session '${name}'`);
-      if (silent) {
-        return;
+      if (!silent) {
+        throw err;
       }
-      throw err;
     }
     this.log.info(`Session has been stopped.`, { session: name });
     delete this.sessions[name];
+    await sleep(this.SESSION_STOP_TIMEOUT);
   }
 
   async logout(name: string): Promise<void> {
