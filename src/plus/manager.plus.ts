@@ -43,7 +43,7 @@ import { WebhookConductorPlus } from './webhooks.plus';
 
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
-  SESSION_STOP_TIMEOUT = 5000;
+  SESSION_STOP_TIMEOUT = 3000;
   private readonly sessions: Record<string, WhatsappSession>;
 
   // @ts-ignore
