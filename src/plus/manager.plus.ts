@@ -137,14 +137,11 @@ export class SessionManagerPlus extends SessionManager {
 
   async beforeApplicationShutdown(signal?: string) {
     this.log.info('Stop all sessions...');
-    for (const name of Object.keys(this.sessions)) {
-      try {
-        await this.stop(name, false);
-      } catch (err) {
-        this.log.error(`Error while stopping session '${name}'`, err);
-      }
-    }
+    const promises = Object.keys(this.sessions).map(async (sessionName) => {
+      await this.stop(sessionName, true);
+    });
     this.log.info('All sessions have been stopped.');
+    await Promise.all(promises);
   }
 
   private clearStorage() {
@@ -194,6 +191,7 @@ export class SessionManagerPlus extends SessionManager {
       sessionRunTimestamp: Date.now(),
     });
     const config = await this.sessionConfigRepository.get(name);
+    await this.sessionAuthRepository.init(name);
     logger.level = getPinoLogLevel(config?.debug);
     const loggerBuilder: LoggerBuilder = logger;
 
@@ -252,11 +250,12 @@ export class SessionManagerPlus extends SessionManager {
    * @param silent - if true, throw error if session is not stopped successfully
    */
   async stop(name: string, silent: boolean): Promise<void> {
-    this.log.info(`Stopping session...`, { session: name });
     if (!this.isRunning(name)) {
-      this.log.info(`Session is not running.`, { session: name });
+      this.log.debug(`Session is not running.`, { session: name });
       return;
     }
+
+    this.log.info(`Stopping session...`, { session: name });
     try {
       const session = this.getSession(name);
       await session.stop();
@@ -340,9 +339,9 @@ export class SessionManagerPlus extends SessionManager {
             10,
             this.sessions[sessionName].getEngineInfo(),
           );
-        } catch (e) {
+        } catch (error) {
           this.log.warn(
-            { session: sessionName },
+            { session: sessionName, error: error },
             'Error while getting engine info',
           );
         }
