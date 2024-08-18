@@ -169,6 +169,18 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   }
 }
 
+function hasPath(url: string) {
+  if (!url) {
+    return false;
+  }
+  try {
+    const urlObj = new URL(url);
+    return urlObj.pathname !== '/';
+  } catch (error) {
+    return false;
+  }
+}
+
 class EngineMediaProcessor extends CoreEngineMediaProcessor {
   private readonly logger: BaileysLogger;
 
@@ -189,6 +201,15 @@ class EngineMediaProcessor extends CoreEngineMediaProcessor {
   }
 
   async getMediaBuffer(message: any): Promise<Buffer | null> {
+    const content = extractMediaContent(message.message);
+    // Fix Stickers
+    // https://github.com/devlikeapro/waha/issues/504
+    const url = content.url;
+    if (!hasPath(url)) {
+      // Set it to null so the engine handles it right
+      content.url = null;
+    }
+
     return (await downloadMediaMessage(
       message,
       'buffer',
@@ -197,6 +218,10 @@ class EngineMediaProcessor extends CoreEngineMediaProcessor {
         logger: this.logger,
         reuploadRequest: this.session.sock.updateMediaMessage,
       },
-    )) as Buffer;
+    ).finally(() => {
+      // Fix Stickers - set url back, just to have it in the response
+      // https://github.com/devlikeapro/waha/issues/504
+      content.url = url;
+    })) as Buffer;
   }
 }
