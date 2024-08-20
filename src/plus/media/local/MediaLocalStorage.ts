@@ -4,7 +4,7 @@ import * as path from 'path';
 import { Logger } from 'pino';
 import { promisify } from 'util';
 
-import { SECOND } from '../../structures/enums.dto';
+import { SECOND } from '../../../structures/enums.dto';
 import fs = require('fs');
 import del = require('del');
 import { fileExists } from '@waha/utils/files';

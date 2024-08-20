@@ -11,8 +11,11 @@ export class SwaggerConfigServicePlus extends SwaggerConfigServiceCore {
   }
 
   get credentials(): [string, string] | undefined {
-    const user = this.configService.get('WHATSAPP_SWAGGER_USERNAME', undefined);
-    const password = this.configService.get(
+    const user = this.configService.get<string>(
+      'WHATSAPP_SWAGGER_USERNAME',
+      undefined,
+    );
+    const password = this.configService.get<string>(
       'WHATSAPP_SWAGGER_PASSWORD',
       undefined,
     );

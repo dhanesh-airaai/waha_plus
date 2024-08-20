@@ -8,7 +8,7 @@ export class WebJSEngineConfigService {
   constructor(protected configService: ConfigService) {}
 
   getConfig(): WebJSConfig {
-    let webVersion = this.configService.get(
+    let webVersion = this.configService.get<string>(
       'WAHA_WEBJS_WEB_VERSION',
       undefined,
     );

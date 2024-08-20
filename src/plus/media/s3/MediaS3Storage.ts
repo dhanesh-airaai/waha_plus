@@ -11,8 +11,8 @@ import { Logger } from 'pino';
 export class MediaS3Storage implements IMediaStorage {
   constructor(
     private client: S3Client,
-    protected log: Logger,
     private bucket: string,
+    protected log: Logger,
   ) {}
 
   private getKey(data: MediaData) {

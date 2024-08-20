@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { MediaManagerPlus } from '@waha/plus/media/MediaManagerPlus';
+import { MediaStorageFactory } from '@waha/plus/media/MediaStorageFactory';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
@@ -35,7 +36,6 @@ import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './engines/venom/session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
-import { MediaLocalStorage } from './media/MediaLocalStorage';
 import { LocalStorePlus } from './storage/LocalStorePlus';
 import { MongoSessionAuthRepository } from './storage/MongoSessionAuthRepository';
 import { MongoSessionConfigRepository } from './storage/MongoSessionConfigRepository';
@@ -56,6 +56,7 @@ export class SessionManagerPlus extends SessionManager {
     private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
     private log: PinoLogger,
+    private mediaStorageFactory: MediaStorageFactory,
   ) {
     super();
     this.log.setContext(SessionManagerPlus.name);
@@ -146,12 +147,8 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   private async clearStorage() {
-    /* We need to clear the local storage just once */
-    const storage = new MediaLocalStorage(
+    const storage = this.mediaStorageFactory.build(
       this.log.logger.child({ name: 'Storage' }),
-      this.config.filesFolder,
-      this.config.filesURL,
-      this.config.filesLifetime,
     );
     await storage.purge();
   }
@@ -196,11 +193,8 @@ export class SessionManagerPlus extends SessionManager {
     logger.level = getPinoLogLevel(config?.debug);
     const loggerBuilder: LoggerBuilder = logger;
 
-    const storage = new MediaLocalStorage(
+    const storage = this.mediaStorageFactory.build(
       loggerBuilder.child({ name: 'Storage' }),
-      this.config.filesFolder,
-      this.config.filesURL,
-      this.config.filesLifetime,
     );
     const mediaManager = new MediaManagerPlus(
       storage,
