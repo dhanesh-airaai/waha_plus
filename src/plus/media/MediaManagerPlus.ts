@@ -1,91 +1,13 @@
-import { LoggerService } from '@nestjs/common';
-import * as path from 'path';
-import { promisify } from 'util';
-
-import {
-  IEngineMediaProcessor,
-  MediaManager,
-  MediaStorage,
-} from '../core/abc/media.abc';
-import { SECOND } from '../structures/enums.dto';
-import { WAMedia } from '../structures/responses.dto';
-import fs = require('fs');
-import * as fsp from 'fs/promises';
-import del = require('del');
+import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
+import { IMediaManager } from '@waha/core/media/IMediaManager';
+import { IMediaStorage } from '@waha/core/media/IMediaStorage';
+import { WAMedia } from '@waha/structures/responses.dto';
 import { Logger } from 'pino';
 import { sleep } from 'venom-bot/dist/utils/sleep';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const mime = require('mime-types');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const FileType = require('file-type');
-const writeFileAsync = promisify(fs.writeFile);
 
-export class MediaStoragePlus implements MediaStorage {
-  private readonly lifetimeMs: number;
-
+export class MediaManagerPlus implements IMediaManager {
   constructor(
-    protected log: Logger,
-    private filesFolder: string,
-    private baseUrl: string,
-    lifetimeSeconds: number,
-  ) {
-    this.lifetimeMs = lifetimeSeconds * SECOND;
-    if (this.lifetimeMs === 0) {
-      this.log.info('Files lifetime is 0, files will not be removed');
-    }
-  }
-
-  public async save(messageId, mimetype, buffer): Promise<string> {
-    if (!mimetype) {
-      mimetype = (await FileType.fromBuffer(buffer)).mime;
-    }
-
-    const filename = `${messageId}.${mime.extension(mimetype)}`;
-    const folder = path.resolve(this.filesFolder);
-    // create directory if not exist
-    await fsp.mkdir(folder, { recursive: true });
-
-    const filepath = path.resolve(`${folder}/${filename}`);
-    await writeFileAsync(filepath, buffer);
-    this.postponeRemoval(filepath);
-    return this.baseUrl + filename;
-  }
-
-  private postponeRemoval(filepath: string) {
-    if (this.lifetimeMs === 0) {
-      return;
-    }
-    setTimeout(
-      () =>
-        fs.unlink(filepath, () => {
-          this.log.info(`File ${filepath} was removed`);
-        }),
-      this.lifetimeMs,
-    );
-  }
-
-  purge() {
-    if (this.lifetimeMs === 0) {
-      this.log.info('No need to purge files with lifetime 0');
-      return;
-    }
-    if (fs.existsSync(this.filesFolder)) {
-      del([`${this.filesFolder}/*`], { force: true }).then((paths) => {
-        if (paths.length === 0) {
-          return;
-        }
-        this.log.info('Deleted files and directories:\n', paths.join('\n'));
-      });
-    } else {
-      fs.mkdirSync(this.filesFolder);
-      this.log.info(`Directory '${this.filesFolder}' created from scratch`);
-    }
-  }
-}
-
-export class PlusMediaManager implements MediaManager {
-  constructor(
-    private storage: MediaStorage,
+    private storage: IMediaStorage,
     private mimetypes: string[],
     protected log: Logger,
   ) {
@@ -111,7 +33,7 @@ export class PlusMediaManager implements MediaManager {
   }
 
   async processMedia<Message>(
-    processor: IEngineMediaProcessor<Message>,
+    processor: IMediaEngineProcessor<Message>,
     message: Message,
   ) {
     if (!processor.hasMedia(message)) {

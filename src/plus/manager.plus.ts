@@ -4,6 +4,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
+import { MediaManagerPlus } from '@waha/plus/media/MediaManagerPlus';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
@@ -34,7 +35,7 @@ import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
 import { WhatsappSessionVenomPlus } from './engines/venom/session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
-import { MediaStoragePlus, PlusMediaManager } from './media.plus';
+import { MediaLocalStorage } from './media/MediaLocalStorage';
 import { LocalStorePlus } from './storage/LocalStorePlus';
 import { MongoSessionAuthRepository } from './storage/MongoSessionAuthRepository';
 import { MongoSessionConfigRepository } from './storage/MongoSessionConfigRepository';
@@ -146,7 +147,7 @@ export class SessionManagerPlus extends SessionManager {
 
   private clearStorage() {
     /* We need to clear the local storage just once */
-    const storage = new MediaStoragePlus(
+    const storage = new MediaLocalStorage(
       this.log.logger.child({ name: 'Storage' }),
       this.config.filesFolder,
       this.config.filesURL,
@@ -195,13 +196,13 @@ export class SessionManagerPlus extends SessionManager {
     logger.level = getPinoLogLevel(config?.debug);
     const loggerBuilder: LoggerBuilder = logger;
 
-    const storage = new MediaStoragePlus(
+    const storage = new MediaLocalStorage(
       loggerBuilder.child({ name: 'Storage' }),
       this.config.filesFolder,
       this.config.filesURL,
       this.config.filesLifetime,
     );
-    const mediaManager = new PlusMediaManager(
+    const mediaManager = new MediaManagerPlus(
       storage,
       this.config.mimetypes,
       loggerBuilder.child({ name: 'MediaManager' }),
