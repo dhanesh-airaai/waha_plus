@@ -1,22 +1,34 @@
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { IMediaManager } from '@waha/core/media/IMediaManager';
-import { IMediaStorage } from '@waha/core/media/IMediaStorage';
+import { IMediaStorage, MediaData } from '@waha/core/media/IMediaStorage';
 import { WAMedia } from '@waha/structures/responses.dto';
 import { Logger } from 'pino';
-import { sleep } from 'venom-bot/dist/utils/sleep';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const FileType = require('file-type');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mime = require('mime-types');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const promiseRetry = require('promise-retry');
 
 export class MediaManagerPlus implements IMediaManager {
+  // https://github.com/IndigoUnited/node-promise-retry
+  RETRY_OPTIONS = {
+    retries: 5,
+    minTimeout: 100,
+    maxTimeout: 500,
+  };
+
   constructor(
     private storage: IMediaStorage,
     private mimetypes: string[],
     protected log: Logger,
   ) {
+    // Log mimetypes
     if (this.mimetypes && this.mimetypes.length > 0) {
-      this.log.info(
-        `Only '${this.mimetypes.join(
-          ',',
-        )}' mimetypes will be downloaded for the session`,
-      );
+      const mimetypes = this.mimetypes.join(',');
+      const msg = `Only '${mimetypes}' mimetypes will be downloaded for the session`;
+      this.log.info(msg);
     }
   }
 
@@ -47,6 +59,7 @@ export class MediaManagerPlus implements IMediaManager {
       this.log.info(
         `The message '${messageId}' has '${mimetype}' mimetype media, skip it.`,
       );
+
       const media: WAMedia = {
         mimetype: mimetype,
         filename: filename,
@@ -57,45 +70,50 @@ export class MediaManagerPlus implements IMediaManager {
       return message;
     }
 
-    this.log.info(`The message ${messageId} has media, processing it...`);
-    let buffer;
+    const extension = mime.extension(mimetype);
+    const mediaData: MediaData = {
+      message: {
+        id: messageId,
+      },
+      file: {
+        extension: extension,
+      },
+    };
 
-    // Repeat three times to avoid errors
-    const retries = 5;
-    for (let i = 0; i < retries; i++) {
-      this.log.info(
-        `Downloading media from WhatsApp the message '${messageId}, attempt ${
-          i + 1
-        }/${retries}...`,
+    const exists = await this.withRetry('Checking media', () =>
+      this.exists(mediaData),
+    );
+
+    if (!exists) {
+      this.log.info(`The message ${messageId} has media, processing it...`);
+
+      // Fetching media
+      const buffer = await this.withRetry('Fetching media', () =>
+        this.fetchMedia(message, processor),
       );
-      try {
-        buffer = await processor.getMediaBuffer(message);
-      } catch (e) {
-        this.log.error(`Error downloading media: ${e}`);
-        this.log.info(`Waiting 1 second and trying again...`);
-        await sleep(1_000);
-        continue;
+      if (!buffer) {
+        this.log.error(`Failed to fetch media for message '${messageId}'`);
+        return message;
       }
-      if (buffer) {
-        break;
-      }
-      this.log.info(
-        `Message ${messageId} has no media, but it has media flag.`,
+
+      // Saving media
+      const saved = await this.withRetry('Saving media', () =>
+        this.saveMedia(buffer, mediaData),
       );
-      this.log.info(`Waiting 2 seconds and trying again...`);
-      await sleep(2_000);
+      if (!saved) {
+        this.log.error(`Failed to save media for message '${messageId}'`);
+        return message;
+      }
+      this.log.info(`The media from '${messageId}' has been processed.`);
     }
 
-    if (!buffer) {
-      this.log.info(`No media found for ${messageId}.`);
+    const url = await this.withRetry('Getting media URL', () =>
+      this.getUrl(mediaData),
+    );
+    if (!url) {
+      this.log.error(`Failed to get media URL for message '${messageId}'`);
       return message;
     }
-
-    this.log.debug(
-      `Downloading media from WhatsApp the message ${messageId}...`,
-    );
-    const url = await this.storage.save(messageId, mimetype, buffer);
-    this.log.info(`The file from ${messageId} has been saved to ${url}`);
 
     const media: WAMedia = {
       mimetype: mimetype,
@@ -105,5 +123,62 @@ export class MediaManagerPlus implements IMediaManager {
     // @ts-ignore
     message.media = media;
     return message;
+  }
+
+  private async fetchMedia(
+    message: any,
+    processor: IMediaEngineProcessor<any>,
+  ): Promise<Buffer> {
+    const messageId = processor.getMessageId(message);
+    this.log.debug(`Fetching media from WhatsApp message '${messageId}'...`);
+    const buffer = await processor.getMediaBuffer(message);
+    if (!buffer) {
+      throw new Error(
+        `Message '${messageId}' has no media, but it has media flag in the engine`,
+      );
+    }
+    return buffer;
+  }
+
+  private async saveMedia(
+    buffer: Buffer,
+    mediaData: MediaData,
+  ): Promise<boolean> {
+    this.log.debug(
+      `Saving media from WhatsApp the message '${mediaData.message.id}'...`,
+    );
+    const result = await this.storage.save(buffer, mediaData);
+    this.log.debug(`The media from '${mediaData.message.id}' has been saved.`);
+    return result;
+  }
+
+  private async getUrl(mediaData: MediaData): Promise<string> {
+    return await this.storage.getUrl(mediaData);
+  }
+
+  private async exists(mediaData: MediaData): Promise<boolean> {
+    this.log.trace(
+      `Checking if media exists for message '${mediaData.message.id}'...`,
+    );
+    const result = await this.storage.exists(mediaData);
+    this.log.trace(
+      `Media for message '${mediaData.message.id}' exists: ${result}`,
+    );
+    return result;
+  }
+
+  private async withRetry(name: string, fn: CallableFunction) {
+    const retryOptions = this.RETRY_OPTIONS;
+    try {
+      return await promiseRetry((retry: CallableFunction, number: number) => {
+        return fn().catch(retry);
+      }, retryOptions);
+    } catch (error) {
+      this.log.error(
+        { error: error },
+        `Failed to execute '${name}', tried '${retryOptions.retries}' times`,
+      );
+      return null;
+    }
   }
 }

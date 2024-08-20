@@ -93,7 +93,7 @@ export class SessionManagerPlus extends SessionManager {
       );
     }
 
-    this.clearStorage();
+    await this.clearStorage();
     this.restartStoppedSessions();
     this.startPredefinedSessions();
   }
@@ -145,7 +145,7 @@ export class SessionManagerPlus extends SessionManager {
     await Promise.all(promises);
   }
 
-  private clearStorage() {
+  private async clearStorage() {
     /* We need to clear the local storage just once */
     const storage = new MediaLocalStorage(
       this.log.logger.child({ name: 'Storage' }),
@@ -153,7 +153,7 @@ export class SessionManagerPlus extends SessionManager {
       this.config.filesURL,
       this.config.filesLifetime,
     );
-    storage.purge();
+    await storage.purge();
   }
 
   //
