@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
 import { parseBool } from '@waha/helpers';
 import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
 import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
@@ -121,6 +122,7 @@ const PROVIDERS = [
   WebJSEngineConfigService,
   ApiKeyStrategy,
   WebsocketGatewayPlus,
+  MediaLocalStorageConfig,
 ];
 
 @Module({

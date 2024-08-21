@@ -1,6 +1,7 @@
 import { Injectable, LoggerService } from '@nestjs/common';
 import { HealthCheckResult, HealthCheckService } from '@nestjs/terminus';
 import type { HealthIndicatorFunction } from '@nestjs/terminus/dist/health-indicator';
+import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
 import * as path from 'path';
 
 import { WhatsappConfigService } from '../../config.service';
@@ -21,6 +22,7 @@ export class WAHAHealthCheckServicePlus extends WAHAHealthCheckService {
     protected config: WhatsappConfigService,
     protected mongoStoreHealthIndicator: MongoStoreHealthIndicator,
     protected checkFreeDiskSpaceIndicator: CheckFreeDiskSpaceIndicator,
+    protected mediaLocalStorageConfig: MediaLocalStorageConfig,
   ) {
     super(sessionManager, health, config);
   }
@@ -34,7 +36,7 @@ export class WAHAHealthCheckServicePlus extends WAHAHealthCheckService {
     const indicators = [
       () =>
         this.checkFreeDiskSpaceIndicator.check('mediaFiles.space', {
-          path: path.resolve(this.config.filesFolder),
+          path: path.resolve(this.mediaLocalStorageConfig.filesFolder),
           thresholdBytes: this.config.getHealthMediaFilesThreshold() * MB,
         }),
     ];
