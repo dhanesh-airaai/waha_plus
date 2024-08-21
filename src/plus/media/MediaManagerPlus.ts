@@ -83,6 +83,7 @@ export class MediaManagerPlus implements IMediaManager {
       },
       file: {
         extension: extension,
+        filename: filename,
       },
     };
 

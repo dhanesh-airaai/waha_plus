@@ -32,8 +32,7 @@ export class MediaS3Storage implements IMediaStorage {
       Metadata: {
         'waha-session': data.session,
         'waha-message-id': data.message.id,
-        // TODO: add filename
-        // 'waha-media-filename': data.file.filename,
+        'waha-media-filename': data.file.filename,
       },
     });
     await this.client.send(command);
