@@ -13,6 +13,8 @@ import {
 import { Logger } from 'pino';
 
 export class MediaS3Storage implements IMediaStorage {
+  PRESIGN_EXPIRES = 3600;
+
   constructor(
     private client: S3Client,
     private bucket: string,
@@ -57,7 +59,9 @@ export class MediaS3Storage implements IMediaStorage {
   async getStorageData(data: MediaData): Promise<MediaStorageData> {
     const key = this.getKey(data);
     const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
-    const url = await getSignedUrl(this.client, command, { expiresIn: 3600 });
+    const url = await getSignedUrl(this.client, command, {
+      expiresIn: this.PRESIGN_EXPIRES,
+    });
     return {
       url: url,
       s3: {
