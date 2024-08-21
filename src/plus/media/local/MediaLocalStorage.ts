@@ -30,24 +30,21 @@ export class MediaLocalStorage implements IMediaStorage {
   }
 
   async exists(data: MediaData): Promise<boolean> {
-    const filename = this.getFilename(data);
-    const filepath = this.getFullPath(filename);
+    const filepath = this.getFullPath(data);
     return await fileExists(filepath);
   }
 
   public async save(buffer: Buffer, data: MediaData): Promise<boolean> {
-    const filename = this.getFilename(data);
-    const folder = path.resolve(this.filesFolder);
-    // create directory if not exist
+    const filepath = this.getFullPath(data);
+    const folder = path.dirname(filepath);
     await fsp.mkdir(folder, { recursive: true });
-    const filepath = this.getFullPath(filename);
     await writeFileAsync(filepath, buffer);
     this.postponeRemoval(filepath);
     return true;
   }
 
   public async getStorageData(data: MediaData) {
-    const filename = this.getFilename(data);
+    const filename = this.getKey(data);
     const url = this.baseUrl + filename;
     return { url };
   }
@@ -71,12 +68,13 @@ export class MediaLocalStorage implements IMediaStorage {
     }
   }
 
-  private getFilename(data: MediaData) {
-    return `${data.message.id}.${data.file.extension}`;
+  private getKey(data: MediaData) {
+    return `${data.session}/${data.message.id}.${data.file.extension}`;
   }
 
-  private getFullPath(filename: string) {
-    return path.resolve(`${this.filesFolder}/${filename}`);
+  private getFullPath(data: MediaData) {
+    const filepath = this.getKey(data);
+    return path.resolve(`${this.filesFolder}/${filepath}`);
   }
 
   private postponeRemoval(filepath: string) {
