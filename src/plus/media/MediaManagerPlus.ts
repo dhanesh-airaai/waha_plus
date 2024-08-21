@@ -51,6 +51,7 @@ export class MediaManagerPlus implements IMediaManager {
   async processMedia<Message>(
     processor: IMediaEngineProcessor<Message>,
     message: Message,
+    session: string,
   ) {
     if (!processor.hasMedia(message)) {
       return message;
@@ -76,6 +77,7 @@ export class MediaManagerPlus implements IMediaManager {
 
     const extension = mime.extension(mimetype);
     const mediaData: MediaData = {
+      session: session,
       message: {
         id: messageId,
       },

@@ -70,7 +70,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
 
   protected downloadMedia(message: Message) {
     const processor = new EngineMediaProcessor();
-    return this.mediaManager.processMedia(processor, message);
+    return this.mediaManager.processMedia(processor, message, this.name);
   }
 }
 

@@ -100,7 +100,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
 
   protected downloadMedia(message) {
     const processor = new EngineMediaProcessor(this, this.loggerBuilder);
-    return this.mediaManager.processMedia(processor, message);
+    return this.mediaManager.processMedia(processor, message, this.name);
   }
 
   /**

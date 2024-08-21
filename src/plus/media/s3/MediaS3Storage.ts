@@ -20,7 +20,7 @@ export class MediaS3Storage implements IMediaStorage {
   ) {}
 
   private getKey(data: MediaData) {
-    return `${data.message.id}.${data.file.extension}`;
+    return `${data.session}/${data.message.id}.${data.file.extension}`;
   }
 
   async save(buffer: Buffer, data: MediaData): Promise<boolean> {
@@ -30,9 +30,10 @@ export class MediaS3Storage implements IMediaStorage {
       Key: key,
       Body: buffer,
       Metadata: {
-        'my-key': 'some-value',
-        session: 'default',
-        'waha-metadata-user.id': '123',
+        'waha-session': data.session,
+        'waha-message-id': data.message.id,
+        // TODO: add filename
+        // 'waha-media-filename': data.file.filename,
       },
     });
     await this.client.send(command);

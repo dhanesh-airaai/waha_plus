@@ -27,7 +27,7 @@ export class WhatsappSessionVenomPlus extends WhatsappSessionVenomCore {
 
   protected async downloadMedia(message: Message) {
     const processor = new EngineMediaProcessor(this);
-    return this.mediaManager.processMedia(processor, message);
+    return this.mediaManager.processMedia(processor, message, this.name);
   }
 }
 
