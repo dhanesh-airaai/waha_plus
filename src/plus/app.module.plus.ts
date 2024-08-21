@@ -119,7 +119,6 @@ const PROVIDERS = [
   WhatsappConfigService,
   EngineConfigService,
   WebJSEngineConfigService,
-  ConsoleLogger,
   ApiKeyStrategy,
   WebsocketGatewayPlus,
 ];

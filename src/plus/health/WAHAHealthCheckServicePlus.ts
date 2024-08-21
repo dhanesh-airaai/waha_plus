@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { HealthCheckResult, HealthCheckService } from '@nestjs/terminus';
 import type { HealthIndicatorFunction } from '@nestjs/terminus/dist/health-indicator';
 import * as path from 'path';
@@ -18,12 +18,11 @@ export class WAHAHealthCheckServicePlus extends WAHAHealthCheckService {
   constructor(
     protected sessionManager: SessionManager,
     protected health: HealthCheckService,
-    protected log: ConsoleLogger,
     protected config: WhatsappConfigService,
     protected mongoStoreHealthIndicator: MongoStoreHealthIndicator,
     protected checkFreeDiskSpaceIndicator: CheckFreeDiskSpaceIndicator,
   ) {
-    super(sessionManager, health, log, config);
+    super(sessionManager, health, config);
   }
 
   check(): Promise<HealthCheckResult> {
