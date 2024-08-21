@@ -29,6 +29,10 @@ export class MediaLocalStorage implements IMediaStorage {
     }
   }
 
+  async init() {
+    return;
+  }
+
   async exists(data: MediaData): Promise<boolean> {
     const filepath = this.getFullPath(data);
     return await fileExists(filepath);

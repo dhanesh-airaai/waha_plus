@@ -196,6 +196,7 @@ export class SessionManagerPlus extends SessionManager {
     const storage = this.mediaStorageFactory.build(
       loggerBuilder.child({ name: 'Storage' }),
     );
+    await storage.init();
     const mediaManager = new MediaManagerPlus(
       storage,
       this.config.mimetypes,

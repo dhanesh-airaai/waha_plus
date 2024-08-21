@@ -1,5 +1,7 @@
 import {
+  CreateBucketCommand,
   GetObjectCommand,
+  HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -20,6 +22,10 @@ export class MediaS3Storage implements IMediaStorage {
     private bucket: string,
     protected log: Logger,
   ) {}
+
+  async init() {
+    await this.createBucketIfNotExist(this.bucket);
+  }
 
   private getKey(data: MediaData) {
     return `${data.session}/${data.message.id}.${data.file.extension}`;
@@ -73,5 +79,29 @@ export class MediaS3Storage implements IMediaStorage {
 
   async purge(): Promise<void> {
     this.log.debug('Purging S3 bucket is not supported');
+  }
+
+  private async createBucketIfNotExist(bucket: string) {
+    if (!(await this.bucketExists(bucket))) {
+      await this.createBucket(bucket);
+    }
+  }
+
+  private createBucket(bucket: string) {
+    const command = new CreateBucketCommand({ Bucket: bucket });
+    return this.client.send(command);
+  }
+
+  private async bucketExists(bucket: string): Promise<boolean> {
+    const command = new HeadBucketCommand({ Bucket: bucket });
+    try {
+      await this.client.send(command);
+      return true;
+    } catch (e) {
+      if (e.name === 'NotFound') {
+        return false;
+      }
+      throw e;
+    }
   }
 }
