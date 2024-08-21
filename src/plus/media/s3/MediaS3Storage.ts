@@ -5,7 +5,11 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { IMediaStorage, MediaData } from '@waha/core/media/IMediaStorage';
+import {
+  IMediaStorage,
+  MediaData,
+  MediaStorageData,
+} from '@waha/core/media/IMediaStorage';
 import { Logger } from 'pino';
 
 export class MediaS3Storage implements IMediaStorage {
@@ -50,10 +54,17 @@ export class MediaS3Storage implements IMediaStorage {
     }
   }
 
-  async getUrl(data: MediaData): Promise<string> {
+  async getStorageData(data: MediaData): Promise<MediaStorageData> {
     const key = this.getKey(data);
     const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
-    return getSignedUrl(this.client, command, { expiresIn: 3600 });
+    const url = await getSignedUrl(this.client, command, { expiresIn: 3600 });
+    return {
+      url: url,
+      s3: {
+        Bucket: this.bucket,
+        Key: key,
+      },
+    };
   }
 
   async purge(): Promise<void> {

@@ -46,9 +46,10 @@ export class MediaLocalStorage implements IMediaStorage {
     return true;
   }
 
-  public async getUrl(data: MediaData) {
+  public async getStorageData(data: MediaData) {
     const filename = this.getFilename(data);
-    return this.baseUrl + filename;
+    const url = this.baseUrl + filename;
+    return { url };
   }
 
   async purge() {

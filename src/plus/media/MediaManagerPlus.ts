@@ -1,6 +1,10 @@
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { IMediaManager } from '@waha/core/media/IMediaManager';
-import { IMediaStorage, MediaData } from '@waha/core/media/IMediaStorage';
+import {
+  IMediaStorage,
+  MediaData,
+  MediaStorageData,
+} from '@waha/core/media/IMediaStorage';
 import { WAMedia } from '@waha/structures/responses.dto';
 import { Logger } from 'pino';
 
@@ -107,10 +111,10 @@ export class MediaManagerPlus implements IMediaManager {
       this.log.info(`The media from '${messageId}' has been processed.`);
     }
 
-    const url = await this.withRetry('Getting media URL', () =>
-      this.getUrl(mediaData),
+    const data = await this.withRetry('Getting media URL', () =>
+      this.getStorageData(mediaData),
     );
-    if (!url) {
+    if (!data) {
       this.log.error(`Failed to get media URL for message '${messageId}'`);
       return message;
     }
@@ -118,7 +122,7 @@ export class MediaManagerPlus implements IMediaManager {
     const media: WAMedia = {
       mimetype: mimetype,
       filename: filename,
-      url: url,
+      ...data,
     };
     // @ts-ignore
     message.media = media;
@@ -152,8 +156,10 @@ export class MediaManagerPlus implements IMediaManager {
     return result;
   }
 
-  private async getUrl(mediaData: MediaData): Promise<string> {
-    return await this.storage.getUrl(mediaData);
+  private async getStorageData(
+    mediaData: MediaData,
+  ): Promise<MediaStorageData> {
+    return await this.storage.getStorageData(mediaData);
   }
 
   private async exists(mediaData: MediaData): Promise<boolean> {
