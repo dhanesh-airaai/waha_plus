@@ -6,19 +6,18 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   IMediaStorage,
   MediaData,
   MediaStorageData,
 } from '@waha/core/media/IMediaStorage';
+import { MediaS3UrlResolver } from '@waha/plus/media/s3/MediaS3UrlResolver';
 import { Logger } from 'pino';
 
 export class MediaS3Storage implements IMediaStorage {
-  PRESIGN_EXPIRES = 3600;
-
   constructor(
     private client: S3Client,
+    private mediaS3UrlResolver: MediaS3UrlResolver,
     private bucket: string,
     protected log: Logger,
   ) {}
@@ -64,9 +63,9 @@ export class MediaS3Storage implements IMediaStorage {
 
   async getStorageData(data: MediaData): Promise<MediaStorageData> {
     const key = this.getKey(data);
-    const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
-    const url = await getSignedUrl(this.client, command, {
-      expiresIn: this.PRESIGN_EXPIRES,
+    const url = await this.mediaS3UrlResolver.resolve({
+      bucket: this.bucket,
+      key: key,
     });
     return {
       url: url,

@@ -4,6 +4,7 @@ import { IMediaStorage } from '@waha/core/media/IMediaStorage';
 import { MediaStorageFactory } from '@waha/plus/media/MediaStorageFactory';
 import { MediaS3Storage } from '@waha/plus/media/s3/MediaS3Storage';
 import { MediaS3StorageConfig } from '@waha/plus/media/s3/MediaS3StorageConfig';
+import { MediaS3UrlResolver } from '@waha/plus/media/s3/MediaS3UrlResolver';
 import { Logger } from 'pino';
 
 @Injectable()
@@ -13,12 +14,18 @@ export class MediaS3StorageFactory extends MediaStorageFactory {
   constructor(
     private s3client: S3Client,
     private s3config: MediaS3StorageConfig,
+    private s3url: MediaS3UrlResolver,
   ) {
     super();
     this.defaultBucket = this.s3config.bucket;
   }
 
   build(logger: Logger): IMediaStorage {
-    return new MediaS3Storage(this.s3client, this.defaultBucket, logger);
+    return new MediaS3Storage(
+      this.s3client,
+      this.s3url,
+      this.defaultBucket,
+      logger,
+    );
   }
 }
