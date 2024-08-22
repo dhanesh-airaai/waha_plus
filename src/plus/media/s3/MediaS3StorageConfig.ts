@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { WhatsappConfigService } from '@waha/config.service';
+import { parseBool } from '@waha/helpers';
 
 @Injectable()
 export class MediaS3StorageConfig {
@@ -41,6 +42,11 @@ export class MediaS3StorageConfig {
     return bucket;
   }
 
+  get forcePathStyle(): boolean {
+    const value = this.config.get('WAHA_S3_FORCE_PATH_STYLE', 'false');
+    return parseBool(value);
+  }
+
   get s3ClientConfig() {
     return {
       region: this.region,
@@ -49,6 +55,7 @@ export class MediaS3StorageConfig {
         secretAccessKey: this.secretAccessKey,
       },
       endpoint: this.endpoint,
+      forcePathStyle: this.forcePathStyle,
     };
   }
 }
