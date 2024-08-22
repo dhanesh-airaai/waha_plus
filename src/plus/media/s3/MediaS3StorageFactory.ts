@@ -8,12 +8,13 @@ import { Logger } from 'pino';
 
 @Injectable()
 export class MediaS3StorageFactory extends MediaStorageFactory {
-  private readonly s3client: S3Client;
   private readonly defaultBucket: string;
 
-  constructor(private s3config: MediaS3StorageConfig) {
+  constructor(
+    private s3client: S3Client,
+    private s3config: MediaS3StorageConfig,
+  ) {
     super();
-    this.s3client = new S3Client(this.s3config.s3ClientConfig);
     this.defaultBucket = this.s3config.bucket;
   }
 
