@@ -58,4 +58,9 @@ export class MediaS3StorageConfig {
       forcePathStyle: this.forcePathStyle,
     };
   }
+
+  get s3ProxyFiles() {
+    const value = this.config.get('WAHA_S3_PROXY_FILES', 'false');
+    return parseBool(value);
+  }
 }
