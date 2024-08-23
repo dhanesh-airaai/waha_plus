@@ -14,14 +14,12 @@ import { Readable } from 'stream';
 @Controller('api/s3')
 @ApiTags('🗄️ Storage')
 export class S3ProxyController {
-  private readonly bucket: string;
   private readonly enabled: boolean;
 
   constructor(
     private s3client: S3Client,
     s3config: MediaS3StorageConfig,
   ) {
-    this.bucket = s3config.bucket;
     this.enabled = s3config.s3ProxyFiles;
   }
 
@@ -37,14 +35,10 @@ export class S3ProxyController {
       throw new NotFoundException('S3 proxy is disabled');
     }
 
-    if (bucket != this.bucket) {
-      throw new NotFoundException(`Invalid bucket: ${bucket}`);
-    }
-
     const filename = this.getS3Filename(key);
     let stream: Readable;
     try {
-      stream = await this.getS3Stream(key);
+      stream = await this.getS3Stream(bucket, key);
     } catch (error) {
       if (error.name === 'NoSuchKey') {
         throw new NotFoundException(`File not found: ${key}`);
@@ -57,9 +51,9 @@ export class S3ProxyController {
     });
   }
 
-  private async getS3Stream(key: string): Promise<Readable> {
+  private async getS3Stream(bucket: string, key: string): Promise<Readable> {
     const command = new GetObjectCommand({
-      Bucket: this.bucket,
+      Bucket: bucket,
       Key: key,
     });
     const response = await this.s3client.send(command);
