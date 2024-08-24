@@ -5,7 +5,7 @@ import {
   MediaData,
   MediaStorageData,
 } from '@waha/core/media/IMediaStorage';
-import { WAMedia } from '@waha/structures/responses.dto';
+import { WAMedia } from '@waha/structures/media.dto';
 import { Logger } from 'pino';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
