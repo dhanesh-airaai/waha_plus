@@ -6,6 +6,7 @@ import {
   MediaStorageData,
 } from '@waha/core/media/IMediaStorage';
 import { WAMedia } from '@waha/structures/media.dto';
+import { promiseTimeout } from '@waha/utils/promiseTimeout';
 import { Logger } from 'pino';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -48,15 +49,11 @@ export class MediaManagerPlus implements IMediaManager {
     return this.mimetypes.some((type) => mimetype.startsWith(type));
   }
 
-  async processMedia<Message>(
+  private async processMediaInternal<Message>(
     processor: IMediaEngineProcessor<Message>,
     message: Message,
     session: string,
-  ) {
-    if (!processor.hasMedia(message)) {
-      return message;
-    }
-
+  ): Promise<WAMedia | null> {
     const messageId = processor.getMessageId(message);
     const mimetype = processor.getMimetype(message);
     const filename = processor.getFilename(message);
@@ -64,15 +61,7 @@ export class MediaManagerPlus implements IMediaManager {
       this.log.info(
         `The message '${messageId}' has '${mimetype}' mimetype media, skip it.`,
       );
-
-      const media: WAMedia = {
-        mimetype: mimetype,
-        filename: filename,
-        url: null,
-      };
-      // @ts-ignore
-      message.media = media;
-      return message;
+      return null;
     }
 
     const extension = mime.extension(mimetype);
@@ -92,41 +81,60 @@ export class MediaManagerPlus implements IMediaManager {
     );
 
     if (!exists) {
-      this.log.info(`The message ${messageId} has media, processing it...`);
-
+      this.log.info(`The message ${messageId} has media, downloading it...`);
       // Fetching media
       const buffer = await this.withRetry('Fetching media', () =>
         this.fetchMedia(message, processor),
       );
-      if (!buffer) {
-        this.log.error(`Failed to fetch media for message '${messageId}'`);
-        return message;
-      }
-
       // Saving media
-      const saved = await this.withRetry('Saving media', () =>
+      await this.withRetry('Saving media', () =>
         this.saveMedia(buffer, mediaData),
       );
-      if (!saved) {
-        this.log.error(`Failed to save media for message '${messageId}'`);
-        return message;
-      }
-      this.log.info(`The media from '${messageId}' has been processed.`);
+      this.log.info(`The media from '${messageId}' has been saved.`);
     }
 
     const data = await this.withRetry('Getting media URL', () =>
       this.getStorageData(mediaData),
     );
-    if (!data) {
-      this.log.error(`Failed to get media URL for message '${messageId}'`);
+    return data;
+  }
+
+  async processMedia<Message>(
+    processor: IMediaEngineProcessor<Message>,
+    message: Message,
+    session: string,
+  ): Promise<Message> {
+    let messageId: string;
+    try {
+      messageId = processor.getMessageId(message);
+      if (!processor.hasMedia(message)) {
+        return message;
+      }
+    } catch (error) {
+      this.log.error(
+        error,
+        `Error checking if message has media for message '${messageId}'`,
+      );
       return message;
     }
 
-    const media: WAMedia = {
-      mimetype: mimetype,
-      filename: filename,
-      ...data,
+    let media: WAMedia = {
+      url: null,
+      filename: null,
+      mimetype: null,
     };
+    try {
+      media.filename = processor.getFilename(message);
+      media.mimetype = processor.getMimetype(message);
+      media.filename = processor.getFilename(message);
+      const data = await this.processMediaInternal(processor, message, session);
+      media = { ...media, ...data };
+    } catch (err) {
+      this.log.error(err, `Error processing media for message '${messageId}'`);
+      media.error = err;
+      // @ts-ignore
+      media.error.details = `${err.stack}`;
+    }
     // @ts-ignore
     message.media = media;
     return message;
@@ -184,10 +192,10 @@ export class MediaManagerPlus implements IMediaManager {
       }, retryOptions);
     } catch (error) {
       this.log.error(
-        { error: error },
+        error,
         `Failed to execute '${name}', tried '${retryOptions.retries}' times`,
       );
-      return null;
+      throw error;
     }
   }
 }
