@@ -56,40 +56,44 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     }
   }
 
-  sendImage(request: MessageImageRequest) {
+  async sendImage(request: MessageImageRequest) {
     const message: any = this.fileToMessage(
       request.file,
       'image',
       request.caption,
     );
+    const options = await this.getMessageOptions(request);
     const chatId = toJID(this.ensureSuffix(request.chatId));
-    return this.sock.sendMessage(chatId, message);
+    return this.sock.sendMessage(chatId, message, options);
   }
 
-  sendFile(request: MessageFileRequest) {
+  async sendFile(request: MessageFileRequest) {
     const message: any = this.fileToMessage(
       request.file,
       'document',
       request.caption,
     );
     const chatId = toJID(this.ensureSuffix(request.chatId));
-    return this.sock.sendMessage(chatId, message);
+    const options = await this.getMessageOptions(request);
+    return this.sock.sendMessage(chatId, message, options);
   }
 
-  sendVoice(request: MessageVoiceRequest) {
+  async sendVoice(request: MessageVoiceRequest) {
     const message: any = this.fileToMessage(request.file, 'audio');
     const chatId = toJID(this.ensureSuffix(request.chatId));
-    return this.sock.sendMessage(chatId, message);
+    const options = await this.getMessageOptions(request);
+    return this.sock.sendMessage(chatId, message, options);
   }
 
-  sendVideo(request: MessageVideoRequest) {
+  async sendVideo(request: MessageVideoRequest) {
     const message: any = this.fileToMessage(
       request.file,
       'video',
       request.caption,
     );
     const chatId = toJID(this.ensureSuffix(request.chatId));
-    return this.sock.sendMessage(chatId, message);
+    const options = await this.getMessageOptions(request);
+    return this.sock.sendMessage(chatId, message, options);
   }
 
   protected downloadMedia(message) {

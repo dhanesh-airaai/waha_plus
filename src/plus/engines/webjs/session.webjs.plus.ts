@@ -43,7 +43,9 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
 
   async sendFile(request: MessageFileRequest) {
     const media = await this.fileToMedia(request.file);
-    const options = {
+    let options = this.getMessageOptions(request);
+    options = {
+      ...options,
       sendMediaAsDocument: true,
       caption: request.caption,
     };
@@ -52,19 +54,31 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
 
   async sendImage(request: MessageImageRequest) {
     const media = await this.fileToMedia(request.file);
-    const options = { caption: request.caption };
+    let options = this.getMessageOptions(request);
+    options = {
+      ...options,
+      caption: request.caption,
+    };
     return this.whatsapp.sendMessage(request.chatId, media, options);
   }
 
   async sendVoice(request) {
     const media = await this.fileToMedia(request.file);
-    const options = { sendAudioAsVoice: true };
+    let options = this.getMessageOptions(request);
+    options = {
+      ...options,
+      sendAudioAsVoice: true,
+    };
     return this.whatsapp.sendMessage(request.chatId, media, options);
   }
 
   async sendVideo(request: MessageVideoRequest) {
     const media = await this.fileToMedia(request.file);
-    const options = { caption: request.caption };
+    let options = this.getMessageOptions(request);
+    options = {
+      ...options,
+      caption: request.caption,
+    };
     return this.whatsapp.sendMessage(request.chatId, media, options);
   }
 
