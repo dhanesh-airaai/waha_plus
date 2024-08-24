@@ -1,11 +1,6 @@
-import {
-  downloadMediaMessage,
-  getHttpStream,
-  getStream,
-} from '@adiwajshing/baileys';
+import { downloadMediaMessage, getStream } from '@adiwajshing/baileys';
 import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
-import { isNewsletter } from '@waha/core/abc/session.abc';
 import {
   toJID,
   WhatsappSessionNoWebCore,
@@ -27,7 +22,6 @@ import {
   VoiceStatus,
 } from '@waha/structures/status.dto';
 import { LoggerBuilder } from '@waha/utils/logging';
-import { Logger } from 'pino';
 
 import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
 import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
