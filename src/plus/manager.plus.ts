@@ -184,10 +184,7 @@ export class SessionManagerPlus extends SessionManager {
       throw new UnprocessableEntityException(msg);
     }
 
-    const logger = this.log.logger.child({
-      session: name,
-      sessionRunTimestamp: Date.now(),
-    });
+    const logger = this.log.logger.child({ session: name });
     const config = await this.sessionConfigRepository.get(name);
     await this.sessionAuthRepository.init(name);
     logger.level = getPinoLogLevel(config?.debug);
