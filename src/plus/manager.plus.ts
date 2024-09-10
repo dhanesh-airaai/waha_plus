@@ -34,7 +34,6 @@ import {
 import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
-import { WhatsappSessionVenomPlus } from './engines/venom/session.venom.plus';
 import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
 import { LocalStorePlus } from './storage/LocalStorePlus';
 import { MongoSessionAuthRepository } from './storage/MongoSessionAuthRepository';
@@ -128,8 +127,6 @@ export class SessionManagerPlus extends SessionManager {
   protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
     if (engine === WAHAEngine.WEBJS) {
       return WhatsappSessionWebJSPlus;
-    } else if (engine === WAHAEngine.VENOM) {
-      return WhatsappSessionVenomPlus;
     } else if (engine === WAHAEngine.NOWEB) {
       return WhatsappSessionNoWebPlus;
     } else {
