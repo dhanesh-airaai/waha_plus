@@ -408,7 +408,7 @@ export class SessionManagerPlus extends SessionManager {
       engineInfo = await promiseTimeout(1000, session.getEngineInfo());
     } catch (error) {
       this.log.warn(
-        { session: sessionName, error: error },
+        { session: session.name, error: `${error}` },
         'Error while getting engine info',
       );
     }
