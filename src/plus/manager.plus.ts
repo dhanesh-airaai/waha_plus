@@ -25,9 +25,9 @@ import {
   WAHASessionStatus,
 } from '../structures/enums.dto';
 import {
-  MeInfo,
   ProxyConfig,
   SessionConfig,
+  SessionDetailedInfo,
   SessionDTO,
   SessionInfo,
 } from '../structures/sessions.dto';
@@ -305,66 +305,117 @@ export class SessionManagerPlus extends SessionManager {
     return session;
   }
 
-  async getSessions(all, name?: string): Promise<SessionInfo[]> {
-    let sessionNames = Object.keys(this.sessions);
-    if (all) {
-      const stoppedSession = await this.sessionConfigRepository.getAll();
-      sessionNames = lodash.union(sessionNames, stoppedSession);
-    }
-
+  /**
+   * Get all runtime sessions
+   */
+  private getRuntimeSessions(name: string = null): SessionInfo[] {
+    let names = Object.keys(this.sessions);
     if (name) {
-      sessionNames = sessionNames.filter((sessionName) => sessionName === name);
+      names = names.filter((n) => n === name);
     }
-
-    const sessions = sessionNames.map(async (sessionName) => {
-      const status =
-        this.sessions[sessionName]?.status || WAHASessionStatus.STOPPED;
-      let sessionConfig: SessionConfig | undefined;
-      let me: MeInfo | null;
-
-      // Get engine info
-      let engineInfo = {};
-      if (this.sessions[sessionName]) {
-        try {
-          engineInfo = await promiseTimeout(
-            10,
-            this.sessions[sessionName].getEngineInfo(),
-          );
-        } catch (error) {
-          this.log.warn(
-            { session: sessionName, error: error },
-            'Error while getting engine info',
-          );
-        }
-      }
-
-      const engine = {
-        engine: this.sessions[sessionName]?.engine,
-        ...engineInfo,
-      };
-      if (status != WAHASessionStatus.STOPPED) {
-        sessionConfig = this.sessions[sessionName].sessionConfig;
-        me = this.sessions[sessionName].getSessionMeInfo();
-      } else {
-        sessionConfig = await this.sessionConfigRepository.get(sessionName);
-        me = null;
-      }
+    const sessions = names.map((sessionName) => {
+      const status = this.sessions[sessionName].status;
+      const sessionConfig = this.sessions[sessionName].sessionConfig;
+      const me = this.sessions[sessionName].getSessionMeInfo();
       return {
         name: sessionName,
         status: status,
         config: sessionConfig,
         me: me,
-        engine: engine,
+      };
+    });
+    return sessions;
+  }
+
+  /**
+   * Get all sessions
+   * Even tho it's "offline", it usually contains both offline and online sessions
+   **/
+  private async getOfflineSessions(
+    name: string = null,
+  ): Promise<SessionInfo[]> {
+    let names = await this.sessionConfigRepository.getAll();
+    if (name) {
+      names = names.filter((n) => n === name);
+    }
+    const sessions = names.map(async (sessionName) => {
+      const status = WAHASessionStatus.STOPPED;
+      const sessionConfig = await this.sessionConfigRepository.get(sessionName);
+      return {
+        name: sessionName,
+        status: status,
+        config: sessionConfig,
+        me: null,
       };
     });
     return await Promise.all(sessions);
   }
 
-  async getSessionInfo(name: string): Promise<SessionInfo | null> {
-    const sessions = await this.getSessions(true, name);
-    if (sessions.length === 0) {
+  async getSessions(all: boolean): Promise<SessionInfo[]> {
+    const runtimeSessions = this.getRuntimeSessions();
+    let offlineSessions: SessionInfo[] = [];
+    if (all) {
+      offlineSessions = await this.getOfflineSessions();
+    }
+    // Merge runtime and offline by name
+    // Runtime one will overwrite offline one
+    const sessions = lodash.keyBy(
+      [...offlineSessions, ...runtimeSessions],
+      'name',
+    );
+    return Object.values(sessions);
+  }
+
+  async getSessionInfo(name: string): Promise<SessionDetailedInfo | null> {
+    let session: SessionDetailedInfo = null;
+
+    // Try to find session in runtime sessions
+    const runtimeSessions = this.getRuntimeSessions(name);
+    if (runtimeSessions.length === 1) {
+      session = runtimeSessions[0];
+    }
+
+    // If session is not found in runtime sessions,
+    // try to find it in offline sessions
+    if (!session) {
+      const offlineSessions = await this.getOfflineSessions(name);
+      if (offlineSessions.length === 1) {
+        session = offlineSessions[0];
+      }
+    }
+
+    // No session found
+    if (!session) {
       return null;
     }
-    return sessions[0];
+
+    // If session is found, get engine info
+    const engine = await this.fetchEngineInfo(name);
+    return {
+      ...session,
+      engine: engine,
+    };
+  }
+
+  private async fetchEngineInfo(sessionName: string) {
+    // Get engine info
+    if (!this.sessions[sessionName]) {
+      return {};
+    }
+    const session = this.sessions[sessionName];
+    let engineInfo = {};
+    try {
+      engineInfo = await promiseTimeout(1000, session.getEngineInfo());
+    } catch (error) {
+      this.log.warn(
+        { session: sessionName, error: error },
+        'Error while getting engine info',
+      );
+    }
+
+    return {
+      engine: this.sessions[sessionName]?.engine,
+      ...engineInfo,
+    };
   }
 }
