@@ -2,12 +2,8 @@ import { WAMessage } from '@adiwajshing/baileys';
 import { LabelAssociation } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
-import {
-  Field,
-  Index,
-  NOWEB_STORE_SCHEMA,
-  Schema,
-} from '@waha/core/engines/noweb/store/Schema';
+import { NOWEB_STORE_SCHEMA } from '@waha/core/engines/noweb/store/Schema';
+import { Field, Index, Schema } from '@waha/core/storage/sqlite3/Schema';
 import { MongoLabelAssociationsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelAssociationsRepository';
 import { MongoLabelsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelsRepository';
 import { Db } from 'mongodb';

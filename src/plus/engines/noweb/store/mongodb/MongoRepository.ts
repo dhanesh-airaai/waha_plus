@@ -1,9 +1,9 @@
 import { BufferJSON } from '@adiwajshing/baileys/lib/Utils';
-import { Field, Schema } from '@waha/core/engines/noweb/store/Schema';
 import {
   convertProtobufToPlainObject,
   replaceLongsWithNumber,
 } from '@waha/core/engines/noweb/utils';
+import { Field, Schema } from '@waha/core/storage/sqlite3/Schema';
 import { Collection, Db } from 'mongodb';
 
 /**

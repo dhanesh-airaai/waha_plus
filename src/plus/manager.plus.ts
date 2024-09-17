@@ -4,8 +4,14 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
+import { LocalSessionMeRepository } from '@waha/core/storage/LocalSessionMeRepository';
 import { MediaManagerPlus } from '@waha/plus/media/MediaManagerPlus';
 import { MediaStorageFactory } from '@waha/plus/media/MediaStorageFactory';
+import { MongoSessionMeRepository } from '@waha/plus/storage/MongoSessionMeRepository';
+import {
+  WAHAWebhook,
+  WAHAWebhookSessionStatus,
+} from '@waha/structures/webhooks.dto';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
@@ -83,6 +89,7 @@ export class SessionManagerPlus extends SessionManager {
       this.sessionConfigRepository = new MongoSessionConfigRepository(
         this.store,
       );
+      this.sessionMeRepository = new MongoSessionMeRepository(this.store);
     } else {
       this.log.info('Using local storage for session info.');
       this.store = new LocalStorePlus(engineName);
@@ -91,11 +98,25 @@ export class SessionManagerPlus extends SessionManager {
       this.sessionConfigRepository = new LocalSessionConfigRepository(
         this.store,
       );
+      this.sessionMeRepository = new LocalSessionMeRepository(this.store);
     }
 
+    await this.sessionMeRepository.init();
+    this.listenEvents();
     await this.clearStorage();
     this.restartStoppedSessions();
     this.startPredefinedSessions();
+  }
+
+  private listenEvents() {
+    this.events.on(
+      WAHAEvents.SESSION_STATUS,
+      async (data: WAHAWebhookSessionStatus) => {
+        if (data.me) {
+          await this.sessionMeRepository.upsertMe(data.session, data.me);
+        }
+      },
+    );
   }
 
   protected async restartStoppedSessions() {
@@ -141,6 +162,8 @@ export class SessionManagerPlus extends SessionManager {
     });
     this.log.info('All sessions have been stopped.');
     await Promise.all(promises);
+    await this.store?.close();
+    await super.beforeApplicationShutdown(signal);
   }
 
   private async clearStorage() {
@@ -171,6 +194,8 @@ export class SessionManagerPlus extends SessionManager {
   async delete(name: string): Promise<void> {
     this.log.info(`Deleting session...`, { session: name });
     await this.sessionConfigRepository.delete(name);
+    await this.sessionAuthRepository.clean(name);
+    await this.sessionMeRepository.removeMe(name);
     this.log.info(`Session deleted.`, { session: name });
   }
 
@@ -263,6 +288,7 @@ export class SessionManagerPlus extends SessionManager {
   async logout(name: string): Promise<void> {
     this.log.info(`Logging out session...`, { session: name });
     await this.sessionAuthRepository.clean(name);
+    await this.sessionMeRepository.removeMe(name);
     this.log.info(`Session has been logged out.`, { session: name });
   }
 
@@ -341,11 +367,12 @@ export class SessionManagerPlus extends SessionManager {
     const sessions = names.map(async (sessionName) => {
       const status = WAHASessionStatus.STOPPED;
       const sessionConfig = await this.sessionConfigRepository.get(sessionName);
+      const me = await this.sessionMeRepository.getMe(sessionName);
       return {
         name: sessionName,
         status: status,
         config: sessionConfig,
-        me: null,
+        me: me,
       };
     });
     return await Promise.all(sessions);

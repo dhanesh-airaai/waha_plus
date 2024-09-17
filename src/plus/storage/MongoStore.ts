@@ -44,4 +44,8 @@ export class MongoStore extends DataStore {
       await collection.createIndex({ name: 1 }, { unique: true });
     }
   }
+
+  async close() {
+    await this.mongo?.close();
+  }
 }

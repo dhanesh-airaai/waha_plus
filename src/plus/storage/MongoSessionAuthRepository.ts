@@ -1,5 +1,4 @@
 import { ISessionAuthRepository } from '../../core/storage/ISessionAuthRepository';
-import { MongoSessionConfigRepository } from './MongoSessionConfigRepository';
 import { MongoStore } from './MongoStore';
 
 export class MongoSessionAuthRepository implements ISessionAuthRepository {
