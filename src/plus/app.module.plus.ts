@@ -1,20 +1,15 @@
 import * as process from 'node:process';
 
-import {
-  ConsoleLogger,
-  INestApplication,
-  MiddlewareConsumer,
-  Module,
-} from '@nestjs/common';
+import { INestApplication, MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
 import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
+import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { parseBool } from '@waha/helpers';
 import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
 import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
 import { HttpsExpress } from '@waha/plus/HttpsExpress';
-import { MediaLocalStorageModule } from '@waha/plus/media/local/media.local.storage.module';
-import { MediaStorageFactory } from '@waha/plus/media/MediaStorageFactory';
 import { MediaS3StorageModule } from '@waha/plus/media/s3/media.s3.storage.module';
 import { isDebugEnabled } from '@waha/utils/logging';
 import * as Joi from 'joi';
@@ -25,7 +20,7 @@ import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import { WAHAHealthCheckService } from '../core/abc/WAHAHealthCheckService';
 import { AppModuleCore, CONTROLLERS } from '../core/app.module.core';
-import { IMPORTS as IMPORTS_CORE } from '../core/app.module.core';
+import { IMPORTS_CORE } from '../core/app.module.core';
 import { DashboardConfigServiceCore } from '../core/config/DashboardConfigServiceCore';
 import { EngineConfigService } from '../core/config/EngineConfigService';
 import { SwaggerConfigServiceCore } from '../core/config/SwaggerConfigServiceCore';

@@ -1,7 +1,7 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { Module } from '@nestjs/common';
 import { WhatsappConfigService } from '@waha/config.service';
-import { MediaStorageFactory } from '@waha/plus/media/MediaStorageFactory';
+import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { S3ProxyController } from '@waha/plus/media/s3/api/s3.proxy.controller';
 import { MediaS3StorageConfig } from '@waha/plus/media/s3/MediaS3StorageConfig';
 import { MediaS3StorageFactory } from '@waha/plus/media/s3/MediaS3StorageFactory';

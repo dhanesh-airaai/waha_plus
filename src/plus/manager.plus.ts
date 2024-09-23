@@ -4,14 +4,11 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
+import { MediaManager } from '@waha/core/media/MediaManager';
+import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { LocalSessionMeRepository } from '@waha/core/storage/LocalSessionMeRepository';
-import { MediaManagerPlus } from '@waha/plus/media/MediaManagerPlus';
-import { MediaStorageFactory } from '@waha/plus/media/MediaStorageFactory';
 import { MongoSessionMeRepository } from '@waha/plus/storage/MongoSessionMeRepository';
-import {
-  WAHAWebhook,
-  WAHAWebhookSessionStatus,
-} from '@waha/structures/webhooks.dto';
+import { WAHAWebhookSessionStatus } from '@waha/structures/webhooks.dto';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { EventEmitter } from 'events';
@@ -216,7 +213,7 @@ export class SessionManagerPlus extends SessionManager {
       loggerBuilder.child({ name: 'Storage' }),
     );
     await storage.init();
-    const mediaManager = new MediaManagerPlus(
+    const mediaManager = new MediaManager(
       storage,
       this.config.mimetypes,
       loggerBuilder.child({ name: 'MediaManager' }),

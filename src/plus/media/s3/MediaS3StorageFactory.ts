@@ -1,7 +1,7 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
 import { IMediaStorage } from '@waha/core/media/IMediaStorage';
-import { MediaStorageFactory } from '@waha/plus/media/MediaStorageFactory';
+import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { MediaS3Storage } from '@waha/plus/media/s3/MediaS3Storage';
 import { MediaS3StorageConfig } from '@waha/plus/media/s3/MediaS3StorageConfig';
 import { MediaS3UrlResolver } from '@waha/plus/media/s3/MediaS3UrlResolver';

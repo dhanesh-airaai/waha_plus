@@ -6,9 +6,8 @@ import {
   MessageVideoRequest,
 } from '@waha/structures/chatting.dto';
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
-import { Message, MessageMedia } from 'whatsapp-web.js';
+import { MessageMedia } from 'whatsapp-web.js';
 
-import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/webjs/session.webjs.core';
 import { WebJSAuthFactory } from './WebJSAuthFactory';
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
@@ -80,30 +79,5 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       caption: request.caption,
     };
     return this.whatsapp.sendMessage(request.chatId, media, options);
-  }
-
-  protected downloadMedia(message: Message) {
-    const processor = new EngineMediaProcessor();
-    return this.mediaManager.processMedia(processor, message, this.name);
-  }
-}
-
-class EngineMediaProcessor extends CoreEngineMediaProcessor {
-  getMessageId(message: Message): string {
-    return message.id._serialized;
-  }
-
-  getMimetype(message: Message): string {
-    // @ts-ignore
-    return message.rawData.mimetype;
-  }
-
-  async getMediaBuffer(message: Message): Promise<Buffer | null> {
-    return message.downloadMedia().then((media: MessageMedia) => {
-      if (!media) {
-        return null;
-      }
-      return Buffer.from(media.data, 'base64');
-    });
   }
 }

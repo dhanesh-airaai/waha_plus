@@ -1,11 +1,9 @@
-import { downloadMediaMessage, getStream } from '@adiwajshing/baileys';
-import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
+import { getStream } from '@adiwajshing/baileys';
 import { UnprocessableEntityException } from '@nestjs/common';
 import {
   toJID,
   WhatsappSessionNoWebCore,
 } from '@waha/core/engines/noweb/session.noweb.core';
-import { extractMediaContent } from '@waha/core/engines/noweb/utils';
 import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
 import { CreateChannelRequest } from '@waha/structures/channels.dto';
 import {
@@ -21,9 +19,7 @@ import {
   VideoStatus,
   VoiceStatus,
 } from '@waha/structures/status.dto';
-import { LoggerBuilder } from '@waha/utils/logging';
 
-import { EngineMediaProcessor as CoreEngineMediaProcessor } from '../../../core/engines/noweb/session.noweb.core';
 import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
@@ -96,11 +92,6 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return this.sock.sendMessage(chatId, message, options);
   }
 
-  protected downloadMedia(message) {
-    const processor = new EngineMediaProcessor(this, this.loggerBuilder);
-    return this.mediaManager.processMedia(processor, message, this.name);
-  }
-
   /**
    * Status methods
    */
@@ -164,62 +155,5 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       await this.sock.newsletterUpdatePicture(channel.id, picture);
     }
     return channel;
-  }
-}
-
-function hasPath(url: string) {
-  if (!url) {
-    return false;
-  }
-  try {
-    const urlObj = new URL(url);
-    return urlObj.pathname !== '/';
-  } catch (error) {
-    return false;
-  }
-}
-
-class EngineMediaProcessor extends CoreEngineMediaProcessor {
-  private readonly logger: BaileysLogger;
-
-  constructor(session: WhatsappSessionNoWebPlus, loggerBuilder: LoggerBuilder) {
-    super(session);
-    this.logger = loggerBuilder.child({
-      name: EngineMediaProcessor.name,
-    }) as unknown as BaileysLogger;
-  }
-
-  getMessageId(message: any): string {
-    return message.key.id;
-  }
-
-  getMimetype(message: any): string {
-    const content = extractMediaContent(message.message);
-    return content.mimetype;
-  }
-
-  async getMediaBuffer(message: any): Promise<Buffer | null> {
-    const content = extractMediaContent(message.message);
-    // Fix Stickers
-    // https://github.com/devlikeapro/waha/issues/504
-    const url = content.url;
-    if (!hasPath(url)) {
-      // Set it to null so the engine handles it right
-      content.url = null;
-    }
-
-    return (await downloadMediaMessage(
-      message,
-      'buffer',
-      {},
-      {
-        logger: this.logger,
-        reuploadRequest: this.session.sock.updateMediaMessage,
-      },
-    ).finally(() => {
-      // Fix Stickers - set url back, just to have it in the response
-      // https://github.com/devlikeapro/waha/issues/504
-      content.url = url;
-    })) as Buffer;
   }
 }
