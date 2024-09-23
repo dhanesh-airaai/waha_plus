@@ -38,7 +38,7 @@ export class S3ProxyUrl extends MediaS3UrlResolver {
 
   constructor(private config: WhatsappConfigService) {
     super();
-    this.prefix = `${this.config.schema}://${this.config.hostname}:${this.config.port}/${this.url}`;
+    this.prefix = `${this.config.baseUrl}/${this.url}`;
   }
 
   async resolve(file: S3Object): Promise<string> {
