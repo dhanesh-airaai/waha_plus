@@ -22,8 +22,12 @@ export class SingleDelayedJobRunner {
     });
   }
 
+  get scheduled(): boolean {
+    return !!this.timeout;
+  }
+
   schedule(fn: FunctionNoArgs): boolean {
-    if (this.timeout) {
+    if (this.scheduled) {
       const msg = `Job has been started before, do not schedule it again`;
       this.log(this.warningOverride, msg);
       return false;
@@ -41,6 +45,9 @@ export class SingleDelayedJobRunner {
   }
 
   cancel() {
+    if (!this.timeout) {
+      return;
+    }
     clearTimeout(this.timeout);
     this.timeout = null;
     this.logger.info(`Job cancelled`);

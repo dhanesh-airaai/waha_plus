@@ -69,7 +69,9 @@ import {
   Label as WEBJSLabel,
   Location,
   Message,
+  MessageMedia,
   Reaction,
+  WAState,
 } from 'whatsapp-web.js';
 import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
 
@@ -87,6 +89,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   protected engineConfig?: WebJSConfig;
 
   private startDelayedJob: SingleDelayedJobRunner;
+  private engineStateCheckDelayedJob: SingleDelayedJobRunner;
   private shouldRestart: boolean;
 
   whatsapp: WebjsClient;
@@ -101,6 +104,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     this.startDelayedJob = new SingleDelayedJobRunner(
       'start-engine',
       this.START_ATTEMPT_DELAY_SECONDS * SECOND,
+      this.logger,
+    );
+    this.engineStateCheckDelayedJob = new SingleDelayedJobRunner(
+      'engine-state-check',
+      2 * SECOND,
       this.logger,
     );
   }
@@ -234,6 +242,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   private async end() {
+    this.engineStateCheckDelayedJob.cancel();
     try {
       this.whatsapp?.removeAllListeners();
       this.whatsapp?.pupBrowser?.removeAllListeners();
@@ -312,6 +321,45 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       this.status = WAHASessionStatus.FAILED;
       this.qr.save('');
       this.logger.info(`Session '${this.name}' has been disconnected!`);
+    });
+
+    this.whatsapp.on(Events.STATE_CHANGED, (state: WAState) => {
+      const badStates = [WAState.OPENING, WAState.TIMEOUT];
+      const log = this.logger.child({ state: state, event: 'change_state' });
+
+      log.debug('Session engine state changed');
+      if (!badStates.includes(state)) {
+        return;
+      }
+
+      log.info(`Session state changed to bad state, waiting for recovery...`);
+      this.engineStateCheckDelayedJob.schedule(async () => {
+        if (!this.startDelayedJob.scheduled) {
+          log.info('Session is restarting already, skip check.');
+          return;
+        }
+
+        if (!this.whatsapp) {
+          log.warn('Session is not initialized, skip recovery.');
+          return;
+        }
+
+        const currentState = await this.whatsapp.getState().catch((error) => {
+          log.error('Failed to get current state');
+          log.error(error, error.stack);
+          return null;
+        });
+        log.setBindings({ currentState: currentState });
+        if (!currentState) {
+          log.warn('Session has no current state, skip restarting.');
+          return;
+        } else if (badStates.includes(currentState)) {
+          log.info('Session is still in bad state, restarting...');
+          this.restartClient();
+          return;
+        }
+        log.info('Session has recovered, no need to restart.');
+      });
     });
   }
 
@@ -841,6 +889,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
           this.processIncomingMessage(message).then(handler),
         );
         return true;
+      case WAHAEvents.MESSAGE_WAITING:
+        this.whatsapp.on(Events.MESSAGE_CIPHERTEXT, (message) =>
+          this.processIncomingMessage(message).then(handler),
+        );
+        return true;
       case WAHAEvents.MESSAGE_REVOKED:
         this.whatsapp.on(
           Events.MESSAGE_REVOKED_EVERYONE,
@@ -991,7 +1044,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   protected downloadMedia(message: Message) {
-    const processor = new EngineMediaProcessor();
+    const processor = new WEBJSEngineMediaProcessor();
     return this.mediaManager.processMedia(processor, message, this.name);
   }
 
@@ -1008,7 +1061,9 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 }
 
-export class EngineMediaProcessor implements IMediaEngineProcessor<Message> {
+export class WEBJSEngineMediaProcessor
+  implements IMediaEngineProcessor<Message>
+{
   hasMedia(message: Message): boolean {
     if (!message.hasMedia) {
       return false;
@@ -1018,15 +1073,21 @@ export class EngineMediaProcessor implements IMediaEngineProcessor<Message> {
   }
 
   getMessageId(message: Message): string {
-    return '';
+    return message.id._serialized;
   }
 
   getMimetype(message: Message): string {
-    return '';
+    // @ts-ignore
+    return message.rawData.mimetype;
   }
 
-  getMediaBuffer(message: Message): Promise<Buffer | null> {
-    return Promise.resolve(undefined);
+  async getMediaBuffer(message: Message): Promise<Buffer | null> {
+    return message.downloadMedia().then((media: MessageMedia) => {
+      if (!media) {
+        return null;
+      }
+      return Buffer.from(media.data, 'base64');
+    });
   }
 
   getFilename(message: Message): string | null {
