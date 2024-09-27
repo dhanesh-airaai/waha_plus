@@ -40,6 +40,7 @@ export class WebhookSenderPlus extends WebhookSenderCore {
     axiosRetry(instance, {
       retries: attempts,
       retryDelay: (_) => delayMs,
+      retryCondition: (error) => true,
     });
     return instance;
   }
