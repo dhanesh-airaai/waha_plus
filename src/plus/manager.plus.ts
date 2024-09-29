@@ -131,7 +131,7 @@ export class SessionManagerPlus extends SessionManager {
     } else if (engine === WAHAEngine.NOWEB) {
       return WhatsappSessionNoWebPlus;
     } else {
-      throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`);
+      throw new Error(`Unknown whatsapp engine '${engine}'.`);
     }
   }
 
