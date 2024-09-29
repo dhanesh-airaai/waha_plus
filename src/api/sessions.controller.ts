@@ -35,21 +35,14 @@ import {
   SessionUpdateRequest,
 } from '../structures/sessions.dto';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const AsyncLock = require('async-lock');
-
 @ApiSecurity('api_key')
 @Controller('api/sessions')
 @ApiTags('🖥️ Sessions')
 class SessionsController {
-  private lock: any;
-
-  constructor(private manager: SessionManager) {
-    this.lock = new AsyncLock({ maxPending: Infinity });
-  }
+  constructor(private manager: SessionManager) {}
 
   private withLock(name: string, fn: () => any) {
-    return this.lock.acquire(name, fn);
+    return this.manager.withLock(name, fn);
   }
 
   @Get('/')
@@ -177,10 +170,6 @@ class SessionsController {
   @UsePipes(new WAHAValidationPipe())
   async stop(@Param('session') name: string): Promise<SessionDTO> {
     await this.withLock(name, async () => {
-      const exists = await this.manager.exists(name);
-      if (!exists) {
-        throw new NotFoundException('Session not found');
-      }
       await this.manager.stop(name, false);
     });
     return await this.manager.getSessionInfo(name);
