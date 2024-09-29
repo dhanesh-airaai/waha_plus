@@ -57,11 +57,10 @@ export class SessionManagerPlus extends SessionManager {
     private config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
-    private log: PinoLogger,
+    log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
   ) {
-    super();
-    this.log.setContext(SessionManagerPlus.name);
+    super(log);
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
