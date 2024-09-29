@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { MediaManager } from '@waha/core/media/MediaManager';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
@@ -186,8 +182,8 @@ export class SessionManagerPlus extends SessionManager {
   async start(name: string): Promise<SessionDTO> {
     this.log.info(`starting session...`, { session: name });
     if (this.isRunning(name)) {
-      const msg = `Session '${name}' is already started.`;
-      throw new UnprocessableEntityException(msg);
+      this.log.info(`Session is already running.`, { session: name });
+      return;
     }
 
     const logger = this.log.logger.child({ session: name });
