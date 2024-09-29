@@ -54,13 +54,13 @@ export class SessionManagerPlus extends SessionManager {
   protected readonly EngineClass: typeof WhatsappSession;
 
   constructor(
-    private config: WhatsappConfigService,
+    config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
     log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
   ) {
-    super(log);
+    super(config, log);
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
