@@ -129,18 +129,6 @@ export class SessionManagerPlus extends SessionManager {
     await Promise.all(promises);
   }
 
-  protected async startPredefinedSessions() {
-    const startSessions = this.config.startSessions;
-    const promises = startSessions.map(async (sessionName) => {
-      // Do not start already started session
-      if (this.sessions[sessionName]) {
-        return;
-      }
-      return this.start(sessionName);
-    });
-    await Promise.all(promises);
-  }
-
   protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
     if (engine === WAHAEngine.WEBJS) {
       return WhatsappSessionWebJSPlus;
