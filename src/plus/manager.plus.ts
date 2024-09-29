@@ -96,7 +96,12 @@ export class SessionManagerPlus extends SessionManager {
     await this.sessionMeRepository.init();
     this.listenEvents();
     await this.clearStorage();
-    this.restartStoppedSessions();
+    this.restartStoppedSessions().catch((error) => {
+      this.log.error(
+        { error: error },
+        'Error while restarting STOPPED sessions',
+      );
+    });
     this.startPredefinedSessions();
   }
 
@@ -118,11 +123,21 @@ export class SessionManagerPlus extends SessionManager {
 
     const stoppedSessions = await this.sessionConfigRepository.getAll();
 
-    const promises = stoppedSessions.map(async (sessionName) => {
-      this.log.info(`Restarting STOPPED session - ${sessionName}...`);
-      return this.start(sessionName);
+    stoppedSessions.forEach((sessionName) => {
+      this.withLock(sessionName, async () => {
+        this.log.info(
+          { session: sessionName },
+          `Restarting STOPPED session...`,
+        );
+        this.start(sessionName).catch((error) => {
+          this.log.error(
+            { session: sessionName },
+            `Failed to start STOPPED session: ${error}`,
+          );
+          this.log.error(error.stack);
+        });
+      });
     });
-    await Promise.all(promises);
   }
 
   protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
