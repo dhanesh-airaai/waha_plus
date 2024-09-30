@@ -1,6 +1,6 @@
 import { sleep } from '@nestjs/terminus/dist/utils';
 import * as fs from 'fs';
-import { GridFSBucket, GridFSFile } from 'mongodb';
+import { Db, GridFSBucket, GridFSFile } from 'mongodb';
 import { Logger } from 'pino';
 import { pipeline } from 'stream/promises';
 import { Store } from 'whatsapp-web.js';
@@ -10,21 +10,26 @@ import { MongoStore } from '../../storage/MongoStore';
 class WebJSMongoAuth implements Store {
   private store: MongoStore;
   private logger: Logger;
+  private sessionName: string;
+  private db: Db;
+  private bucket: GridFSBucket;
 
-  constructor(store: MongoStore, logger: Logger) {
+  constructor(sessionName: string, store: MongoStore, logger: Logger) {
     this.store = store;
     this.logger = logger;
-  }
-
-  db(session: string) {
-    return this.store.getSessionDb(session);
+    this.sessionName = sessionName;
+    this.db = this.store.getSessionDb(sessionName);
+    const bucketName = this.getBucketName();
+    this.bucket = new GridFSBucket(this.db, {
+      bucketName: bucketName,
+    });
   }
 
   async sessionExists(options) {
+    this.checkSessionName(options);
     this.logger.info('Checking if session exists...');
-    const session = this.getSessionName(options);
     const filesCollection = this.getFilesCollectionName();
-    const multiDeviceCollection = this.db(session).collection(filesCollection);
+    const multiDeviceCollection = this.db.collection(filesCollection);
     const hasExistingSession = await multiDeviceCollection.countDocuments();
     const result = !!hasExistingSession;
     this.logger.info(`Session exists: ${result}`);
@@ -32,31 +37,21 @@ class WebJSMongoAuth implements Store {
   }
 
   async save(options) {
+    this.checkSessionName(options);
     this.logger.debug('Saving session...');
-    const session = this.getSessionName(options);
-    const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
-
-    const bucket = new GridFSBucket(this.db(session), {
-      bucketName: bucketName,
-    });
     const readStream = fs.createReadStream(filename);
-    const uploadStream = bucket.openUploadStream(filename);
+    const uploadStream = this.bucket.openUploadStream(filename);
     await pipeline(readStream, uploadStream);
     this.logger.debug('Session saved.');
-    await this.#deletePrevious(options, bucket);
+    await this.#deletePrevious(options, this.bucket);
   }
 
   async extract(options) {
+    this.checkSessionName(options);
     this.logger.info('Extracting existing session...');
-    const session = this.getSessionName(options);
-    const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
-
-    const bucket = new GridFSBucket(this.db(session), {
-      bucketName: bucketName,
-    });
-    const downloadStream = bucket.openDownloadStreamByName(filename);
+    const downloadStream = this.bucket.openDownloadStreamByName(filename);
     const writeStream = fs.createWriteStream(options.path);
     await pipeline(downloadStream, writeStream);
     // Wait a second before giving the zip file to next phase
@@ -65,21 +60,17 @@ class WebJSMongoAuth implements Store {
   }
 
   async delete(options) {
+    this.checkSessionName(options);
     this.logger.debug('Deleting session...');
-    const session = this.getSessionName(options);
-    const bucketName = this.getBucketName();
     const filename = this.getAuthFileName(options);
-    const bucket = new GridFSBucket(this.db(session), {
-      bucketName: bucketName,
-    });
-    const documents = await bucket
+    const documents = await this.bucket
       .find({
         filename: filename,
       })
       .toArray();
 
     documents.map(async (doc) => {
-      return bucket.delete(doc._id);
+      return this.bucket.delete(doc._id);
     });
     this.logger.debug('Session deleted.');
   }
@@ -122,6 +113,21 @@ class WebJSMongoAuth implements Store {
     }
     // Remote prefix
     return options.session.replace(`${prefix}-`, '');
+  }
+
+  /**
+   * Even tho we accept any "session" in options,
+   * but the store hold a single session database link (bucket)
+   * This is why we need to check if the session name
+   * is the same as the store session name
+   */
+  private checkSessionName(options) {
+    const session = this.getSessionName(options);
+    if (session !== this.sessionName) {
+      throw new Error(
+        `Session name '${session}' does not match the store session name '${this.sessionName}'`,
+      );
+    }
   }
 
   private getBucketName(): string {

@@ -34,7 +34,7 @@ export class WebJSAuthFactory {
     loggerBuilder: LoggerBuilder,
   ) {
     const logger = loggerBuilder.child({ name: WebJSMongoAuth.name });
-    const authStore = new WebJSMongoAuth(store, logger);
+    const authStore = new WebJSMongoAuth(name, store, logger);
     const zipper = this.getAvailableZipper(logger);
     return new RemoteAuth({
       backupSyncIntervalMs: 60 * 1000,
