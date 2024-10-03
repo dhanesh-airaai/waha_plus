@@ -284,6 +284,7 @@ export class RemoteAuth implements AuthStrategy {
 
     try {
       await fs.promises.rm(path, {
+        maxRetries: 7,
         recursive: true,
         force: true,
       });
