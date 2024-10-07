@@ -3,7 +3,9 @@ import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { MediaManager } from '@waha/core/media/MediaManager';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { LocalSessionMeRepository } from '@waha/core/storage/LocalSessionMeRepository';
+import { LocalSessionWorkerRepository } from '@waha/core/storage/LocalSessionWorkerRepository';
 import { MongoSessionMeRepository } from '@waha/plus/storage/MongoSessionMeRepository';
+import { MongoSessionWorkerRepository } from '@waha/plus/storage/MongoSessionWorkerRepository';
 import { WAHAWebhookSessionStatus } from '@waha/structures/webhooks.dto';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
@@ -82,6 +84,9 @@ export class SessionManagerPlus extends SessionManager {
         this.store,
       );
       this.sessionMeRepository = new MongoSessionMeRepository(this.store);
+      this.sessionWorkerRepository = new MongoSessionWorkerRepository(
+        this.store,
+      );
     } else {
       this.log.info('Using local storage for session info.');
       this.store = new LocalStorePlus(engineName);
@@ -91,17 +96,32 @@ export class SessionManagerPlus extends SessionManager {
         this.store,
       );
       this.sessionMeRepository = new LocalSessionMeRepository(this.store);
+      this.sessionWorkerRepository = new LocalSessionWorkerRepository(
+        this.store,
+      );
     }
 
     await this.sessionMeRepository.init();
+    await this.sessionWorkerRepository.init();
     this.listenEvents();
     await this.clearStorage();
-    this.restartStoppedSessions().catch((error) => {
-      this.log.error(
-        { error: error },
-        'Error while restarting STOPPED sessions',
+
+    let restartSessions: string[];
+    if (this.config.shouldRestartAllSessions) {
+      this.log.info(`Restarting ALL STOPPED sessions...`);
+      restartSessions = await this.sessionConfigRepository.getAll();
+    } else if (this.config.shouldRestartWorkerSessions) {
+      this.log.info(`Starting sessions for the worker "${this.workerId}"...`);
+      restartSessions = await this.sessionWorkerRepository.getSessionsByWorker(
+        this.workerId,
       );
+    }
+
+    this.restartStoppedSessions(restartSessions).catch((error) => {
+      this.log.error(`Error while restarting STOPPED sessions: ${error}`);
+      this.log.error(error.stack);
     });
+
     this.startPredefinedSessions();
   }
 
@@ -116,25 +136,14 @@ export class SessionManagerPlus extends SessionManager {
     );
   }
 
-  protected async restartStoppedSessions() {
-    if (!this.config.shouldRestartAllSessions) {
-      return;
-    }
-
-    const stoppedSessions = await this.sessionConfigRepository.getAll();
-
-    stoppedSessions.forEach((sessionName) => {
+  protected async restartStoppedSessions(sessions: string[]) {
+    sessions.forEach((sessionName) => {
       this.withLock(sessionName, async () => {
-        this.log.info(
-          { session: sessionName },
-          `Restarting STOPPED session...`,
-        );
+        const log = this.log.logger.child({ session: sessionName });
+        log.info(`Restarting STOPPED session...`);
         this.start(sessionName).catch((error) => {
-          this.log.error(
-            { session: sessionName },
-            `Failed to start STOPPED session: ${error}`,
-          );
-          this.log.error(error.stack);
+          log.error(`Failed to start STOPPED session: ${error}`);
+          log.error(error.stack);
         });
       });
     });
@@ -191,6 +200,7 @@ export class SessionManagerPlus extends SessionManager {
     await this.sessionConfigRepository.delete(name);
     await this.sessionAuthRepository.clean(name);
     await this.sessionMeRepository.removeMe(name);
+    await this.sessionWorkerRepository.remove(name);
     this.log.info(`Session deleted.`, { session: name });
   }
 
@@ -385,6 +395,15 @@ export class SessionManagerPlus extends SessionManager {
       [...offlineSessions, ...runtimeSessions],
       'name',
     );
+
+    // Get assigned worker
+    const workersInfo = await this.sessionWorkerRepository.getAll();
+    const workerBySession = lodash.keyBy(workersInfo, 'id');
+    Object.keys(sessions).forEach((sessionName) => {
+      sessions[sessionName].assignedWorker =
+        workerBySession[sessionName]?.worker;
+    });
+
     return Object.values(sessions);
   }
 
