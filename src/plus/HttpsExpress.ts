@@ -64,5 +64,10 @@ export class HttpsExpress {
         httpd.setSecureContext(this.readSync());
       }, 1000);
     });
+    process.on('SIGTERM', () => {
+      this.logger.info('SIGTERM received, closing HTTP file watchers');
+      clearTimeout(waitForCertAndFullChainToGetUpdatedTooTimeout);
+      watcher.close();
+    });
   }
 }
