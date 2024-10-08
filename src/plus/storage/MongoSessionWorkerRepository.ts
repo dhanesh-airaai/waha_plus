@@ -39,6 +39,6 @@ export class MongoSessionWorkerRepository implements ISessionWorkerRepository {
   }
 
   async init(): Promise<void> {
-    await this.collection.createIndex({ worker: 1 }, { unique: true });
+    await this.collection.createIndex({ worker: 1 });
   }
 }
