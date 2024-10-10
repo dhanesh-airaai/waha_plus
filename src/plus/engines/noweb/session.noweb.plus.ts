@@ -4,6 +4,7 @@ import {
   toJID,
   WhatsappSessionNoWebCore,
 } from '@waha/core/engines/noweb/session.noweb.core';
+import { parseBool } from '@waha/helpers';
 import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
 import { CreateChannelRequest } from '@waha/structures/channels.dto';
 import {
@@ -89,6 +90,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     );
     const chatId = toJID(this.ensureSuffix(request.chatId));
     const options = await this.getMessageOptions(request);
+    message.ptv = parseBool(request.asNote);
     return this.sock.sendMessage(chatId, message, options);
   }
 
