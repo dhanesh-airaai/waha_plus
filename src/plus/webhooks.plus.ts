@@ -1,9 +1,9 @@
-import { LoggerBuilder } from '@waha/utils/logging';
 import { VERSION } from '@waha/version';
 import axios from 'axios';
 import { AxiosInstance } from 'axios';
 import axiosRetry from 'axios-retry';
 import * as crypto from 'crypto';
+import { v4 as uuid4 } from 'uuid';
 
 import { WebhookSender } from '../core/abc/webhooks.abc';
 import { WebhookConductorCore, WebhookSenderCore } from '../core/webhooks.core';
@@ -41,6 +41,12 @@ export class WebhookSenderPlus extends WebhookSenderCore {
       retries: attempts,
       retryDelay: (_) => delayMs,
       retryCondition: (error) => true,
+      onRetry: (retryCount, error, requestConfig) => {
+        this.logger.warn(
+          { id: requestConfig.headers['X-Webhook-Request-Id'] },
+          `Error sending POST request: '${error.message}'. Retrying ${retryCount}/${attempts}...`,
+        );
+      },
     });
     return instance;
   }
@@ -57,6 +63,15 @@ export class WebhookSenderPlus extends WebhookSenderCore {
     };
   }
 
+  protected getWebhookHeader() {
+    return {
+      // UUID, no '-' in it
+      'X-Webhook-Request-Id': uuid4().replace(/-/g, ''),
+      // unix timestamp with ms
+      'X-Webhook-Timestamp': Date.now().toString(),
+    };
+  }
+
   private calculateHmac(body, algorithm) {
     if (!this.config.hmac || !this.config.hmac.key) {
       return undefined;
@@ -70,7 +85,9 @@ export class WebhookSenderPlus extends WebhookSenderCore {
 
   send(json: any) {
     const body = JSON.stringify(json);
-    const headers = this.getHMACHeaders(body);
+    const headers = {};
+    Object.assign(headers, this.getWebhookHeader());
+    Object.assign(headers, this.getHMACHeaders(body));
     super.send(json, headers);
   }
 }
