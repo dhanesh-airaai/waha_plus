@@ -1,4 +1,5 @@
-import { getStream } from '@adiwajshing/baileys';
+import { getStream, prepareWAMessageMedia } from '@adiwajshing/baileys';
+import { MediaGenerationOptions } from '@adiwajshing/baileys/lib/Types';
 import { UnprocessableEntityException } from '@nestjs/common';
 import {
   toJID,
@@ -27,7 +28,26 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   authFactory = new NowebAuthFactoryPlus();
   storageFactory = new NowebStorageFactoryPlus();
 
-  fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
+  protected async uploadMedia(
+    file: RemoteFile | BinaryFile,
+    type,
+  ): Promise<any> {
+    if (!file) {
+      return;
+    }
+    if (!('url' in file || 'data' in file)) {
+      return;
+    }
+    const message: any = this.fileToMessage(file, type);
+    const options: MediaGenerationOptions = {
+      logger: this.engineLogger,
+      upload: this.sock.waUploadToServer,
+    };
+    const { imageMessage } = await prepareWAMessageMedia(message, options);
+    return imageMessage;
+  }
+
+  protected fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
     if (!('url' in file || 'data' in file)) {
       throw new UnprocessableEntityException(
         'Either file.url or file.data must be specified.',
