@@ -1,18 +1,36 @@
 import { VERSION } from '@waha/version';
-import axios from 'axios';
-import { AxiosInstance } from 'axios';
-import axiosRetry from 'axios-retry';
+import axios, { AxiosInstance } from 'axios';
+import axiosRetry, { retryAfter } from 'axios-retry';
 import * as crypto from 'crypto';
 import { v4 as uuid4 } from 'uuid';
 
 import { WebhookSender } from '../core/abc/webhooks.abc';
 import { WebhookConductorCore, WebhookSenderCore } from '../core/webhooks.core';
 import { SECOND } from '../structures/enums.dto';
-import { WebhookConfig } from '../structures/webhooks.config.dto';
+import { RetryPolicy, WebhookConfig } from '../structures/webhooks.config.dto';
 
 const DEFAULT_RETRY_DELAY_SECONDS = 2;
 const DEFAULT_RETRY_ATTEMPTS = 15;
 const DEFAULT_HMAC_ALGORITHM = 'sha512';
+
+function noDelay(_retryNumber = 0, error: any) {
+  return Math.max(0, retryAfter(error));
+}
+
+function constantDelay(delayFactor: number) {
+  return (_retryNumber = 0, error = undefined) => {
+    return Math.max(delayFactor, retryAfter(error));
+  };
+}
+
+export function exponentialDelay(delayFactor: number) {
+  return (retryNumber = 0, error = undefined) => {
+    const calculatedDelay = 2 ** retryNumber * delayFactor;
+    const delay = Math.max(calculatedDelay, retryAfter(error));
+    const randomSum = delay * 0.2 * Math.random(); // 0-20% of the delay
+    return delay + randomSum;
+  };
+}
 
 export class WebhookSenderPlus extends WebhookSenderCore {
   protected buildAxiosInstance(): AxiosInstance {
@@ -31,6 +49,8 @@ export class WebhookSenderPlus extends WebhookSenderCore {
     const delaySeconds =
       this.config.retries?.delaySeconds ?? DEFAULT_RETRY_DELAY_SECONDS;
     const delayMs = delaySeconds * SECOND;
+    const policy = this.config.retries?.policy;
+    const retryDelay = this.buildRetryDelay(policy, delayMs);
 
     const instance = axios.create({
       headers: headers,
@@ -39,7 +59,7 @@ export class WebhookSenderPlus extends WebhookSenderCore {
     });
     axiosRetry(instance, {
       retries: attempts,
-      retryDelay: (_) => delayMs,
+      retryDelay: retryDelay,
       retryCondition: (error) => true,
       onRetry: (retryCount, error, requestConfig) => {
         this.logger.warn(
@@ -81,6 +101,34 @@ export class WebhookSenderPlus extends WebhookSenderCore {
       .createHmac(algorithm, this.config.hmac.key)
       .update(body)
       .digest('hex');
+  }
+
+  private buildRetryDelay(
+    policy: RetryPolicy | null,
+    ms: number,
+  ): (retryNumber: number, error: any) => number {
+    if (!ms) {
+      this.logger.debug(`Using no delay, because delaySeconds set to 0`);
+      return noDelay;
+    }
+
+    switch (policy) {
+      case RetryPolicy.CONSTANT:
+        this.logger.debug(`Using constant delay with '${ms}' ms factor`);
+        return constantDelay(ms);
+
+      case RetryPolicy.LINEAR:
+        this.logger.debug(`Using linear delay with '${ms}' ms factor`);
+        return axiosRetry.linearDelay(ms);
+
+      case RetryPolicy.EXPONENTIAL:
+        this.logger.debug(`Using exponential delay with '${ms}' ms factor`);
+        return exponentialDelay(ms);
+
+      default:
+        this.logger.debug('No delay policy specified, using constant delay');
+        return constantDelay(ms);
+    }
   }
 
   send(json: any) {
