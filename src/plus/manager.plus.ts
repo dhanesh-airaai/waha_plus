@@ -137,16 +137,21 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   protected async restartStoppedSessions(sessions: string[]) {
-    sessions.forEach((sessionName) => {
-      this.withLock(sessionName, async () => {
+    const sleepS = this.config.autoStartDelaySeconds;
+    this.log.info(`Restarting sessions with delay of ${sleepS} seconds...`);
+    const sleepMs = this.config.autoStartDelaySeconds * 1000;
+    for (const sessionName of sessions) {
+      await this.withLock(sessionName, async () => {
         const log = this.log.logger.child({ session: sessionName });
         log.info(`Restarting STOPPED session...`);
-        this.start(sessionName).catch((error) => {
+        await this.start(sessionName).catch((error) => {
           log.error(`Failed to start STOPPED session: ${error}`);
           log.error(error.stack);
         });
       });
-    });
+      await sleep(sleepMs);
+    }
+    this.log.info(`STOPPED sessions have been restarted.`);
   }
 
   protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
