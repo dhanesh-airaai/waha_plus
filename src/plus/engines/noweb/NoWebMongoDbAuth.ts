@@ -88,7 +88,7 @@ export class NoWebMongoDbAuth {
             await Promise.all(
               ids.map(async (id) => {
                 let value = await this.readData(`${type}-${id}`);
-                if (type === 'app-state-sync-key') {
+                if (type === 'app-state-sync-key' && value) {
                   value = WAProto.Message.AppStateSyncKeyData.fromObject(value);
                 }
                 data[id] = value;
