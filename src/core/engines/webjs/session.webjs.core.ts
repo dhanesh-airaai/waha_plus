@@ -26,6 +26,7 @@ import {
   EditMessageRequest,
   GetMessageQuery,
   MessageFileRequest,
+  MessageForwardRequest,
   MessageImageRequest,
   MessageLocationRequest,
   MessageReactionRequest,
@@ -229,7 +230,12 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
   async start() {
     this.status = WAHASessionStatus.STARTING;
-    await this.init();
+    await this.init().catch((err) => {
+      this.logger.error('Failed to start the client');
+      this.logger.error(err, err.stack);
+      this.status = WAHASessionStatus.FAILED;
+      this.restartClient();
+    });
     return this;
   }
 
@@ -384,7 +390,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     // show it as ABCD-ABCD
     const parts = splitAt(code, 4);
     const codeRepr = parts.join('-');
-    this.logger.info(`Your code: ${codeRepr}`);
+    this.logger.debug(`Your code: ${codeRepr}`);
     return { code: codeRepr };
   }
 
@@ -461,6 +467,15 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     });
     const options = this.getMessageOptions(request);
     return this.whatsapp.sendMessage(request.chatId, location, options);
+  }
+
+  async forwardMessage(request: MessageForwardRequest): Promise<WAMessage> {
+    const forwardMessage = this.recreateMessage(request.messageId);
+    const msg = await forwardMessage.forward(request.chatId);
+    // Return "sent: true" for now
+    // need to research how to get the data from WebJS
+    // @ts-ignore
+    return { sent: msg || false };
   }
 
   async sendSeen(request: SendSeenRequest) {

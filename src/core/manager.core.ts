@@ -64,16 +64,15 @@ export class SessionManagerCore extends SessionManager {
   protected readonly EngineClass: typeof WhatsappSession;
 
   constructor(
-    private config: WhatsappConfigService,
+    config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
-    private log: PinoLogger,
+    log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
   ) {
-    super();
+    super(config, log);
     this.events = new EventEmitter();
     this.session = DefaultSessionStatus.STOPPED;
     this.sessionConfig = null;
-    this.log.setContext(SessionManagerCore.name);
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
     this.store = new LocalStoreCore(engineName.toLowerCase());
@@ -81,13 +80,6 @@ export class SessionManagerCore extends SessionManager {
     this.startPredefinedSessions();
     this.clearStorage().catch((error) => {
       this.log.error({ error }, 'Error while clearing storage');
-    });
-  }
-
-  protected startPredefinedSessions() {
-    const startSessions = this.config.startSessions;
-    startSessions.forEach((sessionName) => {
-      this.start(sessionName);
     });
   }
 

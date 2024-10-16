@@ -26,6 +26,7 @@ import { LabelAssociationType } from '@adiwajshing/baileys/lib/Types/LabelAssoci
 import { isLidUser } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
+import { sendButtonMessage } from '@waha/core/engines/noweb/noweb.buttons';
 import { NowebInMemoryStore } from '@waha/core/engines/noweb/store/NowebInMemoryStore';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { flipObject, parseBool, splitAt } from '@waha/helpers';
@@ -38,7 +39,9 @@ import {
   ListChannelsQuery,
 } from '@waha/structures/channels.dto';
 import { GetChatsQuery } from '@waha/structures/chats.dto';
+import { SendButtonsRequest } from '@waha/structures/chatting.buttons.dto';
 import { ContactQuery, ContactRequest } from '@waha/structures/contacts.dto';
+import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import {
   Label,
   LabelChatAssociation,
@@ -68,6 +71,7 @@ import {
   MessageContactVcardRequest,
   MessageDestination,
   MessageFileRequest,
+  MessageForwardRequest,
   MessageImageRequest,
   MessageLinkPreviewRequest,
   MessageLocationRequest,
@@ -209,7 +213,12 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   async start() {
     this.status = WAHASessionStatus.STARTING;
-    await this.buildClient();
+    await this.buildClient().catch((err) => {
+      this.logger.error('Failed to start the client');
+      this.logger.error(err, err.stack);
+      this.status = WAHASessionStatus.FAILED;
+      this.restartClient();
+    });
   }
 
   getSocketConfig(agent, state): any {
@@ -279,13 +288,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
           this.loggerBuilder.child({ name: NowebPersistentStore.name }),
           storage,
         );
-        await this.store.init().catch((err) => {
-          this.logger.error(`Failed to initialize storage or store: ${err}`);
-          this.status = WAHASessionStatus.FAILED;
-          this.end();
-          this.store?.close();
-          throw err;
-        });
+        await this.store.init();
       } else {
         this.logger.debug('Using NowebInMemoryStore');
         this.store = new NowebInMemoryStore();
@@ -360,6 +363,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
         );
         return;
       }
+      await this.end();
       await this.start();
     });
   }
@@ -393,8 +397,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
           this.logger.error(
             `Connection closed due to '${lastDisconnect.error}', do not reconnect the session.`,
           );
-          await this.end();
-          this.status = WAHASessionStatus.FAILED;
+          await this.failed();
         }
       }
 
@@ -412,6 +415,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.shouldRestart = false;
     this.startDelayedJob.cancel();
     this.autoRestartJob.stop();
+
     if (this.authNOWEBStore && this.status == WAHASessionStatus.WORKING) {
       this.logger.info('Saving creds before stopping...');
       await this.authNOWEBStore.saveCreds().catch((e) => {
@@ -423,9 +427,20 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     }
     this.status = WAHASessionStatus.STOPPED;
     this.events.removeAllListeners();
+
     await this.end();
     await this.store?.close();
-    return;
+  }
+
+  protected async failed() {
+    this.shouldRestart = false;
+    this.startDelayedJob.cancel();
+    this.autoRestartJob.stop();
+
+    this.status = WAHASessionStatus.FAILED;
+
+    await this.end();
+    await this.store?.close();
   }
 
   private issueMessageUpdateOnEdits() {
@@ -660,6 +675,30 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     throw new AvailableInPlusVersion();
   }
 
+  protected async uploadMedia(
+    file: RemoteFile | BinaryFile,
+    type,
+  ): Promise<any> {
+    if (file && ('url' in file || 'data' in file)) {
+      throw new AvailableInPlusVersion('Sending media (image, video, pdf)');
+    }
+    return;
+  }
+
+  async sendButtons(request: SendButtonsRequest) {
+    const chatId = toJID(this.ensureSuffix(request.chatId));
+    const headerImage = await this.uploadMedia(request.headerImage, 'image');
+    return await sendButtonMessage(
+      this.sock,
+      chatId,
+      request.buttons,
+      request.header,
+      headerImage,
+      request.body,
+      request.footer,
+    );
+  }
+
   sendLocation(request: MessageLocationRequest) {
     return this.sock.sendMessage(request.chatId, {
       location: {
@@ -667,6 +706,23 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
         degreesLongitude: request.longitude,
       },
     });
+  }
+
+  async forwardMessage(request: MessageForwardRequest): Promise<WAMessage> {
+    const key = parseMessageIdSerialized(request.messageId);
+    const forwardMessage = await this.store.loadMessage(key.remoteJid, key.id);
+    if (!forwardMessage) {
+      throw new UnprocessableEntityException(
+        `Message with id '${request.messageId}' not found`,
+      );
+    }
+    const chatId = toJID(this.ensureSuffix(request.chatId));
+    const message = {
+      forward: forwardMessage,
+      force: true,
+    };
+    const result = await this.sock.sendMessage(chatId, message, {});
+    return this.toWAMessage(result);
   }
 
   sendLinkPreview(request: MessageLinkPreviewRequest) {
@@ -1347,6 +1403,10 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       const mediaContent = extractMediaContent(message);
       // @ts-ignore - AudioMessage doesn't have caption field
       body = mediaContent?.caption;
+    }
+    // Response for buttons
+    if (!body) {
+      body = message.templateButtonReplyMessage?.selectedDisplayText;
     }
     return body;
   }

@@ -4,7 +4,9 @@ import {
   ListChannelsQuery,
 } from '@waha/structures/channels.dto';
 import { GetChatsQuery } from '@waha/structures/chats.dto';
+import { SendButtonsRequest } from '@waha/structures/chatting.buttons.dto';
 import { Label, LabelID } from '@waha/structures/labels.dto';
+import { WAMessage } from '@waha/structures/responses.dto';
 import { LoggerBuilder } from '@waha/utils/logging';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
@@ -18,6 +20,7 @@ import {
   GetMessageQuery,
   MessageContactVcardRequest,
   MessageFileRequest,
+  MessageForwardRequest,
   MessageImageRequest,
   MessageLinkPreviewRequest,
   MessageLocationRequest,
@@ -279,6 +282,8 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
+  abstract forwardMessage(request: MessageForwardRequest): Promise<WAMessage>;
+
   abstract sendImage(request: MessageImageRequest);
 
   abstract sendFile(request: MessageFileRequest);
@@ -286,6 +291,10 @@ export abstract class WhatsappSession {
   abstract sendVoice(request: MessageVoiceRequest);
 
   sendVideo(request: MessageVideoRequest) {
+    throw new NotImplementedByEngineError();
+  }
+
+  sendButtons(request: SendButtonsRequest) {
     throw new NotImplementedByEngineError();
   }
 
