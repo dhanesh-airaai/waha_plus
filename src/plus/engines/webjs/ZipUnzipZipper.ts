@@ -14,7 +14,7 @@ export class ZipUnzipZipper implements Zipper {
     const opts = {
       cwd: dirFullPath,
     };
-    await execFile('zip', ['-rq9', archiveFullPath, '.'], opts);
+    await execFile('zip', ['-rq1', archiveFullPath, '.'], opts);
     return;
   }
 
