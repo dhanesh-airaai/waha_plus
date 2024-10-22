@@ -4,6 +4,8 @@ import {
   replaceLongsWithNumber,
 } from '@waha/core/engines/noweb/utils';
 import { Field, Schema } from '@waha/core/storage/sqlite3/Schema';
+import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
+import { MongoPaginator } from '@waha/utils/Paginator';
 import { Collection, Db } from 'mongodb';
 
 /**
@@ -37,8 +39,10 @@ export class MongoRepository<Entity> {
     this.metadata = metadata || new Map();
   }
 
-  async getAll() {
-    const rows = await this.collection.find().toArray();
+  async getAll(pagination?: PaginationParams) {
+    let query = this.collection.find();
+    query = this.pagination(query, pagination);
+    const rows = await query.toArray();
     return rows.map(MongoRepository.revive);
   }
 
@@ -117,5 +121,10 @@ export class MongoRepository<Entity> {
 
   async deleteById(id: string) {
     await this.deleteBy({ id: id });
+  }
+
+  protected pagination(query: any, pagination?: PaginationParams) {
+    const paginator = new MongoPaginator(pagination);
+    return paginator.apply(query);
   }
 }
