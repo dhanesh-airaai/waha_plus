@@ -8,7 +8,8 @@ assignees: ''
 
 ### Describe the bug
 
-A clear and concise description of what the bug is. Feel free to remove sections that you don't feel to make the text shorter!
+A clear and concise description of what the bug is. Feel free to remove sections
+that you don't feel to make the text shorter!
 
 ### Version
 
@@ -22,9 +23,12 @@ Get the WAHA version by calling `GET /api/version`
 }
 ```
 
-Try to update to [the latest version](https://github.com/devlikeapro/waha/releases) before creating an issue!
+Try to update to
+[the latest version](https://github.com/devlikeapro/waha/releases) before
+creating an issue!
 
 ## Steps
+
 **To Reproduce** Steps to reproduce the behavior:
 
 1. Go to '...'

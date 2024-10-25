@@ -6,7 +6,7 @@ export class NotImplementedByEngineError extends UnprocessableEntityException {
   constructor(msg = '') {
     let error = 'The method is not implemented by the engine.';
     if (msg) {
-      error += ` ${msg}`;
+      error = `${msg} ${error}`;
     }
     super(error);
   }

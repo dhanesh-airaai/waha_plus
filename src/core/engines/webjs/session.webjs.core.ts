@@ -10,7 +10,7 @@ import {
 } from '@waha/core/exceptions';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
-import { parseBool, splitAt } from '@waha/helpers';
+import { splitAt } from '@waha/helpers';
 import { PairingCodeResponse } from '@waha/structures/auth.dto';
 import { CallData } from '@waha/structures/calls.dto';
 import {
@@ -19,12 +19,17 @@ import {
   CreateChannelRequest,
   ListChannelsQuery,
 } from '@waha/structures/channels.dto';
-import { ChatArchiveEvent, GetChatsQuery } from '@waha/structures/chats.dto';
+import {
+  ChatArchiveEvent,
+  ChatSortField,
+  GetChatMessageQuery,
+  GetChatMessagesFilter,
+  GetChatMessagesQuery,
+} from '@waha/structures/chats.dto';
 import {
   ChatRequest,
   CheckNumberStatusQuery,
   EditMessageRequest,
-  GetMessageQuery,
   MessageFileRequest,
   MessageForwardRequest,
   MessageImageRequest,
@@ -54,9 +59,11 @@ import {
 } from '@waha/structures/groups.dto';
 import { Label, LabelID } from '@waha/structures/labels.dto';
 import { ReplyToMessage } from '@waha/structures/message.dto';
+import { PaginationParams } from '@waha/structures/pagination.dto';
 import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { WAMessageRevokedBody } from '@waha/structures/webhooks.dto';
+import { PaginatorInMemory } from '@waha/utils/Paginator';
 import { waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import {
@@ -128,7 +135,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     // this.log.debug(`Using web version: '${webVersion}'`);
     return {
       puppeteer: {
-        headless: true,
+        headless: 'new',
         executablePath: this.getBrowserExecutablePath(),
         args: this.getBrowserArgsForPuppeteer(),
         dumpio: this.isDebugEnabled(),
@@ -340,7 +347,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
       log.info(`Session state changed to bad state, waiting for recovery...`);
       this.engineStateCheckDelayedJob.schedule(async () => {
-        if (!this.startDelayedJob.scheduled) {
+        if (this.startDelayedJob.scheduled) {
           log.info('Session is restarting already, skip check.');
           return;
         }
@@ -493,10 +500,6 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     await chat.clearState();
   }
 
-  async getMessages(query: GetMessageQuery) {
-    return this.getChatMessages(query.chatId, query.limit, query.downloadMedia);
-  }
-
   async setReaction(request: MessageReactionRequest) {
     const message = this.recreateMessage(request.messageId);
     return message.react(request.reaction);
@@ -525,18 +528,39 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Chats methods
    */
-  getChats(query: GetChatsQuery) {
-    return this.whatsapp.getChats(query.limit, query.offset);
+  getChats(pagination: PaginationParams) {
+    switch (pagination.sortBy) {
+      case ChatSortField.ID:
+        pagination.sortBy = 'id._serialized';
+        break;
+      case ChatSortField.CONVERSATION_TIMESTAMP:
+        pagination.sortBy = 't';
+        break;
+    }
+    return this.whatsapp.getChats(pagination);
   }
 
-  async getChatMessages(chatId: string, limit: number, downloadMedia: boolean) {
-    downloadMedia = parseBool(downloadMedia);
-    const chat: Chat = await this.whatsapp.getChatById(
+  public async getChatMessages(
+    chatId: string,
+    query: GetChatMessagesQuery,
+    filter: GetChatMessagesFilter,
+  ) {
+    if (chatId == 'all') {
+      throw new NotImplementedByEngineError(
+        "Can not get messages from 'all' in WEBJS",
+      );
+    }
+
+    const limit = query.limit;
+    const downloadMedia = query.downloadMedia;
+    // Test there's chat with id
+    await this.whatsapp.getChatById(this.ensureSuffix(chatId));
+    const pagination: PaginationParams = query;
+    const messages = await this.whatsapp.getMessages(
       this.ensureSuffix(chatId),
+      filter,
+      pagination,
     );
-    const messages = await chat.fetchMessages({
-      limit: limit,
-    });
     const promises = [];
     for (const msg of messages) {
       promises.push(this.processIncomingMessage(msg, downloadMedia));
@@ -544,6 +568,16 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     let result = await Promise.all(promises);
     result = result.filter(Boolean);
     return result;
+  }
+
+  public async getChatMessage(
+    chatId: string,
+    messageId: string,
+    query: GetChatMessageQuery,
+  ): Promise<null | WAMessage> {
+    const message = await this.whatsapp.getMessageById(messageId);
+    if (!message) return null;
+    return await this.processIncomingMessage(message, query.downloadMedia);
   }
 
   async deleteChat(chatId) {
@@ -564,6 +598,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   public chatsUnarchiveChat(chatId: string): Promise<any> {
     const id = this.ensureSuffix(chatId);
     return this.whatsapp.unarchiveChat(id);
+  }
+
+  public chatsUnreadChat(chatId: string): Promise<any> {
+    const id = this.ensureSuffix(chatId);
+    return this.whatsapp.markChatUnread(id);
   }
 
   /**
@@ -611,10 +650,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       .then(this.toWAContact);
   }
 
-  getContacts() {
-    return this.whatsapp
-      .getContacts()
-      .then((contacts) => contacts.map(this.toWAContact));
+  async getContacts(pagination: PaginationParams) {
+    const contactsWEBJS = await this.whatsapp.getContacts();
+    const contacts = contactsWEBJS.map(this.toWAContact);
+    const paginator = new PaginatorInMemory(pagination);
+    return paginator.apply(contacts);
   }
 
   public async getContactAbout(query: ContactQuery) {

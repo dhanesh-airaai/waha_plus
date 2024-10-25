@@ -4,9 +4,14 @@ import {
   ApiProperty,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { GetChatMessagesQuery } from '@waha/structures/chats.dto';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-import { SessionBaseRequest, SessionQuery } from './base.dto';
+import {
+  SessionBaseRequest,
+  SessionQuery,
+  WHATSAPP_DEFAULT_SESSION_NAME,
+} from './base.dto';
 import {
   BinaryFile,
   RemoteFile,
@@ -42,16 +47,12 @@ export class ChatQuery extends SessionQuery {
   chatId: string;
 }
 
-export class GetMessageQuery extends ChatQuery {
-  @IsNumber()
-  limit: number;
+export class GetMessageQuery extends GetChatMessagesQuery {
+  @IsNotEmpty()
+  session: string = WHATSAPP_DEFAULT_SESSION_NAME;
 
-  @ApiProperty({
-    example: true,
-    required: false,
-    description: 'Download media for messages',
-  })
-  downloadMedia: true;
+  @ChatIdProperty()
+  chatId: string;
 }
 
 export class GetPresenceQuery extends ChatQuery {}

@@ -47,6 +47,7 @@
     "axios": "^1.7.7",
     "axios-retry": "^4.5.0",
     "better-sqlite3": "11.3.0",
+    "bufferutil": "^4.0.8",
     "check-disk-space": "^3.4.0",
     "chokidar": "^3.6.0",
     "class-transformer": "^0.5.1",
@@ -79,6 +80,11 @@
     "sharp": "^0.33.4",
     "swagger-ui-express": "^4.1.4",
     "whatsapp-web.js": "github:devlikeapro/whatsapp-web.js#fork-main-channels"
+  },
+  "resolutions": {
+    "ws": "^8.18.0",
+    "puppeteer": "^21.0.0",
+    "whatwg-url": "13.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

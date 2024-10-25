@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -21,7 +22,12 @@ import {
 import { SessionManager } from '../core/abc/manager.abc';
 import { WhatsappSession } from '../core/abc/session.abc';
 import { parseBool } from '../helpers';
-import { GetChatMessagesQuery, GetChatsQuery } from '../structures/chats.dto';
+import {
+  ChatsPaginationParams,
+  GetChatMessageQuery,
+  GetChatMessagesFilter,
+  GetChatMessagesQuery,
+} from '../structures/chats.dto';
 import { EditMessageRequest } from '../structures/chatting.dto';
 
 @ApiSecurity('api_key')
@@ -36,9 +42,9 @@ class ChatsController {
   @ApiOperation({ summary: 'Get chats' })
   getChats(
     @WorkingSessionParam session: WhatsappSession,
-    @Query() query: GetChatsQuery,
+    @Query() pagination: ChatsPaginationParams,
   ) {
-    return session.getChats(query);
+    return session.getChats(pagination);
   }
 
   @Delete(':chatId')
@@ -56,13 +62,31 @@ class ChatsController {
   @SessionApiParam
   @ApiOperation({ summary: 'Gets messages in the chat' })
   @ChatIdApiParam
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   getChatMessages(
     @Query() query: GetChatMessagesQuery,
+    @Query() filter: GetChatMessagesFilter,
     @WorkingSessionParam session: WhatsappSession,
     @Param('chatId') chatId: string,
   ) {
-    const downloadMedia = parseBool(query.downloadMedia);
-    return session.getChatMessages(chatId, query.limit, downloadMedia);
+    return session.getChatMessages(chatId, query, filter);
+  }
+
+  @Get(':chatId/messages/:messageId')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Gets message by id' })
+  @ChatIdApiParam
+  async getChatMessage(
+    @Query() query: GetChatMessageQuery,
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('chatId') chatId: string,
+    @Param('messageId') messageId: string,
+  ) {
+    const message = await session.getChatMessage(chatId, messageId, query);
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+    return message;
   }
 
   @Delete(':chatId/messages')
@@ -123,6 +147,17 @@ class ChatsController {
     @Param('chatId') chatId: string,
   ) {
     return session.chatsUnarchiveChat(chatId);
+  }
+
+  @Post(':chatId/unread')
+  @SessionApiParam
+  @ChatIdApiParam
+  @ApiOperation({ summary: 'Unread the chat' })
+  unreadChat(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('chatId') chatId: string,
+  ) {
+    return session.chatsUnreadChat(chatId);
   }
 }
 

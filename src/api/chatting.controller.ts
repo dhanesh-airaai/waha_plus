@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { WAHAValidationPipe } from '@waha/nestjs/pipes/WAHAValidationPipe';
+import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
 import { SendButtonsRequest } from '@waha/structures/chatting.buttons.dto';
 
 import { SessionManager } from '../core/abc/manager.abc';
@@ -171,9 +172,12 @@ export class ChattingController {
 
   @Get('/messages')
   @ApiOperation({ summary: 'Get messages in a chat' })
-  async getMessages(@Query() query: GetMessageQuery) {
+  async getMessages(
+    @Query() query: GetMessageQuery,
+    @Query() filter: GetChatMessagesFilter,
+  ) {
     const whatsapp = await this.manager.getWorkingSession(query.session);
-    return whatsapp.getMessages(query);
+    return whatsapp.getChatMessages(query.chatId, query, filter);
   }
 
   @Get('/sendText')
