@@ -1,3 +1,8 @@
+import { ALL_JID } from '@waha/core/engines/noweb/session.noweb.core';
+import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
+import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
+import { FindCursor } from 'mongodb';
+
 import { IMessagesRepository } from '../../../../../core/engines/noweb/store/IMessagesRepository';
 import { MongoRepository } from './MongoRepository';
 
@@ -9,12 +14,28 @@ export class MongoMessagesRepository
     return this.upsertMany(messages);
   }
 
-  async getAllByJid(jid: string, limit: number): Promise<any[]> {
-    const rows = await this.collection
-      .find({ jid: jid })
-      .sort({ messageTimestamp: -1 })
-      .limit(limit)
-      .toArray();
+  async getAllByJid(
+    jid: string,
+    filter: GetChatMessagesFilter,
+    pagination: PaginationParams,
+  ): Promise<any[]> {
+    const query: any = {};
+    if (jid !== ALL_JID) {
+      query['jid'] = jid;
+    }
+    if (filter['filter.timestamp.lte'] != null) {
+      query['messageTimestamp'] = { $lte: filter['filter.timestamp.lte'] };
+    }
+    if (filter['filter.timestamp.gte'] != null) {
+      query['messageTimestamp'] = { $gte: filter['filter.timestamp.gte'] };
+    }
+    if (filter['filter.fromMe'] != null) {
+      query['data.key.fromMe'] = filter['filter.fromMe'];
+    }
+
+    let cursor = this.collection.find(query);
+    cursor = this.pagination(cursor, pagination);
+    const rows = await cursor.toArray();
     return rows.map(MongoRepository.revive);
   }
 
