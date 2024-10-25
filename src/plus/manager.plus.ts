@@ -45,6 +45,7 @@ import { WebhookConductorPlus } from './webhooks.plus';
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
   SESSION_STOP_TIMEOUT = 3000;
+  SESSION_UNPAIR_TIMEOUT = 1000;
   private readonly sessions: Record<string, WhatsappSession>;
 
   // @ts-ignore
@@ -293,6 +294,18 @@ export class SessionManagerPlus extends SessionManager {
     this.log.info(`Session has been stopped.`, { session: name });
     delete this.sessions[name];
     await sleep(this.SESSION_STOP_TIMEOUT);
+  }
+
+  async unpair(name: string) {
+    const session = this.sessions[name];
+    if (!session) {
+      return;
+    }
+    this.log.info('Unpairing device from account...', { session: name });
+    await session.unpair().catch((err) => {
+      this.log.warn(`Error while logging out from device: ${err}`);
+    });
+    await sleep(this.SESSION_UNPAIR_TIMEOUT);
   }
 
   async logout(name: string): Promise<void> {
