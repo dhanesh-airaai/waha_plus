@@ -214,6 +214,11 @@ export abstract class WhatsappSession {
   /** Stop the session */
   abstract stop(): Promise<void>;
 
+  /* Unpair the account */
+  async unpair(): Promise<void> {
+    return;
+  }
+
   /** Subscribe the handler to specific hook */
   subscribeSessionEvent(
     hook: WAHAEvents | string,

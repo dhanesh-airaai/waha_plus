@@ -29,6 +29,22 @@ export class WebjsClient extends Client {
     await this.pupPage.evaluate(LoadWAHA);
   }
 
+  async unpair() {
+    await this.pupPage.evaluate(async () => {
+      if (
+        // @ts-ignore
+        window.Store &&
+        // @ts-ignore
+        window.Store.AppState &&
+        // @ts-ignore
+        typeof window.Store.AppState.logout === 'function'
+      ) {
+        // @ts-ignore
+        await window.Store.AppState.logout();
+      }
+    });
+  }
+
   async getChats(pagination?: PaginationParams) {
     if (lodash.isEmpty(pagination)) {
       return await super.getChats();

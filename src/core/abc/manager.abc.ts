@@ -94,6 +94,8 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
 
   abstract logout(name: string): Promise<void>;
 
+  abstract unpair(name: string): Promise<void>;
+
   abstract getSession(name: string): WhatsappSession;
 
   abstract getSessionInfo(name: string): Promise<SessionDetailedInfo | null>;

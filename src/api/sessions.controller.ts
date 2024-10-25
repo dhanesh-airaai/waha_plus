@@ -135,6 +135,7 @@ class SessionsController {
   async delete(@Param('session') name: string): Promise<void> {
     await this.withLock(name, async () => {
       await this.manager.unassign(name);
+      await this.manager.unpair(name);
       await this.manager.stop(name, true);
       await this.manager.logout(name);
       await this.manager.delete(name);
@@ -190,6 +191,7 @@ class SessionsController {
         throw new NotFoundException('Session not found');
       }
       const isRunning = this.manager.isRunning(name);
+      await this.manager.unpair(name);
       await this.manager.stop(name, true);
       await this.manager.logout(name);
       if (isRunning) {
@@ -258,6 +260,7 @@ class SessionsController {
       // Old API did remove the session complete
       await this.withLock(name, async () => {
         await this.manager.unassign(name);
+        await this.manager.unpair(name);
         await this.manager.stop(name, true);
         await this.manager.logout(name);
         await this.manager.delete(name);
@@ -283,6 +286,7 @@ class SessionsController {
     const name = request.name;
     await this.withLock(name, async () => {
       await this.manager.unassign(name);
+      await this.manager.unpair(name);
       await this.manager.stop(name, true);
       await this.manager.logout(name);
       await this.manager.delete(name);

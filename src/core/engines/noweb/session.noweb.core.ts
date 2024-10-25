@@ -59,7 +59,7 @@ import {
   WAMessageAckBody,
 } from '@waha/structures/webhooks.dto';
 import { LoggerBuilder } from '@waha/utils/logging';
-import { waitUntil } from '@waha/utils/promiseTimeout';
+import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import { SinglePeriodicJobRunner } from '@waha/utils/SinglePeriodicJobRunner';
 import * as Buffer from 'buffer';
@@ -223,6 +223,11 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       this.status = WAHASessionStatus.FAILED;
       this.restartClient();
     });
+  }
+
+  async unpair() {
+    this.shouldRestart = false;
+    await this.sock?.logout();
   }
 
   getSocketConfig(agent, state): any {
@@ -442,6 +447,9 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.autoRestartJob.stop();
 
     this.status = WAHASessionStatus.FAILED;
+
+    // Wait in case of intentional logout
+    await sleep(1_000);
 
     await this.end();
     await this.store?.close();

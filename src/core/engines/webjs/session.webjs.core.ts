@@ -64,7 +64,7 @@ import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { WAMessageRevokedBody } from '@waha/structures/webhooks.dto';
 import { PaginatorInMemory } from '@waha/utils/Paginator';
-import { waitUntil } from '@waha/utils/promiseTimeout';
+import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import {
   Call,
@@ -252,6 +252,12 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     this.events.removeAllListeners();
     this.startDelayedJob.cancel();
     await this.end();
+  }
+
+  async unpair() {
+    this.shouldRestart = false;
+    await this.whatsapp.unpair();
+    await sleep(2_000);
   }
 
   private async end() {
