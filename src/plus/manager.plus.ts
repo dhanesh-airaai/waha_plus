@@ -301,9 +301,9 @@ export class SessionManagerPlus extends SessionManager {
     if (!session) {
       return;
     }
-    this.log.info('Unpairing device from account...', { session: name });
+    this.log.info('Unpairing the device from account...', { session: name });
     await session.unpair().catch((err) => {
-      this.log.warn(`Error while logging out from device: ${err}`);
+      this.log.warn(`Error while unpairing from device: ${err}`);
     });
     await sleep(this.SESSION_UNPAIR_TIMEOUT);
   }
