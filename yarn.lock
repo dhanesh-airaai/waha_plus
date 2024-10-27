@@ -12192,6 +12192,9 @@ __metadata:
     tsconfig-paths: ^4.1.0
     typescript: ^4.8.4
     whatsapp-web.js: "github:devlikeapro/whatsapp-web.js#fork-main-channels"
+  dependenciesMeta:
+    bufferutil:
+      optional: true
   languageName: unknown
   linkType: soft
 
