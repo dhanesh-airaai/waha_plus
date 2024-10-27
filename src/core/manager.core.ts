@@ -216,9 +216,10 @@ export class SessionManagerCore extends SessionManager {
       return;
     }
     const session = this.session as WhatsappSession;
-    this.log.info('Unpairing device from account...', { session: name });
+
+    this.log.info('Unpairing the device from account...', { session: name });
     await session.unpair().catch((err) => {
-      this.log.warn(`Error while logging out from device: ${err}`);
+      this.log.warn(`Error while unpairing from device: ${err}`);
     });
     await sleep(1000);
   }

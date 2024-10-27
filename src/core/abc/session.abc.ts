@@ -22,7 +22,6 @@ import {
   ChatRequest,
   CheckNumberStatusQuery,
   EditMessageRequest,
-  GetMessageQuery,
   MessageContactVcardRequest,
   MessageFileRequest,
   MessageForwardRequest,
@@ -116,6 +115,7 @@ export abstract class WhatsappSession {
   protected proxyConfig?: ProxyConfig;
   public sessionConfig?: SessionConfig;
   protected engineConfig?: any;
+  protected unpairing: boolean = false;
 
   private _status: WAHASessionStatus;
   private shouldPrintQR: boolean;
@@ -143,6 +143,11 @@ export abstract class WhatsappSession {
   }
 
   protected set status(value: WAHASessionStatus) {
+    if (this.unpairing && value !== WAHASessionStatus.STOPPED) {
+      // In case of unpairing
+      // wait for STOPPED event, ignore the rest
+      return;
+    }
     this._status = value;
     const body: WASessionStatusBody = { name: this.name, status: value };
     this.events.emit(WAHAEvents.SESSION_STATUS, body);

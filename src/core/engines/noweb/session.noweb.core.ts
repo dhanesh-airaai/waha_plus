@@ -29,7 +29,7 @@ import { UnprocessableEntityException } from '@nestjs/common';
 import { sendButtonMessage } from '@waha/core/engines/noweb/noweb.buttons';
 import { NowebInMemoryStore } from '@waha/core/engines/noweb/store/NowebInMemoryStore';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
-import { flipObject, parseBool, splitAt } from '@waha/helpers';
+import { flipObject, splitAt } from '@waha/helpers';
 import { PairingCodeResponse } from '@waha/structures/auth.dto';
 import { CallData } from '@waha/structures/calls.dto';
 import {
@@ -65,7 +65,6 @@ import { SinglePeriodicJobRunner } from '@waha/utils/SinglePeriodicJobRunner';
 import * as Buffer from 'buffer';
 import { Agent } from 'https';
 import * as lodash from 'lodash';
-import { toNumber } from 'lodash';
 import * as NodeCache from 'node-cache';
 
 import {
@@ -226,6 +225,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   }
 
   async unpair() {
+    this.unpairing = true;
     this.shouldRestart = false;
     await this.sock?.logout();
   }
@@ -446,10 +446,13 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.startDelayedJob.cancel();
     this.autoRestartJob.stop();
 
+    // We'll restart the client if it's in the process of unpairing
     this.status = WAHASessionStatus.FAILED;
 
-    // Wait in case of intentional logout
-    await sleep(1_000);
+    if (this.unpairing) {
+      // Wait for unpairing to complete before ending the socket
+      await sleep(1_000);
+    }
 
     await this.end();
     await this.store?.close();

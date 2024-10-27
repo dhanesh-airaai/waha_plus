@@ -200,15 +200,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       .then(() => {
         // Listen for browser disconnected event
         this.whatsapp.pupBrowser.on('disconnected', () => {
-          this.status = WAHASessionStatus.FAILED;
           this.logger.error('The browser has been disconnected');
-          this.restartClient();
+          this.failed();
         });
         // Listen for page close event
         this.whatsapp.pupPage.on('close', () => {
-          this.status = WAHASessionStatus.FAILED;
           this.logger.error('The WhatsApp Web page has been closed');
-          this.restartClient();
+          this.failed();
         });
 
         // Listen for page error event
@@ -223,9 +221,8 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         }
       })
       .catch((error) => {
-        this.status = WAHASessionStatus.FAILED;
         this.logger.error(error);
-        this.restartClient();
+        this.failed();
         return;
       });
     if (this.isDebugEnabled()) {
@@ -240,8 +237,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     await this.init().catch((err) => {
       this.logger.error('Failed to start the client');
       this.logger.error(err, err.stack);
-      this.status = WAHASessionStatus.FAILED;
-      this.restartClient();
+      this.failed();
     });
     return this;
   }
@@ -254,9 +250,17 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     await this.end();
   }
 
+  protected failed() {
+    // We'll restart the client if it's in the process of unpairing
+    this.status = WAHASessionStatus.FAILED;
+    this.restartClient();
+  }
+
   async unpair() {
+    this.unpairing = true;
     this.shouldRestart = false;
     await this.whatsapp.unpair();
+    // Wait for unpairing to complete
     await sleep(2_000);
   }
 
@@ -331,13 +335,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     });
 
     this.whatsapp.on(Events.AUTHENTICATION_FAILURE, (args) => {
-      this.status = WAHASessionStatus.FAILED;
+      this.failed();
       this.qr.save('');
       this.logger.info({ args: args }, `Session has failed to authenticate!`);
     });
 
     this.whatsapp.on(Events.DISCONNECTED, (args) => {
-      this.status = WAHASessionStatus.FAILED;
+      this.failed();
       this.qr.save('');
       this.logger.info({ args: args }, `Session has been disconnected!`);
     });
