@@ -206,6 +206,7 @@ export abstract class WhatsappSession {
       '--safebrowsing-disable-auto-update',
       '--single-process',
       '--use-mock-keychain',
+      '--window-size=1280,720',
     ];
   }
 
