@@ -1,4 +1,5 @@
 import { DataStore } from '@waha/core/abc/DataStore';
+import { LocalAuth } from '@waha/core/engines/webjs/LocalAuth';
 import { LocalStore } from '@waha/core/storage/LocalStore';
 import { RemoteAuth, Zipper } from '@waha/plus/engines/webjs/RemoteAuth';
 import { StreamZipper } from '@waha/plus/engines/webjs/StreamZipper';
@@ -7,7 +8,7 @@ import { ZipUnzipZipper } from '@waha/plus/engines/webjs/ZipUnzipZipper';
 import { MongoStore } from '@waha/plus/storage/MongoStore';
 import { LoggerBuilder } from '@waha/utils/logging';
 import { Logger } from 'pino';
-import { AuthStrategy, LocalAuth } from 'whatsapp-web.js';
+import { AuthStrategy } from 'whatsapp-web.js';
 
 export class WebJSAuthFactory {
   buildAuth(
@@ -17,14 +18,22 @@ export class WebJSAuthFactory {
   ): AuthStrategy {
     if (store instanceof MongoStore)
       return this.buildMongoAuth(store, name, loggerBuilder);
-    if (store instanceof LocalStore) return this.buildLocalAuth(store, name);
+    if (store instanceof LocalStore)
+      return this.buildLocalAuth(store, name, loggerBuilder);
     throw new Error(`Unsupported store type '${store.constructor.name}'`);
   }
 
-  buildLocalAuth(store: LocalStore, name: string) {
+  buildLocalAuth(
+    store: LocalStore,
+    name: string,
+    loggerBuilder: LoggerBuilder,
+  ) {
+    const logger = loggerBuilder.child({ name: LocalAuth.name });
     return new LocalAuth({
       clientId: name,
       dataPath: store.getSessionDirectory(name),
+      logger: logger,
+      rmMaxRetries: undefined,
     });
   }
 
