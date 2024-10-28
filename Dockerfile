@@ -50,8 +50,12 @@ RUN echo "USE_BROWSER=$USE_BROWSER"
 # Install ffmpeg to generate previews for videos
 RUN apt-get update && apt-get install -y ffmpeg --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-# Install zip and unzip
-RUN apt-get update && apt-get install -y zip unzip --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# Install zip and unzip - either for chromium or chrome
+RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
+    apt-get update  \
+    && apt-get install -y zip unzip \
+    && rm -rf /var/lib/apt/lists/*; \
+    fi
 
 # Install fonts if using either chromium or chrome
 RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
@@ -73,7 +77,7 @@ RUN if [ "$USE_BROWSER" = "chromium" ]; then \
 # Install Chrome
 # Available versions:
 # https://www.ubuntuupdates.org/package/google_chrome/stable/main/base/google-chrome-stable
-ARG CHROME_VERSION="126.0.6478.182-1"
+ARG CHROME_VERSION="130.0.6723.69-1"
 RUN if [ "$USE_BROWSER" = "chrome" ]; then \
         wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
           && apt-get update \

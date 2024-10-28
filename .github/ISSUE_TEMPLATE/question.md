@@ -6,4 +6,6 @@ labels: 'question'
 assignees: ''
 ---
 
-👉 Kindly use [GitHub Discussions](https://github.com/devlikeapro/waha/discussions) to ask questions!
+👉 Kindly use
+[GitHub Discussions](https://github.com/devlikeapro/waha/discussions) to ask
+questions!
