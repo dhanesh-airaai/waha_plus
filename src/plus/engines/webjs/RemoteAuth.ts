@@ -151,11 +151,34 @@ export class RemoteAuth implements AuthStrategy {
     this.logger.debug(`Session name: ${this.sessionName}`);
 
     await this.extractRemoteSession();
+    await this.removeSingletonFiles(dirPath);
 
     this.client.options.puppeteer = {
       ...puppeteerOpts,
       userDataDir: dirPath,
     };
+  }
+
+  /**
+   * Find in direction Singleton* files and try to remove it
+   * Fix for SingletonLock and other files
+   */
+  private async removeSingletonFiles(dir: string) {
+    const files = await fs.promises.readdir(dir);
+    for (const file of files) {
+      if (file.startsWith('Singleton')) {
+        const filePath = path.join(dir, file);
+        try {
+          await fs.promises.rm(filePath, {
+            maxRetries: 4,
+            recursive: true,
+            force: true,
+          });
+        } catch (err) {
+          this.logger.error(err, `Error deleting: ${filePath}`);
+        }
+      }
+    }
   }
 
   async logout() {
