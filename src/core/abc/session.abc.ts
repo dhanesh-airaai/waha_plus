@@ -204,7 +204,7 @@ export abstract class WhatsappSession {
       '--password-store=basic',
       '--renderer-process-limit=2', // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
       '--safebrowsing-disable-auto-update',
-      '--single-process',
+      // '--single-process',
       '--use-mock-keychain',
       '--window-size=1280,720',
     ];
