@@ -49,9 +49,11 @@ export class ChatQuery extends SessionQuery {
 
 export class GetMessageQuery extends GetChatMessagesQuery {
   @IsNotEmpty()
+  @IsString()
   session: string = WHATSAPP_DEFAULT_SESSION_NAME;
 
   @ChatIdProperty()
+  @IsString()
   chatId: string;
 }
 
