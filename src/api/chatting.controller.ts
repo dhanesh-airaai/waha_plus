@@ -6,6 +6,7 @@ import {
   Put,
   Query,
   UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { WAHAValidationPipe } from '@waha/nestjs/pipes/WAHAValidationPipe';
@@ -172,6 +173,7 @@ export class ChattingController {
 
   @Get('/messages')
   @ApiOperation({ summary: 'Get messages in a chat' })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async getMessages(
     @Query() query: GetMessageQuery,
     @Query() filter: GetChatMessagesFilter,
