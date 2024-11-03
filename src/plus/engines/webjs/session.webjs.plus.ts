@@ -1,3 +1,4 @@
+import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
 import { WhatsappSessionWebJSCore } from '@waha/core/engines/webjs/session.webjs.core';
 import { WebjsClient } from '@waha/core/engines/webjs/WebjsClient';
 import {
@@ -6,6 +7,12 @@ import {
   MessageVideoRequest,
 } from '@waha/structures/chatting.dto';
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
+import {
+  BROADCAST_ID,
+  ImageStatus,
+  VideoStatus,
+  VoiceStatus,
+} from '@waha/structures/status.dto';
 import { MessageMedia } from 'whatsapp-web.js';
 
 import { WebJSAuthFactory } from './WebJSAuthFactory';
@@ -79,5 +86,35 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       caption: request.caption,
     };
     return this.whatsapp.sendMessage(request.chatId, media, options);
+  }
+
+  /**
+   * Status methods
+   */
+  public async sendImageStatus(status: ImageStatus) {
+    this.checkStatusRequest(status);
+    const media = await this.fileToMedia(status.file);
+    const options = {
+      caption: status.caption,
+    };
+    return this.whatsapp.sendMessage(BROADCAST_ID, media, options);
+  }
+
+  public async sendVoiceStatus(status: VoiceStatus) {
+    this.checkStatusRequest(status);
+    const media = await this.fileToMedia(status.file);
+    const options = {
+      sendAudioAsVoice: true,
+    };
+    return this.whatsapp.sendMessage(BROADCAST_ID, media, options);
+  }
+
+  public async sendVideoStatus(status: VideoStatus) {
+    this.checkStatusRequest(status);
+    const media = await this.fileToMedia(status.file);
+    const options = {
+      caption: status.caption,
+    };
+    return this.whatsapp.sendMessage(BROADCAST_ID, media, options);
   }
 }
