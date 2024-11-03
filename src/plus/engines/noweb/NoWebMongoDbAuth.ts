@@ -1,6 +1,11 @@
 import { WAProto } from '@adiwajshing/baileys';
 import { BufferJSON, initAuthCreds } from '@adiwajshing/baileys/lib/Utils';
-import { Collection, Db, Document, MongoClient } from 'mongodb';
+import { Collection, Db, Document } from 'mongodb';
+
+function mongoKey(id: string) {
+  // . -> -
+  return id.replace(/\./g, '-');
+}
 
 export class NoWebMongoDbAuth {
   private collection: Collection;
@@ -33,12 +38,13 @@ export class NoWebMongoDbAuth {
   }
 
   async writeData(data, field: string) {
+    const key = mongoKey(field);
     this.document = await this.collection.findOneAndUpdate(
       // @ts-ignore
       { _id: this.session },
       {
         $set: {
-          [field]: JSON.parse(JSON.stringify(data, BufferJSON.replacer)),
+          [key]: JSON.parse(JSON.stringify(data, BufferJSON.replacer)),
         },
       },
       { returnDocument: 'after' },
@@ -46,8 +52,9 @@ export class NoWebMongoDbAuth {
   }
 
   readData(field: string) {
+    const key = mongoKey(field);
     try {
-      const data = JSON.stringify(this.document[field]);
+      const data = JSON.stringify(this.document[key]);
       if (data === 'null' || data === 'undefined') return null;
       if (!data) return null;
 
@@ -59,13 +66,14 @@ export class NoWebMongoDbAuth {
   }
 
   async removeData(field: string) {
+    const key = mongoKey(field);
     try {
       this.document = await this.collection.findOneAndUpdate(
         // @ts-ignore
         { _id: this.session },
         {
           $unset: {
-            [field]: '',
+            [key]: '',
           },
         },
         { returnDocument: 'after' },
