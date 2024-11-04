@@ -21,7 +21,10 @@ import makeWASocket, {
   WAMessageKey,
 } from '@adiwajshing/baileys';
 import { WACallEvent } from '@adiwajshing/baileys/lib/Types/Call';
-import { Label as NOWEBLabel } from '@adiwajshing/baileys/lib/Types/Label';
+import {
+  Label as NOWEBLabel,
+  LabelActionBody,
+} from '@adiwajshing/baileys/lib/Types/Label';
 import { LabelAssociationType } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { isLidUser } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
@@ -49,6 +52,7 @@ import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import {
   Label,
   LabelChatAssociation,
+  LabelDTO,
   LabelID,
 } from '@waha/structures/labels.dto';
 import { ReplyToMessage } from '@waha/structures/message.dto';
@@ -873,6 +877,52 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   public async getLabels(): Promise<Label[]> {
     const labels = await this.store.getLabels();
     return labels.map(this.toLabel);
+  }
+
+  public async createLabel(label: LabelDTO): Promise<Label> {
+    const labels = await this.store.getLabels();
+    const highestLabelId = lodash.max(
+      labels.map((label) => parseInt(label.id)),
+    );
+    const labelId = highestLabelId ? highestLabelId + 1 : 1;
+    const labelAction: LabelActionBody = {
+      id: labelId.toString(),
+      name: label.name,
+      color: label.color,
+      deleted: false,
+      predefinedId: undefined,
+    };
+    await this.sock.addLabel(undefined, labelAction);
+
+    return {
+      id: labelId.toString(),
+      name: label.name,
+      color: label.color,
+      colorHex: Label.toHex(label.color),
+    };
+  }
+
+  public async updateLabel(label: Label): Promise<Label> {
+    const labelAction: LabelActionBody = {
+      id: label.id,
+      name: label.name,
+      color: label.color,
+      deleted: false,
+      predefinedId: undefined,
+    };
+    await this.sock.addLabel(undefined, labelAction);
+    return label;
+  }
+
+  public async deleteLabel(label: Label): Promise<void> {
+    const labelAction: LabelActionBody = {
+      id: label.id,
+      name: label.name,
+      color: label.color,
+      deleted: true,
+      predefinedId: undefined,
+    };
+    await this.sock.addLabel(undefined, labelAction);
   }
 
   public async getChatsByLabelId(labelId: string) {

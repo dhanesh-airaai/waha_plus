@@ -1,8 +1,10 @@
+import { UnprocessableEntityException } from '@nestjs/common';
 import {
   getChannelInviteLink,
   WAHAInternalEvent,
   WhatsappSession,
 } from '@waha/core/abc/session.abc';
+import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
 import { LocalAuth } from '@waha/core/engines/webjs/LocalAuth';
 import { WebjsClient } from '@waha/core/engines/webjs/WebjsClient';
 import {
@@ -58,11 +60,16 @@ import {
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
 } from '@waha/structures/groups.dto';
-import { Label, LabelID } from '@waha/structures/labels.dto';
+import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { ReplyToMessage } from '@waha/structures/message.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
+import {
+  BROADCAST_ID,
+  StatusRequest,
+  TextStatus,
+} from '@waha/structures/status.dto';
 import { WAMessageRevokedBody } from '@waha/structures/webhooks.dto';
 import { PaginatorInMemory } from '@waha/utils/Paginator';
 import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
@@ -632,6 +639,24 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return labels.map(this.toLabel);
   }
 
+  public async createLabel(label: LabelDTO): Promise<Label> {
+    const labelId = await this.whatsapp.createLabel(label.name, label.color);
+    return {
+      id: labelId.toString(),
+      name: label.name,
+      color: label.color,
+      colorHex: Label.toHex(label.color),
+    };
+  }
+
+  public async updateLabel(label: Label): Promise<Label> {
+    return await this.whatsapp.updateLabel(label);
+  }
+
+  public deleteLabel(label: Label): Promise<void> {
+    return this.whatsapp.deleteLabel(label);
+  }
+
   public getChatsByLabelId(labelId: string) {
     return this.whatsapp.getChatsByLabelId(labelId);
   }
@@ -948,6 +973,22 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
           `WEBJS engine doesn't support '${presence}' presence.`,
         );
     }
+  }
+
+  /**
+   * Status methods
+   */
+  protected checkStatusRequest(request: StatusRequest) {
+    if (request.contacts?.length > 0) {
+      const msg =
+        "WEBJS doesn't accept 'contacts'. Remove the field to send status to all contacts.";
+      throw new UnprocessableEntityException(msg);
+    }
+  }
+
+  public sendTextStatus(status: TextStatus) {
+    this.checkStatusRequest(status);
+    return this.whatsapp.sendTextStatus(status);
   }
 
   /**

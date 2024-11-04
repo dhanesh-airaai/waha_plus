@@ -1,5 +1,8 @@
 exports.LoadWAHA = () => {
   window.WAHA = {};
+  window.WAHA.WAWebBizLabelEditingAction = window.require(
+    'WAWebBizLabelEditingAction',
+  );
 
   window.WAHA.getChats = async (pagination) => {
     let chats = window.Store.Chat.getModelsArray().slice();

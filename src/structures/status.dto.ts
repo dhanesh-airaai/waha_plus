@@ -11,10 +11,9 @@ import {
 
 export const BROADCAST_ID = 'status@broadcast';
 
-class StatusRequest {
+export class StatusRequest {
   @ApiProperty({
-    description:
-      'it is always necessary to inform the list of contacts that will have access to the posted status',
+    description: 'Contact list to send the status to.',
     example: ['55xxxxxxxxxxx@c.us'],
   })
   contacts = ['55xxxxxxxxxxx@c.us'];

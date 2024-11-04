@@ -9,12 +9,13 @@ import {
   GetChatMessagesQuery,
 } from '@waha/structures/chats.dto';
 import { SendButtonsRequest } from '@waha/structures/chatting.buttons.dto';
-import { Label, LabelID } from '@waha/structures/labels.dto';
+import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { WAMessage } from '@waha/structures/responses.dto';
 import { LoggerBuilder } from '@waha/utils/logging';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import * as lodash from 'lodash';
 import { Logger } from 'pino';
 import { MessageId } from 'whatsapp-web.js';
 
@@ -66,7 +67,6 @@ import { NotImplementedByEngineError } from '../exceptions';
 import { IMediaManager } from '../media/IMediaManager';
 import { QR } from '../QR';
 import { DataStore } from './DataStore';
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcode = require('qrcode-terminal');
 
@@ -387,8 +387,24 @@ export abstract class WhatsappSession {
   /**
    * Labels methods
    */
+  public async getLabel(labelId: string): Promise<Label | undefined> {
+    const labels = await this.getLabels();
+    return lodash.find(labels, { id: labelId });
+  }
 
   public getLabels(): Promise<Label[]> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async createLabel(label: LabelDTO): Promise<Label> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async updateLabel(label: Label): Promise<Label> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async deleteLabel(label: Label): Promise<void> {
     throw new NotImplementedByEngineError();
   }
 
