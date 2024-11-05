@@ -343,7 +343,6 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     });
 
     this.whatsapp.on(Events.AUTHENTICATED, (args) => {
-      this.status = WAHASessionStatus.WORKING;
       this.qr.save('');
       this.logger.info({ args: args }, `Session has been authenticated!`);
     });

@@ -60,7 +60,20 @@ RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
 # Install fonts if using either chromium or chrome
 RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
     apt-get update  \
-    && apt-get install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
+    && apt-get install -y \
+        fontconfig \
+        fonts-freefont-ttf \
+        fonts-gfs-neohellenic \
+        fonts-indic \
+        fonts-ipafont-gothic \
+        fonts-kacst \
+        fonts-liberation \
+        fonts-noto-cjk \
+        fonts-noto-color-emoji \
+        fonts-roboto \
+        fonts-thai-tlwg \
+        fonts-wqy-zenhei \
+        fonts-open-sans \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*; \
     fi

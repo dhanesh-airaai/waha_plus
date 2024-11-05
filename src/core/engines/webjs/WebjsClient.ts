@@ -3,7 +3,7 @@ import { Label } from '@waha/structures/labels.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { TextStatus } from '@waha/structures/status.dto';
 import * as lodash from 'lodash';
-import { Client } from 'whatsapp-web.js';
+import { Client, Events } from 'whatsapp-web.js';
 import { Message } from 'whatsapp-web.js/src/structures';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -19,16 +19,14 @@ const { LoadPaginator } = require('./_Paginator.js');
 const ChatFactory = require('whatsapp-web.js/src/factories/ChatFactory');
 
 export class WebjsClient extends Client {
-  async inject() {
-    // Even tho this.inject is not defined as interface in Client.ts
-    // We can still call and override it
-    // @ts-ignore
-    await super.inject();
-
-    // Load util functions (serializers, helper functions)
-    await this.pupPage.evaluate(LoadLodash);
-    await this.pupPage.evaluate(LoadPaginator);
-    await this.pupPage.evaluate(LoadWAHA);
+  constructor(options) {
+    super(options);
+    // Wait until it's READY and inject more utils
+    this.on(Events.READY, async () => {
+      await this.pupPage.evaluate(LoadLodash);
+      await this.pupPage.evaluate(LoadPaginator);
+      await this.pupPage.evaluate(LoadWAHA);
+    });
   }
 
   async unpair() {

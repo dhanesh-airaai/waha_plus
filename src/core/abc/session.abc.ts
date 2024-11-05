@@ -172,6 +172,7 @@ export abstract class WhatsappSession {
       '--disable-accelerated-2d-canvas',
       '--disable-application-cache',
       '--disable-background-networking',
+      '--disable-software-rasterizer',
       '--disable-cache',
       '--disable-client-side-phishing-detection',
       '--disable-component-update',
