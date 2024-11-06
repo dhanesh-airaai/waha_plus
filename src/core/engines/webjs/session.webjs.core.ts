@@ -1169,6 +1169,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return {
       mentions: mentions,
       quotedMessageId: quotedMessageId,
+      linkPreview: request.linkPreview,
     };
   }
 }

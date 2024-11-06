@@ -621,6 +621,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     const message = {
       text: request.text,
       mentions: request.mentions?.map(toJID),
+      linkPreview: this.getLinkPreview(request),
     };
     const options = await this.getMessageOptions(request);
     return this.sock.sendMessage(chatId, message, options);
@@ -1685,6 +1686,22 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return {
       quoted: quoted,
     };
+  }
+
+  protected getLinkPreview(request): any {
+    // NOWEB works this way
+    // If it's undefined - it'll generate it
+    // If it's false - it will not generate it
+    let linkPreview: boolean | undefined;
+    switch (request.linkPreview) {
+      case false:
+        linkPreview = false;
+        break;
+      case true:
+      default:
+        linkPreview = undefined;
+    }
+    return linkPreview;
   }
 }
 

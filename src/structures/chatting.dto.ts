@@ -156,6 +156,8 @@ export class MessageTextRequest extends ChatRequest {
 
   @ReplyToProperty()
   reply_to?: string;
+
+  linkPreview?: boolean = true;
 }
 
 export class EditMessageRequest {
