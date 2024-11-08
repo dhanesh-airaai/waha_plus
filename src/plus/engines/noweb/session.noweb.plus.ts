@@ -117,43 +117,40 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Status methods
    */
-  public sendImageStatus(status: ImageStatus) {
+  public async sendImageStatus(status: ImageStatus) {
     const message: any = this.fileToMessage(
       status.file,
       'image',
       status.caption,
     );
-    const JIDs = status.contacts.map(toJID);
-    this.upsertMeInJIDs(JIDs);
+    const jids = await this.prepareJidsForStatus(status.contacts);
     const options = {
-      statusJidList: JIDs,
+      statusJidList: jids,
     };
-    return this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sock.sendMessage(BROADCAST_ID, message, options);
   }
 
-  public sendVoiceStatus(status: VoiceStatus) {
+  public async sendVoiceStatus(status: VoiceStatus) {
     const message: any = this.fileToMessage(status.file, 'audio');
-    const JIDs = status.contacts.map(toJID);
-    this.upsertMeInJIDs(JIDs);
+    const jids = await this.prepareJidsForStatus(status.contacts);
     const options = {
       backgroundColor: status.backgroundColor,
-      statusJidList: JIDs,
+      statusJidList: jids,
     };
-    return this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sock.sendMessage(BROADCAST_ID, message, options);
   }
 
-  public sendVideoStatus(status: VideoStatus) {
+  public async sendVideoStatus(status: VideoStatus) {
     const message: any = this.fileToMessage(
       status.file,
       'video',
       status.caption,
     );
-    const JIDs = status.contacts.map(toJID);
-    this.upsertMeInJIDs(JIDs);
+    const jids = await this.prepareJidsForStatus(status.contacts);
     const options = {
-      statusJidList: JIDs,
+      statusJidList: jids,
     };
-    return this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sock.sendMessage(BROADCAST_ID, message, options);
   }
 
   /**
