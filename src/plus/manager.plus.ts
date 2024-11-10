@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
+import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaManager } from '@waha/core/media/MediaManager';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { LocalSessionMeRepository } from '@waha/core/storage/LocalSessionMeRepository';
@@ -40,7 +41,6 @@ import { LocalStorePlus } from './storage/LocalStorePlus';
 import { MongoSessionAuthRepository } from './storage/MongoSessionAuthRepository';
 import { MongoSessionConfigRepository } from './storage/MongoSessionConfigRepository';
 import { MongoStore } from './storage/MongoStore';
-import { WebhookConductorPlus } from './webhooks.plus';
 
 @Injectable()
 export class SessionManagerPlus extends SessionManager {
@@ -48,8 +48,6 @@ export class SessionManagerPlus extends SessionManager {
   SESSION_UNPAIR_TIMEOUT = 1000;
   private readonly sessions: Record<string, WhatsappSession>;
 
-  // @ts-ignore
-  protected WebhookConductorClass = WebhookConductorPlus;
   protected readonly EngineClass: typeof WhatsappSession;
 
   constructor(
@@ -232,7 +230,7 @@ export class SessionManagerPlus extends SessionManager {
       this.config.mimetypes,
       loggerBuilder.child({ name: 'MediaManager' }),
     );
-    const webhook = new this.WebhookConductorClass(loggerBuilder);
+    const webhook = new WebhookConductor(loggerBuilder);
     const proxyConfig = this.getProxyConfig(name, config);
     const sessionConfig: SessionParams = {
       name,
