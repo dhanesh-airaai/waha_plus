@@ -11,22 +11,27 @@ import {
 
 export const BROADCAST_ID = 'status@broadcast';
 
-export class StatusRequest {
-  @ApiProperty({
-    description: 'Contact list to send the status to.',
-    example: ['55xxxxxxxxxxx@c.us'],
-  })
-  contacts = ['55xxxxxxxxxxx@c.us'];
+const ContactsProperty = ApiProperty({
+  description: 'Contact list to send the status to.',
+  example: null,
+  required: false,
+});
+
+export interface StatusRequest {
+  contacts?: string[];
 }
 
-export class TextStatus extends StatusRequest {
+export class TextStatus {
   text: string = 'Have a look! https://github.com/';
   backgroundColor: string = '#38b42f';
   font: number = 1;
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
 @ApiExtraModels(RemoteFile, BinaryFile)
-export class ImageStatus extends StatusRequest {
+export class ImageStatus {
   @ApiProperty({
     oneOf: [
       { $ref: getSchemaPath(RemoteFile) },
@@ -36,10 +41,13 @@ export class ImageStatus extends StatusRequest {
   file: RemoteFile | BinaryFile;
 
   caption?: string;
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
 @ApiExtraModels(VoiceRemoteFile, VoiceBinaryFile)
-export class VoiceStatus extends StatusRequest {
+export class VoiceStatus {
   @ApiProperty({
     oneOf: [
       { $ref: getSchemaPath(VoiceRemoteFile) },
@@ -49,10 +57,13 @@ export class VoiceStatus extends StatusRequest {
   file: VoiceRemoteFile | VoiceBinaryFile;
 
   backgroundColor: string = '#38b42f';
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
 @ApiExtraModels(VideoRemoteFile, VideoBinaryFile)
-export class VideoStatus extends StatusRequest {
+export class VideoStatus {
   @ApiProperty({
     oneOf: [
       { $ref: getSchemaPath(VideoRemoteFile) },
@@ -62,12 +73,18 @@ export class VideoStatus extends StatusRequest {
   file: VideoRemoteFile | VideoBinaryFile;
 
   caption?: string;
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
-export class DeleteStatusRequest extends StatusRequest {
+export class DeleteStatusRequest {
   @ApiProperty({
     description: 'status message id',
     example: 'AAAAAAAAAAAAAAAAA',
   })
   id: string;
+
+  @ContactsProperty
+  contacts?: string[];
 }

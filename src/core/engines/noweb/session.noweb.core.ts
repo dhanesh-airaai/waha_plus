@@ -1101,38 +1101,54 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   /**
    * Status methods
    */
-  public sendTextStatus(status: TextStatus) {
+  public async sendTextStatus(status: TextStatus) {
     const message = { text: status.text };
-    const JIDs = status.contacts.map(toJID);
-    this.upsertMeInJIDs(JIDs);
+    const jids = await this.prepareJidsForStatus(status.contacts);
     const options = {
       backgroundColor: status.backgroundColor,
       font: status.font,
-      statusJidList: JIDs,
+      statusJidList: jids,
     };
 
-    return this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sock.sendMessage(BROADCAST_ID, message, options);
   }
 
-  public deleteStatus(request: DeleteStatusRequest) {
+  protected async prepareJidsForStatus(contacts: string[]) {
+    let jids: string[];
+    if (contacts?.length > 0) {
+      jids = contacts.map(toJID);
+    } else {
+      jids = await this.fetchMyContactsJids();
+    }
+    this.upsertMeInJIDs(jids);
+    return jids;
+  }
+
+  protected async fetchMyContactsJids() {
+    const contacts = await this.store.getContacts({});
+    const jids = contacts.map((contact) => contact.id);
+    return jids.filter((jid) => jid.endsWith('@s.whatsapp.net'));
+  }
+
+  public async deleteStatus(request: DeleteStatusRequest) {
     const messageId = request.id;
     const key = parseMessageIdSerialized(messageId, true);
     key.fromMe = true;
     key.remoteJid = BROADCAST_ID;
-    const JIDs = request.contacts.map(toJID);
+    const jids = await this.prepareJidsForStatus(request.contacts);
     const options = {
-      statusJidList: JIDs,
+      statusJidList: jids,
     };
-    return this.sock.sendMessage(BROADCAST_ID, { delete: key }, options);
+    return await this.sock.sendMessage(BROADCAST_ID, { delete: key }, options);
   }
 
-  protected upsertMeInJIDs(JIDs: string[]) {
+  protected upsertMeInJIDs(jids: string[]) {
     if (!this.sock?.authState?.creds?.me) {
       return;
     }
     const myJID = jidNormalizedUser(this.sock.authState.creds.me.id);
-    if (!JIDs.includes(myJID)) {
-      JIDs.push(myJID);
+    if (!jids.includes(myJID)) {
+      jids.push(myJID);
     }
   }
 
