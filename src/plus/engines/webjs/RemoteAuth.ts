@@ -268,17 +268,12 @@ export class RemoteAuth implements AuthStrategy {
     this.logger.debug('Session compressed.');
 
     const zipSize = await getFilesizeInBytes(this.compressedSessionPath);
-    this.logger.debug(`Session archive size: ${prettyBytes(zipSize)}`, {
-      bytes: zipSize,
-    });
+    this.logger.debug(`Session archive size: ${prettyBytes(zipSize)}`);
   }
 
   async unCompressSession() {
     const zipSize = await getFilesizeInBytes(this.compressedSessionPath);
-    this.logger.debug(
-      `Restored Session archive size: ${prettyBytes(zipSize)}`,
-      { bytes: zipSize },
-    );
+    this.logger.debug(`Restored Session archive size: ${prettyBytes(zipSize)}`);
 
     this.logger.debug('Uncompressing session...');
     await this.zipper.uncompress(this.compressedSessionPath, this.userDataDir);

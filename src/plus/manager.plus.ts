@@ -21,7 +21,7 @@ import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
 import { PinoLogger } from 'nestjs-pino';
-import { catchError, merge, Observable, retry, share, Subject } from 'rxjs';
+import { merge, Observable, retry, share } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { WhatsappConfigService } from '../config.service';
@@ -233,25 +233,25 @@ export class SessionManagerPlus
   }
 
   async upsert(name: string, config?: SessionConfig): Promise<void> {
-    this.log.info(`Saving session...`, { session: name });
+    this.log.info({ session: name }, `Saving session...`);
     await this.sessionAuthRepository.init(name);
     await this.sessionConfigRepository.save(name, config || null);
-    this.log.info(`Session saved.`, { session: name });
+    this.log.info({ session: name }, `Session saved.`);
   }
 
   async delete(name: string): Promise<void> {
-    this.log.info(`Deleting session...`, { session: name });
+    this.log.info({ session: name }, `Deleting session...`);
     await this.sessionConfigRepository.delete(name);
     await this.sessionAuthRepository.clean(name);
     await this.sessionMeRepository.removeMe(name);
     await this.sessionWorkerRepository.remove(name);
-    this.log.info(`Session deleted.`, { session: name });
+    this.log.info({ session: name }, `Session deleted.`);
   }
 
   async start(name: string): Promise<SessionDTO> {
-    this.log.info(`starting session...`, { session: name });
+    this.log.info({ session: name }, `Starting session...`);
     if (this.isRunning(name)) {
-      this.log.info(`Session is already running.`, { session: name });
+      this.log.info({ session: name }, `Session is already running.`);
       return;
     }
 
@@ -333,21 +333,21 @@ export class SessionManagerPlus
    */
   async stop(name: string, silent: boolean): Promise<void> {
     if (!this.isRunning(name)) {
-      this.log.debug(`Session is not running.`, { session: name });
+      this.log.debug({ session: name }, `Session is not running.`);
       return;
     }
 
-    this.log.info(`Stopping session...`, { session: name });
+    this.log.info({ session: name }, `Stopping session...`);
     try {
       const session = this.getSession(name);
       await session.stop();
     } catch (err) {
-      this.log.warn(`Error while stopping session '${name}'`);
+      this.log.warn({ session: name }, `Error while stopping session`);
       if (!silent) {
         throw err;
       }
     }
-    this.log.info(`Session has been stopped.`, { session: name });
+    this.log.info({ session: name }, `Session has been stopped.`);
     delete this.sessions[name];
     this.updateSessions();
     await sleep(this.SESSION_STOP_TIMEOUT);
@@ -358,7 +358,7 @@ export class SessionManagerPlus
     if (!session) {
       return;
     }
-    this.log.info('Unpairing the device from account...', { session: name });
+    this.log.info({ session: name }, 'Unpairing the device from account...');
     await session.unpair().catch((err) => {
       this.log.warn(`Error while unpairing from device: ${err}`);
     });
@@ -366,10 +366,10 @@ export class SessionManagerPlus
   }
 
   async logout(name: string): Promise<void> {
-    this.log.info(`Logging out session...`, { session: name });
+    this.log.info({ session: name }, `Logging out session...`);
     await this.sessionAuthRepository.clean(name);
     await this.sessionMeRepository.removeMe(name);
-    this.log.info(`Session has been logged out.`, { session: name });
+    this.log.info({ session: name }, `Session has been logged out.`);
   }
 
   /**
