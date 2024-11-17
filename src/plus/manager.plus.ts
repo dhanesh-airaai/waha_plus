@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  OnApplicationBootstrap,
+  OnModuleInit,
+} from '@nestjs/common';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaManager } from '@waha/core/media/MediaManager';
@@ -8,15 +13,19 @@ import { LocalSessionWorkerRepository } from '@waha/core/storage/LocalSessionWor
 import { MongoSessionMeRepository } from '@waha/plus/storage/MongoSessionMeRepository';
 import { MongoSessionWorkerRepository } from '@waha/plus/storage/MongoSessionWorkerRepository';
 import { WAHAWebhookSessionStatus } from '@waha/structures/webhooks.dto';
+import { DefaultMap } from '@waha/utils/DefaultMap';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
-import { EventEmitter } from 'events';
+import { complete } from '@waha/utils/reactive/complete';
+import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
 import { PinoLogger } from 'nestjs-pino';
+import { catchError, merge, Observable, retry, share, Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { WhatsappConfigService } from '../config.service';
-import { SessionManager } from '../core/abc/manager.abc';
+import { populateSessionInfo, SessionManager } from '../core/abc/manager.abc';
 import { SessionParams, WhatsappSession } from '../core/abc/session.abc';
 import { EngineConfigService } from '../core/config/EngineConfigService';
 import { LocalSessionAuthRepository } from '../core/storage/LocalSessionAuthRepository';
@@ -42,13 +51,22 @@ import { MongoSessionAuthRepository } from './storage/MongoSessionAuthRepository
 import { MongoSessionConfigRepository } from './storage/MongoSessionConfigRepository';
 import { MongoStore } from './storage/MongoStore';
 
+const ALL = '*';
+
 @Injectable()
-export class SessionManagerPlus extends SessionManager {
+export class SessionManagerPlus
+  extends SessionManager
+  implements OnModuleInit, OnApplicationBootstrap
+{
   SESSION_STOP_TIMEOUT = 3000;
   SESSION_UNPAIR_TIMEOUT = 1000;
   private readonly sessions: Record<string, WhatsappSession>;
 
   protected readonly EngineClass: typeof WhatsappSession;
+  protected events2: DefaultMap<
+    string,
+    DefaultMap<WAHAEvents, SwitchObservable<any>>
+  >;
 
   constructor(
     config: WhatsappConfigService,
@@ -61,7 +79,24 @@ export class SessionManagerPlus extends SessionManager {
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
-    this.events = new EventEmitter();
+
+    this.events2 = new DefaultMap(
+      (session: string) =>
+        new DefaultMap<WAHAEvents, SwitchObservable<any>>(
+          (key) =>
+            new SwitchObservable((obs$) => {
+              return obs$.pipe(retry(), share());
+            }),
+        ),
+    );
+  }
+
+  async onModuleInit() {
+    await this.init();
+  }
+
+  async onApplicationBootstrap() {
+    await this.restartSessions();
   }
 
   async init() {
@@ -104,7 +139,9 @@ export class SessionManagerPlus extends SessionManager {
     await this.sessionWorkerRepository.init();
     this.listenEvents();
     await this.clearStorage();
+  }
 
+  async restartSessions() {
     let restartSessions: string[];
     if (this.config.shouldRestartAllSessions) {
       this.log.info(`Restarting ALL STOPPED sessions...`);
@@ -125,17 +162,20 @@ export class SessionManagerPlus extends SessionManager {
   }
 
   private listenEvents() {
-    this.events.on(
-      WAHAEvents.SESSION_STATUS,
-      async (data: WAHAWebhookSessionStatus) => {
+    this.events2
+      .get(ALL)
+      .get(WAHAEvents.SESSION_STATUS)
+      .subscribe(async (data: WAHAWebhookSessionStatus) => {
         if (data.me) {
           await this.sessionMeRepository.upsertMe(data.session, data.me);
         }
-      },
-    );
+      });
   }
 
   protected async restartStoppedSessions(sessions: string[]) {
+    // Wait until HTTP/WS server is ready
+    await sleep(1000);
+
     const sleepS = this.config.autoStartDelaySeconds;
     this.log.info(`Restarting sessions with delay of ${sleepS} seconds...`);
     const sleepMs = this.config.autoStartDelaySeconds * 1000;
@@ -168,10 +208,10 @@ export class SessionManagerPlus extends SessionManager {
     const promises = Object.keys(this.sessions).map(async (sessionName) => {
       await this.stop(sessionName, true);
     });
-    this.log.info('All sessions have been stopped.');
     await Promise.all(promises);
+    this.log.info('All sessions have been stopped.');
+    this.stopEvents();
     await this.store?.close();
-    await super.beforeApplicationShutdown(signal);
   }
 
   private async clearStorage() {
@@ -247,16 +287,11 @@ export class SessionManagerPlus extends SessionManager {
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
     this.sessions[name] = session;
+    this.updateSessions();
 
     // configure webhooks
     const webhooks = this.getWebhooks(config);
     webhook.configure(session, webhooks);
-
-    // configure events
-    session.events.on(
-      WAHAEvents.SESSION_STATUS,
-      this.handleSessionEvent(WAHAEvents.SESSION_STATUS, session),
-    );
 
     // start session
     await session.start();
@@ -266,6 +301,29 @@ export class SessionManagerPlus extends SessionManager {
       status: session.status,
       config: session.sessionConfig,
     };
+  }
+
+  private updateSessions() {
+    const sessions = Object.values(this.sessions);
+    for (const eventName in WAHAEvents) {
+      const event = WAHAEvents[eventName];
+      const streams = [];
+      for (const session of sessions) {
+        const stream$ = session
+          .getEventObservable(event)
+          .pipe(map(populateSessionInfo(event, session)), share());
+        this.events2.get(session.name).get(event).switch(stream$);
+        streams.push(stream$);
+      }
+      this.events2
+        .get(ALL)
+        .get(event)
+        .switch(merge(...streams));
+    }
+  }
+
+  getSessionEvent(session: string, event: WAHAEvents): Observable<any> {
+    return this.events2.get(session).get(event);
   }
 
   /**
@@ -291,6 +349,7 @@ export class SessionManagerPlus extends SessionManager {
     }
     this.log.info(`Session has been stopped.`, { session: name });
     delete this.sessions[name];
+    this.updateSessions();
     await sleep(this.SESSION_STOP_TIMEOUT);
   }
 
@@ -474,5 +533,11 @@ export class SessionManagerPlus extends SessionManager {
       engine: this.sessions[sessionName]?.engine,
       ...engineInfo,
     };
+  }
+
+  protected stopEvents() {
+    for (const events of this.events2.values()) {
+      complete(events);
+    }
   }
 }

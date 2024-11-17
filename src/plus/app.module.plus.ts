@@ -19,8 +19,11 @@ import { Logger } from 'pino';
 import { WhatsappConfigService } from '../config.service';
 import { SessionManager } from '../core/abc/manager.abc';
 import { WAHAHealthCheckService } from '../core/abc/WAHAHealthCheckService';
-import { AppModuleCore, CONTROLLERS } from '../core/app.module.core';
-import { IMPORTS_CORE } from '../core/app.module.core';
+import {
+  AppModuleCore,
+  CONTROLLERS,
+  IMPORTS_CORE,
+} from '../core/app.module.core';
 import { DashboardConfigServiceCore } from '../core/config/DashboardConfigServiceCore';
 import { EngineConfigService } from '../core/config/EngineConfigService';
 import { SwaggerConfigServiceCore } from '../core/config/SwaggerConfigServiceCore';
@@ -60,30 +63,7 @@ const IMPORTS = [...IMPORTS_CORE, ...IMPORTS_MEDIA];
 const PROVIDERS = [
   {
     provide: SessionManager,
-    inject: [
-      WhatsappConfigService,
-      EngineConfigService,
-      WebJSEngineConfigService,
-      PinoLogger,
-      MediaStorageFactory,
-    ],
-    useFactory: async (
-      config: WhatsappConfigService,
-      engineConfigService: EngineConfigService,
-      webJSEngineConfigService: WebJSEngineConfigService,
-      logger: PinoLogger,
-      mediaFactory: MediaStorageFactory,
-    ) => {
-      const manager = new SessionManagerPlus(
-        config,
-        engineConfigService,
-        webJSEngineConfigService,
-        logger,
-        mediaFactory,
-      );
-      await manager.init();
-      return manager;
-    },
+    useClass: SessionManagerPlus,
   },
   {
     provide: WAHAHealthCheckService,
