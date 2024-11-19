@@ -85,6 +85,7 @@ export class PollVotePayload {
   vote: PollVote;
   poll: MessageDestination;
 }
+
 export class WAMessageRevokedBody {
   after?: WAMessage;
   before?: WAMessage;
