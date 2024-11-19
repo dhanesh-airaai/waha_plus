@@ -27,6 +27,7 @@ import {
   GetChatMessageQuery,
   GetChatMessagesFilter,
   GetChatMessagesQuery,
+  PinMessageRequest,
 } from '../structures/chats.dto';
 import { EditMessageRequest } from '../structures/chatting.dto';
 
@@ -87,6 +88,33 @@ class ChatsController {
       throw new NotFoundException('Message not found');
     }
     return message;
+  }
+
+  @Post(':chatId/messages/:messageId/pin')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Pins a message in the chat' })
+  @ChatIdApiParam
+  async pinMessage(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('chatId') chatId: string,
+    @Param('messageId') messageId: string,
+    @Body() body: PinMessageRequest,
+  ) {
+    const result = await session.pinMessage(chatId, messageId, body.duration);
+    return { success: result };
+  }
+
+  @Post(':chatId/messages/:messageId/unpin')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Unpins a message in the chat' })
+  @ChatIdApiParam
+  async unpinMessage(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('chatId') chatId: string,
+    @Param('messageId') messageId: string,
+  ) {
+    const result = await session.unpinMessage(chatId, messageId);
+    return { success: result };
   }
 
   @Delete(':chatId/messages')

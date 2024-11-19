@@ -10619,7 +10619,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.8.1, rxjs@npm:^7.1.0, rxjs@npm:^7.5.5":
+"rxjs@npm:7.8.1, rxjs@npm:^7.5.5, rxjs@npm:^7.8.1":
   version: 7.8.1
   resolution: "rxjs@npm:7.8.1"
   dependencies:
@@ -12018,6 +12018,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ulid@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "ulid@npm:2.3.0"
+  bin:
+    ulid: ./bin/cli.js
+  checksum: d6dbf253fdc189f60fe2829d934ee5447b3dab62d05449a2e0fe89670d77087dd6eba4f844a69f9ffdb01384ec6fd97bdd9be638fc67d593569a45e8969f1e69
+  languageName: node
+  linkType: hard
+
 "unbox-primitive@npm:^1.0.2":
   version: 1.0.2
   resolution: "unbox-primitive@npm:1.0.2"
@@ -12280,7 +12289,7 @@ __metadata:
     qrcode-terminal: ^0.12.0
     reflect-metadata: ^0.1.13
     rimraf: ^3.0.2
-    rxjs: ^7.1.0
+    rxjs: ^7.8.1
     sharp: ^0.33.4
     supertest: ^4.0.2
     swagger-ui-express: ^4.1.4
@@ -12289,6 +12298,7 @@ __metadata:
     ts-node: ^10.9.1
     tsconfig-paths: ^4.1.0
     typescript: ^4.8.4
+    ulid: ^2.3.0
     whatsapp-web.js: "github:devlikeapro/whatsapp-web.js#fork-main-channels"
   dependenciesMeta:
     bufferutil:

@@ -8,8 +8,8 @@ import { ISessionWorkerRepository } from '@waha/core/storage/ISessionWorkerRepos
 import { WAHAWebhook } from '@waha/structures/webhooks.dto';
 import { waitUntil } from '@waha/utils/promiseTimeout';
 import { VERSION } from '@waha/version';
-import { EventEmitter } from 'events';
 import { PinoLogger } from 'nestjs-pino';
+import { merge, Observable, of } from 'rxjs';
 
 import {
   WAHAEngine,
@@ -25,7 +25,6 @@ import {
 import { ISessionAuthRepository } from '../storage/ISessionAuthRepository';
 import { ISessionConfigRepository } from '../storage/ISessionConfigRepository';
 import { WhatsappSession } from './session.abc';
-import { WebhookConductor } from './webhooks.abc';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const AsyncLock = require('async-lock');
@@ -36,7 +35,6 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
   public sessionConfigRepository: ISessionConfigRepository;
   protected sessionMeRepository: ISessionMeRepository;
   protected sessionWorkerRepository: ISessionWorkerRepository;
-  public events: EventEmitter;
   private lock: any;
 
   WAIT_STATUS_INTERVAL = 500;
@@ -72,7 +70,18 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
 
   protected abstract get EngineClass(): typeof WhatsappSession;
 
-  protected abstract get WebhookConductorClass(): typeof WebhookConductor;
+  public getSessionEvent(session: string, event: WAHAEvents): Observable<any> {
+    return of();
+  }
+
+  public getSessionEvents(
+    session: string,
+    events: WAHAEvents[],
+  ): Observable<any> {
+    return merge(
+      ...events.map((event) => this.getSessionEvent(session, event)),
+    );
+  }
 
   //
   // API Methods
@@ -114,22 +123,6 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
     await this.sessionWorkerRepository?.unassign(name, this.workerId);
   }
 
-  protected handleSessionEvent(event: WAHAEvents, session: WhatsappSession) {
-    return (payload: any) => {
-      const me = session.getSessionMeInfo();
-      const data: WAHAWebhook = {
-        event: event,
-        session: session.name,
-        metadata: session.sessionConfig?.metadata,
-        me: me,
-        payload: payload,
-        engine: session.engine,
-        environment: VERSION,
-      };
-      this.events.emit(event, data);
-    };
-  }
-
   async getWorkingSession(sessionName: string): Promise<WhatsappSession> {
     return this.waitUntilStatus(sessionName, [WAHASessionStatus.WORKING]);
   }
@@ -160,7 +153,28 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
     return session;
   }
 
-  async beforeApplicationShutdown(signal?: string) {
-    this.events.removeAllListeners();
+  beforeApplicationShutdown(signal?: string) {
+    return;
   }
+}
+export function populateSessionInfo(
+  event: WAHAEvents,
+  session: WhatsappSession,
+) {
+  return (payload: any): WAHAWebhook => {
+    const id = payload._eventId;
+    const data = { ...payload };
+    delete data._eventId;
+    const me = session.getSessionMeInfo();
+    return {
+      id: id,
+      event: event,
+      session: session.name,
+      metadata: session.sessionConfig?.metadata,
+      me: me,
+      payload: data,
+      engine: session.engine,
+      environment: VERSION,
+    };
+  };
 }

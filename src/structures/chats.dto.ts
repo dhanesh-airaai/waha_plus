@@ -88,6 +88,23 @@ export class ChatsPaginationParams extends PaginationParams {
   sortBy?: string;
 }
 
+export enum PinDuration {
+  DAY = 86400,
+  WEEK = 604800,
+  MONTH = 2592000,
+}
+
+export class PinMessageRequest {
+  @IsNumber()
+  @IsEnum(PinDuration)
+  @ApiProperty({
+    description:
+      'Duration in seconds. 24 hours (86400), 7 days (604800), 30 days (2592000)',
+    example: 86400,
+  })
+  duration: number;
+}
+
 /**
  * Events
  */

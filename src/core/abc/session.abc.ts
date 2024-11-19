@@ -12,11 +12,26 @@ import { SendButtonsRequest } from '@waha/structures/chatting.buttons.dto';
 import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { WAMessage } from '@waha/structures/responses.dto';
+import { DefaultMap } from '@waha/utils/DefaultMap';
+import { generatePrefixedId } from '@waha/utils/ids';
 import { LoggerBuilder } from '@waha/utils/logging';
-import { EventEmitter } from 'events';
+import { complete } from '@waha/utils/reactive/complete';
+import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import * as fs from 'fs';
 import * as lodash from 'lodash';
 import { Logger } from 'pino';
+import {
+  BehaviorSubject,
+  catchError,
+  delay,
+  filter,
+  of,
+  retry,
+  share,
+  Subject,
+  switchMap,
+} from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { MessageId } from 'whatsapp-web.js';
 
 import {
@@ -88,10 +103,6 @@ export function ensureSuffix(phone) {
   return phone + suffix;
 }
 
-export enum WAHAInternalEvent {
-  ENGINE_START = 'engine.start',
-}
-
 export interface SessionParams {
   name: string;
   printQR: boolean;
@@ -104,7 +115,6 @@ export interface SessionParams {
 }
 
 export abstract class WhatsappSession {
-  public events: EventEmitter;
   public engine: WAHAEngine;
 
   public name: string;
@@ -119,6 +129,8 @@ export abstract class WhatsappSession {
 
   private _status: WAHASessionStatus;
   private shouldPrintQR: boolean;
+  protected events2: DefaultMap<WAHAEvents, SwitchObservable<any>>;
+  private status$: Subject<WAHASessionStatus>;
 
   public constructor({
     name,
@@ -130,16 +142,73 @@ export abstract class WhatsappSession {
     sessionConfig,
     engineConfig,
   }: SessionParams) {
-    this.events = new EventEmitter();
+    this.status$ = new BehaviorSubject(null);
+
     this.name = name;
     this.proxyConfig = proxyConfig;
     this.loggerBuilder = loggerBuilder;
     this.logger = loggerBuilder.child({ name: 'WhatsappSession' });
+    this.events2 = new DefaultMap<WAHAEvents, SwitchObservable<any>>(
+      (key) =>
+        new SwitchObservable((obs$) => {
+          return obs$.pipe(
+            catchError((err) => {
+              this.logger.error(
+                `Caught error, dropping value from, event: '${key}'`,
+              );
+              this.logger.error(err, err.stack);
+              throw err;
+            }),
+            filter(Boolean),
+            map((data) => {
+              data._eventId = generatePrefixedId('evt');
+              return data;
+            }),
+            retry(),
+            share(),
+          );
+        }),
+    );
+
+    this.events2.get(WAHAEvents.SESSION_STATUS).switch(
+      this.status$
+        // initial value is null
+        .pipe(filter(Boolean))
+        // Wait for WORKING status to get all the info
+        // https://github.com/devlikeapro/waha/issues/409
+        .pipe(
+          switchMap((status: WAHASessionStatus) => {
+            const me = this.getSessionMeInfo();
+            const hasMe = !!me?.pushName && !!me?.id;
+            // Delay WORKING by 1 second if condition is met
+            // Usually we get WORKING with all the info after
+            if (status === WAHASessionStatus.WORKING && !hasMe) {
+              return of(status).pipe(delay(2000));
+            }
+            return of(status);
+          }),
+          // Remove consecutive duplicate WORKING statuses
+          distinctUntilChanged(
+            (prev, curr) => prev === curr && curr === WAHASessionStatus.WORKING,
+          ),
+        )
+        // Populate the session info
+        .pipe(
+          map<WAHASessionStatus, WASessionStatusBody>((status) => {
+            return { name: this.name, status: status };
+          }),
+        ),
+    );
+
     this.sessionStore = sessionStore;
     this.mediaManager = mediaManager;
     this.sessionConfig = sessionConfig;
     this.engineConfig = engineConfig;
     this.shouldPrintQR = printQR;
+  }
+
+  public getEventObservable(event: WAHAEvents) {
+    return this.events2.get(event);
   }
 
   protected set status(value: WAHASessionStatus) {
@@ -149,8 +218,7 @@ export abstract class WhatsappSession {
       return;
     }
     this._status = value;
-    const body: WASessionStatusBody = { name: this.name, status: value };
-    this.events.emit(WAHAEvents.SESSION_STATUS, body);
+    this.status$.next(value);
   }
 
   public get status() {
@@ -223,29 +291,14 @@ export abstract class WhatsappSession {
   /** Stop the session */
   abstract stop(): Promise<void>;
 
+  protected stopEvents() {
+    complete(this.events2);
+  }
+
   /* Unpair the account */
   async unpair(): Promise<void> {
     return;
   }
-
-  /** Subscribe the handler to specific hook */
-  subscribeSessionEvent(
-    hook: WAHAEvents | string,
-    handler: (message) => void,
-  ): boolean {
-    switch (hook) {
-      case WAHAEvents.SESSION_STATUS:
-        this.events.on(WAHAEvents.SESSION_STATUS, handler);
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  abstract subscribeEngineEvent(
-    hook: WAHAEvents | string,
-    handler: (message) => void,
-  ): boolean;
 
   /**
    * START - Methods for API
@@ -356,6 +409,18 @@ export abstract class WhatsappSession {
     messageId: string,
     query: GetChatMessageQuery,
   ): Promise<null | WAMessage> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public pinMessage(
+    chatId: string,
+    messageId: string,
+    duration: number,
+  ): Promise<boolean> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public unpinMessage(chatId: string, messageId: string): Promise<boolean> {
     throw new NotImplementedByEngineError();
   }
 
