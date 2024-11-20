@@ -11,7 +11,7 @@ import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import { PinoLogger } from 'nestjs-pino';
-import { Observable } from 'rxjs';
+import { Observable, retry, share } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { WhatsappConfigService } from '../config.service';
@@ -77,6 +77,14 @@ export class SessionManagerCore extends SessionManager {
     this.sessionConfig = null;
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
+
+    this.events2 = new DefaultMap<WAHAEvents, SwitchObservable<any>>(
+      (key) =>
+        new SwitchObservable((obs$) => {
+          return obs$.pipe(retry(), share());
+        }),
+    );
+
     this.store = new LocalStoreCore(engineName.toLowerCase());
     this.sessionAuthRepository = new LocalSessionAuthRepository(this.store);
     this.startPredefinedSessions();
