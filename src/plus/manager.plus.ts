@@ -4,6 +4,7 @@ import {
   OnApplicationBootstrap,
   OnModuleInit,
 } from '@nestjs/common';
+import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaManager } from '@waha/core/media/MediaManager';
@@ -43,7 +44,6 @@ import {
   SessionInfo,
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
-import { WebJSEngineConfigService } from './config/WebJSEngineConfigService';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
 import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
 import { LocalStorePlus } from './storage/LocalStorePlus';
