@@ -99,6 +99,7 @@ const QRCode = require('qrcode');
 
 export interface WebJSConfig {
   webVersion?: string;
+  cacheType: 'local' | 'none';
 }
 
 export class WhatsappSessionWebJSCore extends WhatsappSession {
@@ -143,7 +144,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     const path = this.getClassDirName();
     const webVersion =
       this.engineConfig?.webVersion || '2.3000.1018072227-alpha';
-    this.logger.info(`Using web version: '${webVersion}'`);
+    const cacheType = this.engineConfig?.cacheType || 'local';
+    this.logger.info(`Using cache type: '${cacheType}'`);
+    if (cacheType === 'local') {
+      this.logger.info(`Using web version: '${webVersion}'`);
+    }
     return {
       puppeteer: {
         headless: true,
@@ -153,8 +158,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       },
       webVersion: webVersion,
       webVersionCache: {
-        // type: 'none',
-        type: 'local',
+        type: cacheType,
         path: path,
         strict: true,
       },
