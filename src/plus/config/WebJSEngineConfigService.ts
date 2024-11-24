@@ -18,6 +18,20 @@ export class WebJSEngineConfigService {
     }
     return {
       webVersion: webVersion,
+      cacheType: this.getCacheType(),
     };
+  }
+
+  getCacheType(): 'local' | 'none' {
+    const cacheType = this.configService
+      .get<string>('WAHA_WEBJS_CACHE_TYPE', 'local')
+      .toLowerCase();
+    if (cacheType != 'local' && cacheType != 'none') {
+      throw new Error(
+        'Invalid cache type, only "local" and "none" are allowed',
+      );
+    }
+
+    return cacheType;
   }
 }
