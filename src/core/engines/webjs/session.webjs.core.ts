@@ -144,7 +144,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     const path = this.getClassDirName();
     const webVersion =
       this.engineConfig?.webVersion || '2.3000.1018072227-alpha';
-    const cacheType = this.engineConfig?.cacheType || 'local';
+    const cacheType = this.engineConfig?.cacheType || 'none';
     this.logger.info(`Using cache type: '${cacheType}'`);
     if (cacheType === 'local') {
       this.logger.info(`Using web version: '${webVersion}'`);

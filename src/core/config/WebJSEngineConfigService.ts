@@ -24,7 +24,7 @@ export class WebJSEngineConfigService {
 
   getCacheType(): 'local' | 'none' {
     const cacheType = this.configService
-      .get<string>('WAHA_WEBJS_CACHE_TYPE', 'local')
+      .get<string>('WAHA_WEBJS_CACHE_TYPE', 'none')
       .toLowerCase();
     if (cacheType != 'local' && cacheType != 'none') {
       throw new Error(
