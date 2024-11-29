@@ -110,8 +110,9 @@ export class NoWebMongoDbAuth {
               for (const id of Object.keys(data[category])) {
                 const value = data[category][id];
                 const key = `${category}-${id}`;
+                const hasValue = !!value || value?.length === 0;
                 tasks.push(
-                  value ? this.writeData(value, key) : this.removeData(key),
+                  hasValue ? this.writeData(value, key) : this.removeData(key),
                 );
               }
             }
