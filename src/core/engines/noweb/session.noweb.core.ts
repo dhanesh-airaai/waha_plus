@@ -17,6 +17,7 @@ import makeWASocket, {
   normalizeMessageContent,
   PresenceData,
   proto,
+  SocketConfig,
   WAMessageContent,
   WAMessageKey,
   WAMessageUpdate,
@@ -194,6 +195,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   private autoRestartJob: SinglePeriodicJobRunner;
   private msgRetryCounterCache: NodeCache;
+  private placeholderResendCache: NodeCache;
   protected engineLogger: BaileysLogger;
 
   private authNOWEBStore: any;
@@ -210,6 +212,10 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     // external map to store retry counts of messages when decryption/encryption fails
     // keep this out of the socket itself, to prevent a message decryption/encryption loop across socket restarts
     this.msgRetryCounterCache = new NodeCache({
+      stdTTL: 60 * 60, // 1 hour
+      useClones: false,
+    });
+    this.placeholderResendCache = new NodeCache({
       stdTTL: 60 * 60, // 1 hour
       useClones: false,
     });
@@ -252,7 +258,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     await this.sock?.logout();
   }
 
-  getSocketConfig(agent, state): any {
+  getSocketConfig(agent, state): Partial<SocketConfig> {
     const fullSyncEnabled = this.sessionConfig?.noweb?.store?.fullSync || false;
     const browser = fullSyncEnabled
       ? Browsers.ubuntu('Desktop')
@@ -278,6 +284,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       getMessage: (key) => this.getMessage(key),
       syncFullHistory: fullSyncEnabled,
       msgRetryCounterCache: this.msgRetryCounterCache,
+      placeholderResendCache: this.placeholderResendCache,
       markOnlineOnConnect: markOnlineOnConnect,
     };
   }
@@ -291,7 +298,10 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     }
     const { state, saveCreds } = this.authNOWEBStore;
     const agent = this.makeAgent();
-    const socketConfig = this.getSocketConfig(agent, state);
+    const socketConfig: SocketConfig = this.getSocketConfig(
+      agent,
+      state,
+    ) as SocketConfig;
     const sock = makeWASocket(socketConfig);
     sock.ev.on('creds.update', saveCreds);
     return sock;
