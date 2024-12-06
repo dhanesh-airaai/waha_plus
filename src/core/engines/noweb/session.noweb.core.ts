@@ -270,11 +270,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return {
       agent: agent,
       fetchAgent: agent,
-      auth: {
-        creds: state.creds,
-        /** caching makes the store faster to send/recv messages */
-        keys: makeCacheableSignalKeyStore(state.keys, this.engineLogger),
-      },
+      auth: state,
       printQRInTerminal: false,
       browser: browser,
       logger: this.engineLogger,
@@ -291,10 +287,16 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   async makeSocket(): Promise<any> {
     if (!this.authNOWEBStore) {
-      this.authNOWEBStore = await this.authFactory.buildAuth(
+      const store = await this.authFactory.buildAuth(
         this.sessionStore,
         this.name,
       );
+      /** caching makes the store faster to send/recv messages */
+      store.state.keys = makeCacheableSignalKeyStore(
+        store.state.keys,
+        this.engineLogger,
+      );
+      this.authNOWEBStore = store;
     }
     const { state, saveCreds } = this.authNOWEBStore;
     const agent = this.makeAgent();
