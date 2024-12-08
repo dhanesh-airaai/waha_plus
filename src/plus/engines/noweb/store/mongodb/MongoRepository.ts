@@ -124,6 +124,16 @@ export class MongoRepository<Entity> {
   }
 
   protected pagination(query: any, pagination?: PaginationParams) {
+    if (pagination?.sortBy) {
+      // check if it's in 'columns'
+      const column = this.columns.find(
+        (column) => column.fieldName === pagination.sortBy,
+      );
+      if (!column) {
+        // add "data"
+        pagination.sortBy = `data.${pagination.sortBy}`;
+      }
+    }
     const paginator = new MongoPaginator(pagination);
     return paginator.apply(query);
   }
