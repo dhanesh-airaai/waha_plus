@@ -1,6 +1,6 @@
 import { Contact } from '@adiwajshing/baileys';
+import { IContactRepository } from '@waha/core/engines/noweb/store/IContactRepository';
 
-import { IContactRepository } from '../../../../../core/engines/noweb/store/IContactRepository';
 import { MongoRepository } from './MongoRepository';
 
 export class MongoContactRepository

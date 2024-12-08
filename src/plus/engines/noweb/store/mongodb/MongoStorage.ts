@@ -1,9 +1,9 @@
-import { WAMessage } from '@adiwajshing/baileys';
-import { LabelAssociation } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
+import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepository';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
 import { NOWEB_STORE_SCHEMA } from '@waha/core/engines/noweb/store/Schema';
-import { Field, Index, Schema } from '@waha/core/storage/sqlite3/Schema';
+import { Schema } from '@waha/core/storage/sqlite3/Schema';
+import { MongoGroupRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoGroupRepository';
 import { MongoLabelAssociationsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelAssociationsRepository';
 import { MongoLabelsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelsRepository';
 import { Db } from 'mongodb';
@@ -34,6 +34,8 @@ export class MongoStorage extends INowebStorage {
     // Chats
     await this.db.collection('chats').createIndex({ id: 1 }, { unique: true });
     await this.db.collection('chats').createIndex({ conversationTimestamp: 1 });
+    // Groups
+    await this.db.collection('groups').createIndex({ id: 1 }, { unique: true });
     // Messages
     await this.db
       .collection('messages')
@@ -77,6 +79,10 @@ export class MongoStorage extends INowebStorage {
 
   getChatRepository() {
     return new MongoChatRepository(this.db, this.getSchema('chats'));
+  }
+
+  getGroupRepository(): IGroupRepository {
+    return new MongoGroupRepository(this.db, this.getSchema('groups'));
   }
 
   getMessagesRepository() {
