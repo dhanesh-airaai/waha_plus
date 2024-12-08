@@ -75,6 +75,7 @@ import {
 import { PaginatorInMemory } from '@waha/utils/Paginator';
 import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
+import * as lodash from 'lodash';
 import { fromEvent, merge, mergeMap, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
@@ -789,10 +790,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return groupChat.setMessagesAdminsOnly(value);
   }
 
-  public getGroups() {
-    return this.whatsapp
-      .getChats()
-      .then((chats) => chats.filter((chat) => chat.isGroup));
+  public async getGroups(pagination: PaginationParams, refresh: boolean) {
+    const chats = await this.whatsapp.getChats();
+    const groups = lodash.filter(chats, (chat) => chat.isGroup);
+    const paginator = new PaginatorInMemory(pagination);
+    return paginator.apply(groups);
   }
 
   public getGroup(id) {

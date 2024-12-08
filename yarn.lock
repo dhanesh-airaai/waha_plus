@@ -7,7 +7,7 @@ __metadata:
 
 "@adiwajshing/baileys@github:devlikeapro/Baileys#fork-master-channels-678":
   version: 6.7.8
-  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=615f776f8f3ad929cdab17a77a50e21b59eaa674"
+  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=ea7f0f4365508d272809458b3e9094c7bb56cf3a"
   dependencies:
     "@adiwajshing/keyed-db": ^0.2.4
     "@hapi/boom": ^9.1.3
@@ -39,7 +39,7 @@ __metadata:
       optional: true
     sharp:
       optional: true
-  checksum: b3ef06a8e4984de730e10c934ddc881871912425956222fb882571c2a21d94e85f4acd656e6cf99130ac59a89683e0fe1a32ccab7afe946ed0fb9402ab4a4d9d
+  checksum: c765057d3978dae6e25218324f2e1d969a0173822b3a62f4677342cb94a08feaefa936d0ed6effb34bc2a5a340a938c51d7ac9dff8e6ecaf121d8e6dfa950119
   languageName: node
   linkType: hard
 

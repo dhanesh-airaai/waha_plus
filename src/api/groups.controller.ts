@@ -6,6 +6,9 @@ import {
   Param,
   Post,
   Put,
+  Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { GroupIdApiParam } from '@waha/nestjs/params/ChatIdApiParam';
@@ -19,6 +22,8 @@ import { WhatsappSession } from '../core/abc/session.abc';
 import {
   CreateGroupRequest,
   DescriptionRequest,
+  GetGroupsParams,
+  GroupsPaginationParams,
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
   SubjectRequest,
@@ -43,8 +48,13 @@ export class GroupsController {
   @Get('')
   @SessionApiParam
   @ApiOperation({ summary: 'Get all groups.' })
-  getGroups(@WorkingSessionParam session: WhatsappSession) {
-    return session.getGroups();
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  getGroups(
+    @WorkingSessionParam session: WhatsappSession,
+    @Query() pagination: GroupsPaginationParams,
+    @Query() params: GetGroupsParams,
+  ) {
+    return session.getGroups(pagination, params.refresh);
   }
 
   @Get(':id')

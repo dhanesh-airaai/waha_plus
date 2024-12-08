@@ -1,5 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString } from 'class-validator';
+import { BooleanString } from '@waha/nestjs/validation/BooleanString';
+import { Transform } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+
+import { PaginationParams } from './pagination.dto';
 
 /**
  * Structures
@@ -45,4 +55,31 @@ export class CreateGroupRequest {
 
   @IsArray()
   participants: Array<Participant>;
+}
+
+enum GroupSortField {
+  ID = 'id',
+  SUBJECT = 'subject',
+}
+
+export class GroupsPaginationParams extends PaginationParams {
+  @ApiProperty({
+    description: 'Sort by field',
+    enum: GroupSortField,
+  })
+  @IsOptional()
+  @IsEnum(GroupSortField)
+  sortBy?: string;
+}
+
+export class GetGroupsParams {
+  @ApiProperty({
+    description: 'Refresh the groups list and participants from the server',
+    example: false,
+    required: false,
+  })
+  @Transform(BooleanString)
+  @IsBoolean()
+  @IsOptional()
+  refresh: boolean = false;
 }

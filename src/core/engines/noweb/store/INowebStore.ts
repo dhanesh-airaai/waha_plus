@@ -4,6 +4,7 @@ import {
   Contact,
   proto,
 } from '@adiwajshing/baileys';
+import { GroupMetadata } from '@adiwajshing/baileys/lib/Types/GroupMetadata';
 import { Label } from '@adiwajshing/baileys/lib/Types/Label';
 import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
@@ -40,4 +41,9 @@ export interface INowebStore {
   getChatsByLabelId(labelId: string): Promise<Chat[]>;
 
   getChatLabels(chatId: string): Promise<Label[]>;
+
+  getGroups(
+    pagination: PaginationParams,
+    refresh: boolean,
+  ): Promise<GroupMetadata[]>;
 }

@@ -1084,12 +1084,14 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return this.sock.groupCreate(request.name, participants);
   }
 
-  public async getGroups() {
-    return await this.sock.groupFetchAllParticipating();
+  public async getGroups(pagination: PaginationParams, refresh: boolean) {
+    const groups = await this.store.getGroups(pagination, refresh);
+    // return {id: group} mapping for backward compatability
+    return lodash.keyBy(groups, 'id');
   }
 
   public async getGroup(id) {
-    const groups = await this.sock.groupFetchAllParticipating();
+    const groups = await this.getGroups({}, false);
     return groups[id];
   }
 

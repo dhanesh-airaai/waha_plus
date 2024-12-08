@@ -1,8 +1,15 @@
-import { Chat, Contact, makeInMemoryStore, proto } from '@adiwajshing/baileys';
+import makeWASocket, {
+  Chat,
+  Contact,
+  GroupMetadata,
+  makeInMemoryStore,
+  proto,
+} from '@adiwajshing/baileys';
 import { Label } from '@adiwajshing/baileys/lib/Types/Label';
 import { BadRequestException } from '@nestjs/common';
 import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
+import { PaginatorInMemory } from '@waha/utils/Paginator';
 
 import { INowebStore } from './INowebStore';
 
@@ -10,6 +17,8 @@ import { INowebStore } from './INowebStore';
 const logger = require('pino')();
 
 export class NowebInMemoryStore implements INowebStore {
+  private socket: ReturnType<typeof makeWASocket>;
+
   private store: ReturnType<typeof makeInMemoryStore>;
   errorMessage =
     'Enable NOWEB store "config.noweb.store.enabled=True" and "config.noweb.store.full_sync=True" when starting a new session. ' +
@@ -33,6 +42,7 @@ export class NowebInMemoryStore implements INowebStore {
 
   bind(ev: any, socket: any) {
     this.store.bind(ev);
+    this.socket = socket;
   }
 
   loadMessage(jid: string, id: string): Promise<proto.IWebMessageInfo> {
@@ -77,5 +87,15 @@ export class NowebInMemoryStore implements INowebStore {
 
   getChatLabels(chatId: string): Promise<Label[]> {
     throw new BadRequestException(this.errorMessage);
+  }
+
+  async getGroups(
+    pagination: PaginationParams,
+    refresh: boolean,
+  ): Promise<GroupMetadata[]> {
+    const response = await this.socket?.groupFetchAllParticipating();
+    const groups = Object.values(response);
+    const paginator = new PaginatorInMemory(pagination);
+    return paginator.apply(groups);
   }
 }

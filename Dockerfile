@@ -44,6 +44,7 @@ ENV PUPPETEER_SKIP_DOWNLOAD=True
 # https://github.com/devlikeapro/waha/issues/347
 ENV NODE_OPTIONS="--max-old-space-size=16384"
 ARG USE_BROWSER=chromium
+ARG WHATSAPP_DEFAULT_ENGINE
 
 RUN echo "USE_BROWSER=$USE_BROWSER"
 
@@ -98,6 +99,9 @@ RUN if [ "$USE_BROWSER" = "chrome" ]; then \
           && rm /tmp/chrome.deb \
           && rm -rf /var/lib/apt/lists/*; \
     fi
+
+# Set the ENV for NOWEB docker image
+ENV WHATSAPP_DEFAULT_ENGINE=$WHATSAPP_DEFAULT_ENGINE
 
 # Attach sources, install packages
 WORKDIR /app

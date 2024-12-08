@@ -61,6 +61,7 @@ import {
 } from '../../structures/enums.dto';
 import {
   CreateGroupRequest,
+  GroupsPaginationParams,
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
 } from '../../structures/groups.dto';
@@ -522,7 +523,7 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public getGroups() {
+  public getGroups(pagination: PaginationParams, refresh: boolean) {
     throw new NotImplementedByEngineError();
   }
 
