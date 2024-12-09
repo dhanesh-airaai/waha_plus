@@ -55,6 +55,7 @@ import {
 } from '@waha/structures/enums.dto';
 import {
   CreateGroupRequest,
+  GroupSortField,
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
 } from '@waha/structures/groups.dto';
@@ -793,6 +794,16 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   public async getGroups(pagination: PaginationParams) {
     const chats = await this.whatsapp.getChats();
     const groups = lodash.filter(chats, (chat) => chat.isGroup);
+
+    switch (pagination.sortBy) {
+      case GroupSortField.ID:
+        pagination.sortBy = 'id._serialized';
+        break;
+      case GroupSortField.SUBJECT:
+        pagination.sortBy = 'groupMetadata.subject';
+        break;
+    }
+
     const paginator = new PaginatorInMemory(pagination);
     return paginator.apply(groups);
   }

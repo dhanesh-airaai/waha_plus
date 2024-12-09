@@ -57,7 +57,7 @@ export class CreateGroupRequest {
   participants: Array<Participant>;
 }
 
-enum GroupSortField {
+export enum GroupSortField {
   ID = 'id',
   SUBJECT = 'subject',
 }
