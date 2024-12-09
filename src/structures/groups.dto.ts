@@ -71,15 +71,3 @@ export class GroupsPaginationParams extends PaginationParams {
   @IsEnum(GroupSortField)
   sortBy?: string;
 }
-
-export class GetGroupsParams {
-  @ApiProperty({
-    description: 'Refresh the groups list and participants from the server',
-    example: false,
-    required: false,
-  })
-  @Transform(BooleanString)
-  @IsBoolean()
-  @IsOptional()
-  refresh: boolean = false;
-}

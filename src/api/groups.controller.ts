@@ -22,7 +22,6 @@ import { WhatsappSession } from '../core/abc/session.abc';
 import {
   CreateGroupRequest,
   DescriptionRequest,
-  GetGroupsParams,
   GroupsPaginationParams,
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
@@ -52,9 +51,16 @@ export class GroupsController {
   getGroups(
     @WorkingSessionParam session: WhatsappSession,
     @Query() pagination: GroupsPaginationParams,
-    @Query() params: GetGroupsParams,
   ) {
-    return session.getGroups(pagination, params.refresh);
+    return session.getGroups(pagination);
+  }
+
+  @Post('refresh')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Refresh groups from the server.' })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async refreshGroups(@WorkingSessionParam session: WhatsappSession) {
+    return { success: await session.refreshGroups() };
   }
 
   @Get(':id')

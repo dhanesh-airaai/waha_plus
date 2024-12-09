@@ -89,13 +89,14 @@ export class NowebInMemoryStore implements INowebStore {
     throw new BadRequestException(this.errorMessage);
   }
 
-  async getGroups(
-    pagination: PaginationParams,
-    refresh: boolean,
-  ): Promise<GroupMetadata[]> {
+  async getGroups(pagination: PaginationParams): Promise<GroupMetadata[]> {
     const response = await this.socket?.groupFetchAllParticipating();
     const groups = Object.values(response);
     const paginator = new PaginatorInMemory(pagination);
     return paginator.apply(groups);
+  }
+
+  resetGroupsCache() {
+    return;
   }
 }

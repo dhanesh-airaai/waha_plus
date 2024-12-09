@@ -790,11 +790,15 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return groupChat.setMessagesAdminsOnly(value);
   }
 
-  public async getGroups(pagination: PaginationParams, refresh: boolean) {
+  public async getGroups(pagination: PaginationParams) {
     const chats = await this.whatsapp.getChats();
     const groups = lodash.filter(chats, (chat) => chat.isGroup);
     const paginator = new PaginatorInMemory(pagination);
     return paginator.apply(groups);
+  }
+
+  public async refreshGroups(): Promise<boolean> {
+    return true;
   }
 
   public getGroup(id) {

@@ -57,6 +57,7 @@ export class NowebPersistentStore implements INowebStore {
   });
 
   private lastTimeGroupUpdate: Date = new Date(0);
+  private lastTimeGroupFetch: Date = new Date(0);
   private GROUP_METADATA_CACHE_TIME = 24 * HOUR;
 
   constructor(
@@ -453,15 +454,14 @@ export class NowebPersistentStore implements INowebStore {
     return this.chatRepo.getAllWithMessages(pagination);
   }
 
-  private shouldUpdateGroup(): boolean {
-    const timePassed =
-      new Date().getTime() - this.lastTimeGroupUpdate.getTime();
+  private shouldFetchGroup(): boolean {
+    const timePassed = new Date().getTime() - this.lastTimeGroupFetch.getTime();
     return timePassed > this.GROUP_METADATA_CACHE_TIME;
   }
 
   private async fetchGroups() {
     await this.groupsFetchLock.acquire('groups-fetch', async () => {
-      if (!this.shouldUpdateGroup()) {
+      if (!this.shouldFetchGroup()) {
         // Update has been done by another request
         return;
       }
@@ -474,19 +474,16 @@ export class NowebPersistentStore implements INowebStore {
         100,
         5_000,
       );
+      this.lastTimeGroupFetch = new Date();
     });
   }
 
-  async getGroups(
-    pagination: PaginationParams,
-    refresh: boolean,
-  ): Promise<GroupMetadata[]> {
-    if (refresh) {
-      // Reset the last update time
-      this.lastTimeGroupUpdate = new Date(0);
-    }
+  resetGroupsCache() {
+    this.lastTimeGroupFetch = new Date(0);
+  }
 
-    if (this.shouldUpdateGroup()) {
+  async getGroups(pagination: PaginationParams): Promise<GroupMetadata[]> {
+    if (this.shouldFetchGroup()) {
       await this.fetchGroups();
     }
     return this.groupRepo.getAll(pagination);

@@ -42,8 +42,7 @@ export interface INowebStore {
 
   getChatLabels(chatId: string): Promise<Label[]>;
 
-  getGroups(
-    pagination: PaginationParams,
-    refresh: boolean,
-  ): Promise<GroupMetadata[]>;
+  getGroups(pagination: PaginationParams): Promise<GroupMetadata[]>;
+
+  resetGroupsCache(): void;
 }

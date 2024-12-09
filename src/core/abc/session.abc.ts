@@ -523,7 +523,11 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public getGroups(pagination: PaginationParams, refresh: boolean) {
+  public getGroups(pagination: PaginationParams) {
+    throw new NotImplementedByEngineError();
+  }
+
+  public refreshGroups(): Promise<boolean> {
     throw new NotImplementedByEngineError();
   }
 
