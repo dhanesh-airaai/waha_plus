@@ -762,6 +762,14 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return this.whatsapp.createGroup(request.name, participantIds);
   }
 
+  public joinGroup(code: string) {
+    return this.whatsapp.acceptInvite(code);
+  }
+
+  public joinInfoGroup(code: string) {
+    return this.whatsapp.getInviteInfo(code);
+  }
+
   public async getInfoAdminsOnly(id): Promise<SettingsSecurityChangeInfo> {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return {

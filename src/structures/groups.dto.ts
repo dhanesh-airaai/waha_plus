@@ -57,6 +57,23 @@ export class CreateGroupRequest {
   participants: Array<Participant>;
 }
 
+export class JoinGroupRequest {
+  @ApiProperty({
+    description: 'Group code (123) or url (https://chat.whatsapp.com/123)',
+    example: 'https://chat.whatsapp.com/1234567890abcdef',
+  })
+  @IsString()
+  code: string;
+}
+
+export class JoinGroupResponse {
+  @ApiProperty({
+    description: 'Group ID',
+    example: '123@g.us',
+  })
+  id: string;
+}
+
 export enum GroupSortField {
   ID = 'id',
   SUBJECT = 'subject',

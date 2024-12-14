@@ -23,6 +23,8 @@ import {
   CreateGroupRequest,
   DescriptionRequest,
   GroupsPaginationParams,
+  JoinGroupRequest,
+  JoinGroupResponse,
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
   SubjectRequest,
@@ -42,6 +44,31 @@ export class GroupsController {
     @Body() request: CreateGroupRequest,
   ) {
     return session.createGroup(request);
+  }
+
+  @Get('join-info')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get info about the group before joining.' })
+  async joinInfoGroup(
+    @WorkingSessionParam session: WhatsappSession,
+    @Query() query: JoinGroupRequest,
+  ): Promise<any> {
+    // https://chat.whatsapp.com/123 => 123
+    const code = query.code.split('/').pop();
+    return session.joinInfoGroup(code);
+  }
+
+  @Post('join')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Join group via code' })
+  async joinGroup(
+    @WorkingSessionParam session: WhatsappSession,
+    @Body() request: JoinGroupRequest,
+  ): Promise<JoinGroupResponse> {
+    // https://chat.whatsapp.com/123 => 123
+    const code = request.code.split('/').pop();
+    const id = await session.joinGroup(code);
+    return { id: id };
   }
 
   @Get('')

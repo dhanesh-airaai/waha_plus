@@ -523,6 +523,14 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
+  public joinGroup(code: string): Promise<string> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public joinInfoGroup(code: string): Promise<any> {
+    throw new NotImplementedByEngineError();
+  }
+
   public getGroups(pagination: PaginationParams) {
     throw new NotImplementedByEngineError();
   }
