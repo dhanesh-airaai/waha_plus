@@ -1,4 +1,4 @@
-import { WAProto } from '@adiwajshing/baileys';
+import { jidDecode, WAProto } from '@adiwajshing/baileys';
 import { BufferJSON, initAuthCreds } from '@adiwajshing/baileys/lib/Utils';
 import { Collection, Db, Document } from 'mongodb';
 
@@ -96,6 +96,12 @@ export class NoWebMongoDbAuth {
     }
   }
 
+  isMyMainSession(id: string) {
+    // Decode the jid
+    const { user: meId } = jidDecode(this.creds?.me?.id);
+    return id == `${meId}.0`;
+  }
+
   methods() {
     const creds = this.readData('creds');
     // @ts-ignore:next-line
@@ -108,6 +114,10 @@ export class NoWebMongoDbAuth {
             const data = {};
             await Promise.all(
               ids.map(async (id) => {
+                // Always reset my session and setup new session
+                if (type === 'session' && this.isMyMainSession(id)) {
+                  return;
+                }
                 let value = await this.readData(`${type}-${id}`);
                 if (type === 'app-state-sync-key' && value) {
                   value = WAProto.Message.AppStateSyncKeyData.fromObject(value);
