@@ -111,9 +111,13 @@ export class NoWebMongoDbAuth {
                 const value = data[category][id];
                 const key = `${category}-${id}`;
                 const hasValue = !!value || value?.length === 0;
-                tasks.push(
-                  hasValue ? this.writeData(value, key) : this.removeData(key),
-                );
+                if (hasValue) {
+                  tasks.push(this.writeData(value, key));
+                } else {
+                  // Do not remove any keys for now
+                  // Avoid removing pre-keys
+                  // tasks.push(this.removeData(key));
+                }
               }
             }
             await Promise.all(tasks);
