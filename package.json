@@ -59,6 +59,7 @@
     "joi": "^17.13.3",
     "knex": "^3.1.0",
     "libphonenumber-js": "^1.10.36",
+    "libsignal": "github:devlikeapro/libsignal-node#fork-master",
     "link-preview-js": "^3.0.4",
     "lodash": "^4.17.21",
     "mime-types": "^2.1.27",
@@ -88,7 +89,8 @@
     "bufferutil": "^4.0.8",
     "ws": "^8.18.0",
     "puppeteer": "^23.6.0",
-    "whatwg-url": "13.0.0"
+    "whatwg-url": "13.0.0",
+    "libsignal": "github:devlikeapro/libsignal-node#fork-master"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

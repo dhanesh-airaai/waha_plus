@@ -8474,13 +8474,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libsignal@github:WhiskeySockets/libsignal-node":
+"libsignal@github:devlikeapro/libsignal-node#fork-master":
   version: 2.0.1
-  resolution: "libsignal@https://github.com/WhiskeySockets/libsignal-node.git#commit=83a3e3a3864511cb74df1b796373f0d49d071134"
+  resolution: "libsignal@https://github.com/devlikeapro/libsignal-node.git#commit=78af5cb43b0b4e58f5b820055303b09b16d7b8f4"
   dependencies:
     curve25519-js: ^0.0.4
     protobufjs: 6.8.8
-  checksum: bc8a8c4d54395e6b3f7224e72fe0c447859eed688cc28da3a56d76dcd5bf1ea71b25b3ff0da96646b636f2bb679898ca38eff909cb83ef3e3b017fe81e06ed50
+  checksum: 79ede2b17a5bdf3f02baee9afd5c9d14f4bdd493176dacad9877682c5f486ea67bf282c349cdd5e3100ca8fd910df78d5a62e61ff5f7f3676140c2cc11e81b6a
   languageName: node
   linkType: hard
 
@@ -12272,6 +12272,7 @@ __metadata:
     joi: ^17.13.3
     knex: ^3.1.0
     libphonenumber-js: ^1.10.36
+    libsignal: "github:devlikeapro/libsignal-node#fork-master"
     link-preview-js: ^3.0.4
     lodash: ^4.17.21
     mime-types: ^2.1.27
