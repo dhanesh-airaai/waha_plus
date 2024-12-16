@@ -2,6 +2,9 @@ import { WAProto } from '@adiwajshing/baileys';
 import { BufferJSON, initAuthCreds } from '@adiwajshing/baileys/lib/Utils';
 import { Collection, Db, Document } from 'mongodb';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const AsyncLock = require('async-lock');
+
 function mongoKey(id: string) {
   // . -> -
   return id.replace(/\./g, '-');
@@ -13,14 +16,18 @@ export class NoWebMongoDbAuth {
   private creds: any;
 
   private db: Db;
+  private lock: any;
 
   constructor(db: Db) {
     this.db = db;
     this.collection = this.db.collection('auth');
+    this.lock = new AsyncLock({ maxPending: Infinity });
   }
 
   async init() {
-    this.document = await this.upsertDocument();
+    this.document = await this.lock.acquire('auth', async () => {
+      return await this.upsertDocument();
+    });
   }
 
   upsertDocument() {
@@ -38,6 +45,12 @@ export class NoWebMongoDbAuth {
   }
 
   async writeData(data, field: string) {
+    return this.lock.acquire('auth', async () => {
+      return await this._writeData(data, field);
+    });
+  }
+
+  async _writeData(data, field: string) {
     const key = mongoKey(field);
     this.document = await this.collection.findOneAndUpdate(
       // @ts-ignore
