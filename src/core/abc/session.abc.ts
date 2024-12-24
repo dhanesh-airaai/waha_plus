@@ -4,6 +4,7 @@ import {
   ListChannelsQuery,
 } from '@waha/structures/channels.dto';
 import {
+  ChatSummary,
   GetChatMessageQuery,
   GetChatMessagesFilter,
   GetChatMessagesQuery,
@@ -19,6 +20,7 @@ import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import * as fs from 'fs';
 import * as lodash from 'lodash';
+import * as NodeCache from 'node-cache';
 import { Logger } from 'pino';
 import {
   BehaviorSubject,
@@ -132,6 +134,9 @@ export abstract class WhatsappSession {
   private shouldPrintQR: boolean;
   protected events2: DefaultMap<WAHAEvents, SwitchObservable<any>>;
   private status$: Subject<WAHASessionStatus>;
+  protected profilePictures: NodeCache = new NodeCache({
+    stdTTL: 24 * 60 * 60, // 1 day
+  });
 
   public constructor({
     name,
@@ -393,6 +398,12 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
+  public getChatsOverview(
+    pagination: PaginationParams,
+  ): Promise<ChatSummary[]> {
+    throw new NotImplementedByEngineError();
+  }
+
   public deleteChat(chatId) {
     throw new NotImplementedByEngineError();
   }
@@ -504,8 +515,32 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public getContactProfilePicture(query: ContactQuery) {
-    throw new NotImplementedByEngineError();
+  /**
+   * Fetch the latest profile picture of the contact (group, newsletter, etc.)
+   * @param id
+   */
+  abstract fetchContactProfilePicture(id: string): Promise<string | null>;
+
+  public async getContactProfilePicture(
+    id: string,
+    refresh: boolean,
+  ): Promise<string | null> {
+    const has: boolean = this.profilePictures.has(id);
+    if (!has || refresh) {
+      await this.refreshProfilePicture(id);
+    }
+    return this.profilePictures.get(id);
+  }
+
+  protected async refreshProfilePicture(id: string) {
+    this.profilePictures.del(id);
+    const url = await this.fetchContactProfilePicture(id).catch((err) => {
+      this.logger.error('Error fetching profile picture');
+      this.logger.error(err, err.stack);
+      return null;
+    });
+    this.profilePictures.set(id, url);
+    return url;
   }
 
   public blockContact(request: ContactRequest) {

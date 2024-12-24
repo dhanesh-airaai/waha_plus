@@ -16,6 +16,7 @@ import {
   WANumberExistResult,
 } from '../structures/chatting.dto';
 import {
+  ContactProfilePictureQuery,
   ContactQuery,
   ContactRequest,
   ContactsPaginationParams,
@@ -75,9 +76,14 @@ export class ContactsController {
     description:
       'If privacy settings do not allow to get the picture, the method will return null.',
   })
-  async getProfilePicture(@Query() query: ContactQuery) {
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async getProfilePicture(@Query() query: ContactProfilePictureQuery) {
     const whatsapp = await this.manager.getWorkingSession(query.session);
-    return whatsapp.getContactProfilePicture(query);
+    const url = await whatsapp.getContactProfilePicture(
+      query.contactId,
+      query.refresh,
+    );
+    return { profilePictureURL: url };
   }
 
   @Post('/block')

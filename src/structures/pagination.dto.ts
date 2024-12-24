@@ -6,8 +6,7 @@ export enum SortOrder {
   DESC = 'desc',
   ASC = 'asc',
 }
-
-export class PaginationParams {
+export class LimitOffsetParams {
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
@@ -17,7 +16,9 @@ export class PaginationParams {
   @IsOptional()
   @Type(() => Number)
   offset?: number;
+}
 
+export class PaginationParams extends LimitOffsetParams {
   @ApiProperty({
     description: 'Sort by field',
   })

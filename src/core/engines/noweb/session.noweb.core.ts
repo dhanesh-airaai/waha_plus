@@ -1,5 +1,6 @@
 import makeWASocket, {
   Browsers,
+  Chat,
   Contact,
   DisconnectReason,
   downloadMediaMessage,
@@ -9,7 +10,9 @@ import makeWASocket, {
   getKeyAuthor,
   getUrlFromDirectPath,
   isJidGroup,
+  isJidNewsletter,
   isJidStatusBroadcast,
+  isJidUser,
   isRealMessage,
   jidNormalizedUser,
   makeCacheableSignalKeyStore,
@@ -50,6 +53,7 @@ import {
   ListChannelsQuery,
 } from '@waha/structures/channels.dto';
 import {
+  ChatSummary,
   GetChatMessageQuery,
   GetChatMessagesFilter,
   GetChatMessagesQuery,
@@ -369,6 +373,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.connectStore();
     this.listenConnectionEvents();
     this.subscribeEngineEvents2();
+    this.listenContactsUpdatePictureProfile();
     this.enableAutoRestart();
   }
 
@@ -901,10 +906,44 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
    */
 
   async getChats(pagination: PaginationParams) {
-    const chats = await this.store.getChats(pagination);
+    const chats = await this.store.getChats(pagination, true);
     // Remove unreadCount, it's not ready yet
     chats.forEach((chat) => delete chat.unreadCount);
     return chats;
+  }
+
+  public async getChatsOverview(
+    pagination: PaginationParams,
+  ): Promise<ChatSummary[]> {
+    const chats = await this.store.getChats(pagination, false);
+    // Remove unreadCount, it's not ready yet
+    chats.forEach((chat) => delete chat.unreadCount);
+
+    const promises = [];
+    for (const chat of chats) {
+      promises.push(this.fetchChatSummary(chat));
+    }
+    const result = await Promise.all(promises);
+    return result;
+  }
+
+  protected async fetchChatSummary(chat: Chat): Promise<ChatSummary> {
+    const id = toCusFormat(chat.id);
+    const name = chat.name;
+    const picture = await this.getContactProfilePicture(chat.id, false);
+    const messages = await this.getChatMessages(
+      chat.id,
+      { limit: 1, offset: 0, downloadMedia: false },
+      {},
+    );
+    const message = messages.length > 0 ? messages[0] : null;
+    return {
+      id: id,
+      name: name || null,
+      picture: picture,
+      lastMessage: message,
+      _chat: chat,
+    };
   }
 
   protected async chatsPutArchive(
@@ -1062,10 +1101,16 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public async getContactProfilePicture(query: ContactQuery) {
-    const contact = this.ensureSuffix(query.contactId);
+  public async fetchContactProfilePicture(id: string) {
+    const contact = this.ensureSuffix(id);
+    if (isJidNewsletter(id)) {
+      return null;
+    }
+    if (isJidStatusBroadcast(id)) {
+      return null;
+    }
     const url = await this.sock.profilePictureUrl(contact, 'image');
-    return { profilePictureURL: url };
+    return url;
   }
 
   public async blockContact(request: ContactRequest) {
@@ -1518,6 +1563,26 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
           mergeMap(this.toLabelChatAssociation.bind(this)),
         ),
       );
+  }
+
+  protected listenContactsUpdatePictureProfile() {
+    this.sock.ev.on('contacts.update', async (updates) => {
+      for (const update of updates) {
+        if (update.imgUrl !== 'changed') {
+          continue;
+        }
+
+        this.logger.debug({ jid: update.id }, 'Profile picture updated');
+        const url = await this.refreshProfilePicture(update.id);
+        if (isJidUser(update.id)) {
+          // update 123@c.us and 123 profiles as well
+          const cus = toCusFormat(update.id);
+          this.profilePictures.set(cus, url);
+          const phone = update.id.split('@')[0];
+          this.profilePictures.set(phone, url);
+        }
+      }
+    });
   }
 
   /**

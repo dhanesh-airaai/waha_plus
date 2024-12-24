@@ -6,7 +6,10 @@ export interface IChatRepository {
 
   getAllByIds(ids: string[]): Promise<Chat[]>;
 
-  getAllWithMessages(pagination: PaginationParams): Promise<Chat[]>;
+  getAllWithMessages(
+    pagination: PaginationParams,
+    broadcast: boolean,
+  ): Promise<Chat[]>;
 
   getById(id: string): Promise<Chat | null>;
 

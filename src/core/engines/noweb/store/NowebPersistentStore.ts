@@ -448,10 +448,10 @@ export class NowebPersistentStore implements INowebStore {
     return this.messagesRepo.getByJidById(chatId, messageId);
   }
 
-  getChats(pagination: PaginationParams): Promise<Chat[]> {
+  getChats(pagination: PaginationParams, broadcast: boolean): Promise<Chat[]> {
     pagination.sortBy ||= 'conversationTimestamp';
     pagination.sortOrder ||= SortOrder.DESC;
-    return this.chatRepo.getAllWithMessages(pagination);
+    return this.chatRepo.getAllWithMessages(pagination, broadcast);
   }
 
   private shouldFetchGroup(): boolean {

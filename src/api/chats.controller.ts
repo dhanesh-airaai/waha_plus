@@ -21,12 +21,15 @@ import {
 
 import { SessionManager } from '../core/abc/manager.abc';
 import { WhatsappSession } from '../core/abc/session.abc';
-import { parseBool } from '../helpers';
 import {
+  ChatPictureQuery,
+  ChatPictureResponse,
   ChatsPaginationParams,
+  ChatSummary,
   GetChatMessageQuery,
   GetChatMessagesFilter,
   GetChatMessagesQuery,
+  OverviewPaginationParams,
   PinMessageRequest,
 } from '../structures/chats.dto';
 import { EditMessageRequest } from '../structures/chatting.dto';
@@ -48,6 +51,20 @@ class ChatsController {
     return session.getChats(pagination);
   }
 
+  @Get('overview')
+  @SessionApiParam
+  @ApiOperation({
+    summary:
+      'Get chats overview. Includes all necessary things to build UI "your chats overview" page - chat id, name, picture, last message. Sorting by last message timestamp',
+  })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  getChatsOverview(
+    @WorkingSessionParam session: WhatsappSession,
+    @Query() pagination: OverviewPaginationParams,
+  ): Promise<ChatSummary[]> {
+    return session.getChatsOverview(pagination);
+  }
+
   @Delete(':chatId')
   @SessionApiParam
   @ApiOperation({ summary: 'Deletes the chat' })
@@ -57,6 +74,19 @@ class ChatsController {
     @Param('chatId') chatId: string,
   ) {
     return session.deleteChat(chatId);
+  }
+
+  @Get(':chatId/picture')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Gets chat picture' })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async getChatPicture(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('chatId') chatId: string,
+    @Query() query: ChatPictureQuery,
+  ): Promise<ChatPictureResponse> {
+    const url = await session.getContactProfilePicture(chatId, query.refresh);
+    return { url: url };
   }
 
   @Get(':chatId/messages')
