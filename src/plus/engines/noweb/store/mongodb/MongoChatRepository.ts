@@ -8,11 +8,20 @@ export class MongoChatRepository
   extends MongoRepository<Chat>
   implements IChatRepository
 {
-  async getAllWithMessages(pagination: PaginationParams): Promise<Chat[]> {
+  async getAllWithMessages(
+    pagination: PaginationParams,
+    broadcast: boolean,
+  ): Promise<Chat[]> {
     // Get chats with conversationTimestamp is not Null
     // Sort by conversationTimestamp in descending order
-    let query = this.collection.find({ conversationTimestamp: { $ne: NaN } });
+    const filter = { conversationTimestamp: { $ne: NaN } };
 
+    if (!broadcast) {
+      // filter out chat by id if it ends at @newsletter or @broadcast
+      filter['id'] = { $not: { $regex: /@broadcast|@newsletter/ } };
+    }
+
+    let query = this.collection.find(filter);
     query = this.pagination(query, pagination);
     const rows = await query.toArray();
     return rows.map(MongoRepository.revive);
