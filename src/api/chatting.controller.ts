@@ -171,15 +171,10 @@ export class ChattingController {
     return whatsapp.sendLinkPreview(request);
   }
 
-  @Get('/messages')
-  @ApiOperation({ summary: 'Get messages in a chat' })
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  async getMessages(
-    @Query() query: GetMessageQuery,
-    @Query() filter: GetChatMessagesFilter,
-  ) {
-    const whatsapp = await this.manager.getWorkingSession(query.session);
-    return whatsapp.getChatMessages(query.chatId, query, filter);
+  @Post('/sendContactVcard')
+  async sendContactVcard(@Body() request: MessageContactVcardRequest) {
+    const whatsapp = await this.manager.getWorkingSession(request.session);
+    return whatsapp.sendContactVCard(request);
   }
 
   @Get('/sendText')
@@ -192,10 +187,19 @@ export class ChattingController {
     return whatsapp.sendText(msg);
   }
 
-  @Post('/sendContactVcard')
-  async sendContactVcard(@Body() request: MessageContactVcardRequest) {
-    const whatsapp = await this.manager.getWorkingSession(request.session);
-    return whatsapp.sendContactVCard(request);
+  @Get('/messages')
+  @ApiOperation({
+    summary: 'Get messages in a chat',
+    description: 'DEPRECATED. Use "GET /api/chats/{id}/messages" instead',
+    deprecated: true,
+  })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async getMessages(
+    @Query() query: GetMessageQuery,
+    @Query() filter: GetChatMessagesFilter,
+  ) {
+    const whatsapp = await this.manager.getWorkingSession(query.session);
+    return whatsapp.getChatMessages(query.chatId, query, filter);
   }
 
   @Get('/checkNumberStatus')
