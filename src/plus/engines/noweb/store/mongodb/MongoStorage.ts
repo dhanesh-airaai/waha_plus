@@ -1,6 +1,7 @@
 import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepository';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
+import { INowebStorage } from '@waha/core/engines/noweb/store/INowebStorage';
 import { NOWEB_STORE_SCHEMA } from '@waha/core/engines/noweb/store/Schema';
 import { Schema } from '@waha/core/storage/sqlite3/Schema';
 import { MongoGroupRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoGroupRepository';
@@ -8,10 +9,14 @@ import { MongoLabelAssociationsRepository } from '@waha/plus/engines/noweb/store
 import { MongoLabelsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelsRepository';
 import { Db } from 'mongodb';
 
-import { INowebStorage } from '../../../../../core/engines/noweb/store/INowebStorage';
 import { MongoChatRepository } from './MongoChatRepository';
 import { MongoContactRepository } from './MongoContactRepository';
 import { MongoMessagesRepository } from './MongoMessagesRepository';
+
+enum Order {
+  ASC = 1,
+  DESC = -1,
+}
 
 export class MongoStorage extends INowebStorage {
   private readonly tables: Schema[];
@@ -30,23 +35,31 @@ export class MongoStorage extends INowebStorage {
     // Contacts
     await this.db
       .collection('contacts')
-      .createIndex({ id: 1 }, { unique: true });
+      .createIndex({ id: Order.ASC }, { unique: true });
     // Chats
-    await this.db.collection('chats').createIndex({ id: 1 }, { unique: true });
-    await this.db.collection('chats').createIndex({ conversationTimestamp: 1 });
+    await this.db
+      .collection('chats')
+      .createIndex({ id: Order.ASC }, { unique: true });
+    await this.db
+      .collection('chats')
+      .createIndex({ conversationTimestamp: Order.ASC });
     // Groups
-    await this.db.collection('groups').createIndex({ id: 1 }, { unique: true });
+    await this.db
+      .collection('groups')
+      .createIndex({ id: Order.ASC }, { unique: true });
     // Messages
     await this.db
       .collection('messages')
-      .createIndex({ id: 1 }, { unique: true });
+      .createIndex({ id: Order.ASC }, { unique: true });
     await this.db
       .collection('messages')
-      .createIndex({ jid: 1, id: 1 }, { unique: true });
+      .createIndex({ jid: Order.ASC, id: Order.ASC }, { unique: true });
     await this.db
       .collection('messages')
-      .createIndex({ jid: 1, messageTimestamp: 1 });
-    await this.db.collection('messages').createIndex({ messageTimestamp: 1 });
+      .createIndex({ jid: Order.ASC, messageTimestamp: Order.ASC });
+    await this.db
+      .collection('messages')
+      .createIndex({ messageTimestamp: Order.ASC });
 
     //
     // Labels
