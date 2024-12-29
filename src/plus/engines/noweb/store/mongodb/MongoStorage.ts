@@ -43,6 +43,9 @@ export class MongoStorage extends INowebStorage {
     await this.db
       .collection('chats')
       .createIndex({ conversationTimestamp: Order.ASC });
+    await this.db
+      .collection('chats')
+      .createIndex({ conversationTimestamp: Order.DESC });
     // Groups
     await this.db
       .collection('groups')
@@ -59,7 +62,13 @@ export class MongoStorage extends INowebStorage {
       .createIndex({ jid: Order.ASC, messageTimestamp: Order.ASC });
     await this.db
       .collection('messages')
+      .createIndex({ jid: Order.ASC, messageTimestamp: Order.DESC });
+    await this.db
+      .collection('messages')
       .createIndex({ messageTimestamp: Order.ASC });
+    await this.db
+      .collection('messages')
+      .createIndex({ messageTimestamp: Order.DESC });
 
     //
     // Labels
