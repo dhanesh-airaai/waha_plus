@@ -521,7 +521,7 @@ export class SessionManagerPlus
     const session = this.sessions[sessionName];
     let engineInfo = {};
     try {
-      engineInfo = await promiseTimeout(1000, session.getEngineInfo());
+      engineInfo = await promiseTimeout(3_000, session.getEngineInfo());
     } catch (error) {
       this.log.warn(
         { session: session.name, error: `${error}` },
