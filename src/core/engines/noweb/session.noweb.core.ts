@@ -471,7 +471,8 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.startDelayedJob.cancel();
     this.autoRestartJob.stop();
 
-    if (this.authNOWEBStore && this.status == WAHASessionStatus.WORKING) {
+    const hasCreds = this.authNOWEBStore?.state?.creds;
+    if (hasCreds && this.status == WAHASessionStatus.WORKING) {
       this.logger.info('Saving creds before stopping...');
       await this.authNOWEBStore.saveCreds().catch((e) => {
         this.logger.error('Failed to save creds');

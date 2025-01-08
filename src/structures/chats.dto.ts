@@ -70,7 +70,7 @@ export class GetChatMessagesQuery {
   offset?: number;
 
   @ApiProperty({
-    example: true,
+    example: false,
     required: false,
     description: 'Download media for messages',
   })
