@@ -65,7 +65,12 @@ export class WebsocketGatewayCore
       .getSessionEvents(session, events)
       .subscribe((data) => {
         this.logger.debug(`Sending data to client, event.id: ${data.id}`, data);
-        socket.send(JSON.stringify(data));
+        socket.send(JSON.stringify(data), (err) => {
+          if (!err) {
+            return;
+          }
+          this.logger.error(`Error sending data to client: ${err}`);
+        });
       });
     socket.on('close', () => {
       this.logger.debug(`Client disconnected - ${socket.id}`);

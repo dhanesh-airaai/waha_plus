@@ -25,10 +25,14 @@ function getNestJSLogLevels(): LogLevel[] {
 
 export function getPinoLogLevel(debug: boolean = false): Level {
   const enableDebug = process.env.DEBUG != undefined || debug;
+  const level = getDefaultPinoLogLevel();
+  if (level === 'trace') {
+    return 'trace';
+  }
   if (enableDebug) {
     return 'debug';
   }
-  return getDefaultPinoLogLevel();
+  return level;
 }
 
 export function isDebugEnabled() {

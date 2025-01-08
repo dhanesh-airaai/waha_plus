@@ -39,12 +39,16 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
 
   WAIT_STATUS_INTERVAL = 500;
   WAIT_STATUS_TIMEOUT = 5_000;
+  LOCK_TIMEOUT = 10_000;
 
   protected constructor(
     protected config: WhatsappConfigService,
     protected log: PinoLogger,
   ) {
-    this.lock = new AsyncLock({ maxPending: Infinity });
+    this.lock = new AsyncLock({
+      maxPending: Infinity,
+      timeout: this.LOCK_TIMEOUT,
+    });
     this.log.setContext(SessionManager.name);
   }
 
