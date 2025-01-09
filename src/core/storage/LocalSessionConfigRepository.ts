@@ -7,6 +7,9 @@ import { SessionConfig } from '../../structures/sessions.dto';
 import { ISessionConfigRepository } from './ISessionConfigRepository';
 import { LocalStore } from './LocalStore';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const writeFileAtomic = require('write-file-atomic');
+
 export class LocalSessionConfigRepository extends ISessionConfigRepository {
   FILENAME = '.waha.session.config.json';
   private store: LocalStore;
@@ -52,7 +55,7 @@ export class LocalSessionConfigRepository extends ISessionConfigRepository {
     // Save config
     const filepath = this.getFilePath(sessionName);
     const content = JSON.stringify(config || null);
-    await fs.writeFile(filepath, content);
+    await writeFileAtomic(filepath, content);
   }
 
   private getFilePath(sessionName): string {

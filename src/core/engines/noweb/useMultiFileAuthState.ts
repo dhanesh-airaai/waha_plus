@@ -4,8 +4,11 @@ import {
   proto,
 } from '@adiwajshing/baileys';
 import { BufferJSON, initAuthCreds } from '@adiwajshing/baileys/lib/Utils';
-import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
+import { mkdir, readFile, stat, unlink } from 'fs/promises';
 import { join } from 'path';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const writeFileAtomic = require('write-file-atomic');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const AsyncLock = require('async-lock');
@@ -33,7 +36,10 @@ export const useMultiFileAuthState = async (
   const writeData = (data: any, file: string) => {
     const filePath = join(folder, fixFileName(file));
     return fileLock.acquire(filePath, () =>
-      writeFile(join(filePath), JSON.stringify(data, BufferJSON.replacer)),
+      writeFileAtomic(
+        join(filePath),
+        JSON.stringify(data, BufferJSON.replacer),
+      ),
     );
   };
 

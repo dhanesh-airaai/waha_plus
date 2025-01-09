@@ -3,12 +3,12 @@ import { SECOND } from '@waha/structures/enums.dto';
 import * as fsp from 'fs/promises';
 import * as path from 'path';
 import { Logger } from 'pino';
-import { promisify } from 'util';
 import fs = require('fs');
 import del = require('del');
 import { fileExists } from '@waha/utils/files';
 
-const writeFileAsync = promisify(fs.writeFile);
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const writeFileAtomic = require('write-file-atomic');
 
 /**
  * Save files locally using the filesystem
@@ -41,7 +41,7 @@ export class MediaLocalStorage implements IMediaStorage {
     const filepath = this.getFullPath(data);
     const folder = path.dirname(filepath);
     await fsp.mkdir(folder, { recursive: true });
-    await writeFileAsync(filepath, buffer);
+    await writeFileAtomic(filepath, buffer);
     this.postponeRemoval(filepath);
     return true;
   }
