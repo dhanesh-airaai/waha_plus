@@ -270,7 +270,8 @@ export abstract class WhatsappSession {
       '--hide-scrollbars',
       '--ignore-certificate-errors',
       '--ignore-ssl-errors',
-      '--in-process-gpu', // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
+      // https://github.com/devlikeapro/waha/issues/725
+      // '--in-process-gpu', // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
       '--metrics-recording-only',
       '--mute-audio',
       '--no-default-browser-check',
