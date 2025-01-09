@@ -1,5 +1,8 @@
 import * as fs from 'fs/promises';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const writeFileAtomic = require('write-file-atomic');
+
 export function safeLoadJson(data: string): any {
   try {
     return JSON.parse(data);
@@ -54,7 +57,7 @@ export async function makeSureJsonFile(filepath: string) {
       throw new Error(`Failed to fix '${filepath}' file. Content: ${content}`);
     }
     const fixedContent = JSON.stringify(data);
-    await fs.writeFile(filepath, fixedContent, { encoding: 'utf-8' });
+    await writeFileAtomic(filepath, fixedContent, { encoding: 'utf-8' });
     console.error(`Fixed ${filepath} file!`);
     console.error(`Fixed '${filepath}' content: ${fixedContent}`);
   }
