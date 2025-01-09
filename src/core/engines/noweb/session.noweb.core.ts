@@ -930,7 +930,13 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   protected async fetchChatSummary(chat: Chat): Promise<ChatSummary> {
     const id = toCusFormat(chat.id);
-    const name = chat.name;
+    let name = chat.name;
+    if (!name) {
+      // Get name by contact
+      const jid = toJID(chat.id);
+      const contact = await this.store.getContactById(jid);
+      name = contact?.name || contact?.notify;
+    }
     const picture = await this.getContactProfilePicture(chat.id, false);
     const messages = await this.getChatMessages(
       chat.id,
