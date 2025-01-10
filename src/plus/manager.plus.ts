@@ -153,10 +153,14 @@ export class SessionManagerPlus
       );
     }
 
-    this.restartStoppedSessions(restartSessions).catch((error) => {
-      this.log.error(`Error while restarting STOPPED sessions: ${error}`);
-      this.log.error(error.stack);
-    });
+    if (restartSessions != null) {
+      this.restartStoppedSessions(restartSessions).catch((error) => {
+        this.log.error(`Error while restarting STOPPED sessions: ${error}`);
+        this.log.error(error.stack);
+      });
+    } else {
+      this.log.info(`No sessions to restart.`);
+    }
 
     this.startPredefinedSessions();
   }
