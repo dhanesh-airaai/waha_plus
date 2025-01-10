@@ -3,7 +3,10 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { EngineBootstrap } from '@waha/core/abc/EngineBootstrap';
+import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
+import { WhatsappSessionGoWSCore } from '@waha/core/engines/gows/session.gows.core';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { DefaultMap } from '@waha/utils/DefaultMap';
@@ -66,19 +69,22 @@ export class SessionManagerCore extends SessionManager {
 
   protected readonly EngineClass: typeof WhatsappSession;
   protected events2: DefaultMap<WAHAEvents, SwitchObservable<any>>;
+  protected readonly engineBootstrap: EngineBootstrap;
 
   constructor(
     config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
+    gowsConfigService: GowsEngineConfigService,
     log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
   ) {
-    super(config, log);
+    super(log, config, gowsConfigService);
     this.session = DefaultSessionStatus.STOPPED;
     this.sessionConfig = null;
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
+    this.engineBootstrap = this.getEngineBootstrap(engineName);
 
     this.events2 = new DefaultMap<WAHAEvents, SwitchObservable<any>>(
       (key) =>
@@ -89,7 +95,6 @@ export class SessionManagerCore extends SessionManager {
 
     this.store = new LocalStoreCore(engineName.toLowerCase());
     this.sessionAuthRepository = new LocalSessionAuthRepository(this.store);
-    this.startPredefinedSessions();
     this.clearStorage().catch((error) => {
       this.log.error({ error }, 'Error while clearing storage');
     });
@@ -100,6 +105,8 @@ export class SessionManagerCore extends SessionManager {
       return WhatsappSessionWebJSCore;
     } else if (engine === WAHAEngine.NOWEB) {
       return WhatsappSessionNoWebCore;
+    } else if (engine === WAHAEngine.GOWS) {
+      return WhatsappSessionGoWSCore;
     } else {
       throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`);
     }
@@ -117,6 +124,12 @@ export class SessionManagerCore extends SessionManager {
       return;
     }
     await this.stop(this.DEFAULT, true);
+    await this.engineBootstrap.shutdown();
+  }
+
+  async onApplicationBootstrap() {
+    await this.engineBootstrap.bootstrap();
+    this.startPredefinedSessions();
   }
 
   private async clearStorage() {
@@ -179,6 +192,8 @@ export class SessionManagerCore extends SessionManager {
     };
     if (this.EngineClass === WhatsappSessionWebJSCore) {
       sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
+    } else if (this.EngineClass === WhatsappSessionGoWSCore) {
+      sessionConfig.engineConfig = this.gowsConfigService.getConfig();
     }
     await this.sessionAuthRepository.init(name);
     // @ts-ignore

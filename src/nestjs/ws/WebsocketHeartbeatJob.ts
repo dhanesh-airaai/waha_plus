@@ -26,7 +26,7 @@ export class WebsocketHeartbeatJob {
         }
 
         client.isAlive = false;
-        this.logger.debug(`Sending heartbeat (ping) to ${client.id}`);
+        this.logger.verbose(`Sending heartbeat (ping) to ${client.id}`);
         client.ping();
       });
     }, this.intervalTime);
@@ -40,7 +40,7 @@ export class WebsocketHeartbeatJob {
   private onPong(ws: WebSocket) {
     return (event: any) => {
       ws.isAlive = true;
-      this.logger.debug(`Heartbeat (pong) received from ${ws.id}`);
+      this.logger.verbose(`Heartbeat (pong) received from ${ws.id}`);
     };
   }
 }

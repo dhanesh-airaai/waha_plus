@@ -165,9 +165,6 @@ import { NowebPersistentStore } from './store/NowebPersistentStore';
 import { NowebStorageFactoryCore } from './store/NowebStorageFactoryCore';
 import { ensureNumber, extractMediaContent } from './utils';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const QRCode = require('qrcode');
-
 export const BaileysEvents = {
   CONNECTION_UPDATE: 'connection.update',
   CREDS_UPDATE: 'creds.update',
@@ -458,8 +455,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
       // Save QR
       if (qr) {
-        const url = await QRCode.toDataURL(qr);
-        this.qr.save(url, qr);
+        this.qr.save(qr);
         this.printQR(this.qr);
         this.status = WAHASessionStatus.SCAN_QR_CODE;
       }
@@ -632,7 +628,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
         `The session is starting, please try again after few seconds`,
       );
     } else if (this.status === WAHASessionStatus.SCAN_QR_CODE) {
-      return Promise.resolve(this.qr.get());
+      return this.qr.get();
     } else if (this.status === WAHASessionStatus.WORKING) {
       throw new UnprocessableEntityException(
         `Can not get screenshot for non chrome based engine.`,
@@ -1238,9 +1234,15 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     if (!(remoteJid in this.store.presences)) {
       this.store.presences[remoteJid] = [];
       await this.sock.presenceSubscribe(remoteJid);
+      await sleep(1000);
     }
     const result = this.store.presences[remoteJid];
     return this.toWahaPresences(remoteJid, result);
+  }
+
+  public subscribePresence(id: string): Promise<void> {
+    const jid = toJID(id);
+    return this.sock.presenceSubscribe(jid);
   }
 
   /**
@@ -1984,7 +1986,7 @@ export class NOWEBEngineMediaProcessor implements IMediaEngineProcessor<any> {
 /**
  * Convert from 11111111111@s.whatsapp.net to 11111111111@c.us
  */
-function toCusFormat(remoteJid) {
+export function toCusFormat(remoteJid) {
   if (!remoteJid) {
     return remoteJid;
   }
@@ -2006,7 +2008,9 @@ function toCusFormat(remoteJid) {
   if (remoteJid == 'me') {
     return remoteJid;
   }
-  const number = remoteJid.split('@')[0];
+  let number = remoteJid.split('@')[0];
+  // remove :{device} part
+  number = number.split(':')[0];
   return ensureSuffix(number);
 }
 
@@ -2049,7 +2053,7 @@ function buildMessageId({ id, remoteJid, fromMe, participant }: WAMessageKey) {
  * false_11111111111@c.us_AAA
  * {id: "AAA", remoteJid: "11111111111@s.whatsapp.net", "fromMe": false}
  */
-function parseMessageIdSerialized(
+export function parseMessageIdSerialized(
   messageId: string,
   soft: boolean = false,
 ): WAMessageKey {

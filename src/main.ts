@@ -67,6 +67,7 @@ async function bootstrap() {
     logger: getNestJSLogLevels(),
     httpsOptions: httpsOptions,
     bufferLogs: true,
+    forceCloseConnections: true,
   });
   app.useLogger(app.get(NestJSPinoLogger));
 

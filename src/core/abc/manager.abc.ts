@@ -1,8 +1,15 @@
 import {
   BeforeApplicationShutdown,
+  OnApplicationBootstrap,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { WhatsappConfigService } from '@waha/config.service';
+import {
+  EngineBootstrap,
+  NoopEngineBootstrap,
+} from '@waha/core/abc/EngineBootstrap';
+import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
+import { GowsBootstrap } from '@waha/core/engines/gows/GowsBootstrap';
 import { ISessionMeRepository } from '@waha/core/storage/ISessionMeRepository';
 import { ISessionWorkerRepository } from '@waha/core/storage/ISessionWorkerRepository';
 import { WAHAWebhook } from '@waha/structures/webhooks.dto';
@@ -29,7 +36,9 @@ import { WhatsappSession } from './session.abc';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const AsyncLock = require('async-lock');
 
-export abstract class SessionManager implements BeforeApplicationShutdown {
+export abstract class SessionManager
+  implements BeforeApplicationShutdown, OnApplicationBootstrap
+{
   public store: any;
   public sessionAuthRepository: ISessionAuthRepository;
   public sessionConfigRepository: ISessionConfigRepository;
@@ -42,8 +51,9 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
   LOCK_TIMEOUT = 10_000;
 
   protected constructor(
-    protected config: WhatsappConfigService,
     protected log: PinoLogger,
+    protected config: WhatsappConfigService,
+    protected gowsConfigService: GowsEngineConfigService,
   ) {
     this.lock = new AsyncLock({
       maxPending: Infinity,
@@ -160,7 +170,21 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
   beforeApplicationShutdown(signal?: string) {
     return;
   }
+
+  onApplicationBootstrap(): any {
+    return;
+  }
+
+  protected getEngineBootstrap(engine: WAHAEngine): EngineBootstrap {
+    const logger = this.log.logger.child({ engine: engine.toLowerCase() });
+    if (engine === WAHAEngine.GOWS) {
+      const config = this.gowsConfigService.getBootstrapConfig();
+      return new GowsBootstrap(logger, config);
+    }
+    return new NoopEngineBootstrap();
+  }
 }
+
 export function populateSessionInfo(
   event: WAHAEvents,
   session: WhatsappSession,

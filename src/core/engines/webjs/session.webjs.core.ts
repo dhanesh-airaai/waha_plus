@@ -91,9 +91,6 @@ import {
 } from 'whatsapp-web.js';
 import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const QRCode = require('qrcode');
-
 export interface WebJSConfig {
   webVersion?: string;
   cacheType: 'local' | 'none';
@@ -335,8 +332,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     this.whatsapp.on(Events.QR_RECEIVED, async (qr) => {
       this.logger.debug('QR received');
       // Convert to image and save
-      const url = await QRCode.toDataURL(qr);
-      this.qr.save(url, qr);
+      this.qr.save(qr);
       this.printQR(this.qr);
       this.status = WAHASessionStatus.SCAN_QR_CODE;
     });

@@ -45,7 +45,7 @@ jobs:
           #  browser: "chrome"
           #  goss: 'goss-linux-arm'
 
-          # No browser - x86
+          # NOWEB - x86
           - runner: 'buildjet-4vcpu-ubuntu-2204'
             tag: 'noweb'
             platform: 'amd64'
@@ -53,12 +53,28 @@ jobs:
             engine: 'NOWEB'
             goss: 'goss-linux-amd64'
 
-          # No browser - ARM
+          # NOWEB - ARM
           - runner: 'buildjet-4vcpu-ubuntu-2204-arm'
             tag: 'noweb-arm'
             platform: 'linux/arm64'
             browser: 'none'
             engine: 'NOWEB'
+            goss: 'goss-linux-arm'
+
+          # GOWS - x86
+          - runner: 'buildjet-4vcpu-ubuntu-2204'
+            tag: 'gows'
+            platform: 'amd64'
+            browser: 'none'
+            engine: 'GOWS'
+            goss: 'goss-linux-amd64'
+
+          # No browser - ARM
+          - runner: 'buildjet-4vcpu-ubuntu-2204-arm'
+            tag: 'gows-arm'
+            platform: 'linux/arm64'
+            browser: 'none'
+            engine: 'GOWS'
             goss: 'goss-linux-arm'
 
     steps:

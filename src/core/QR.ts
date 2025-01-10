@@ -1,13 +1,16 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const QRCode = require('qrcode');
+
 export class QR {
-  private base64: string;
   public raw?: string;
 
-  save(base64: string, raw?: string) {
-    this.base64 = base64.replace(/^data:image\/png;base64,/, '');
+  save(raw?: string) {
     this.raw = raw;
   }
 
-  get(): Buffer {
-    return Buffer.from(this.base64, 'base64');
+  async get(): Promise<Buffer> {
+    const url = await QRCode.toDataURL(this.raw);
+    const base64 = url.replace(/^data:image\/png;base64,/, '');
+    return Buffer.from(base64, 'base64');
   }
 }

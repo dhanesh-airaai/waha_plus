@@ -20,6 +20,7 @@ import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import * as fs from 'fs';
 import * as lodash from 'lodash';
+import { PinoLogger } from 'nestjs-pino';
 import * as NodeCache from 'node-cache';
 import { Logger } from 'pino';
 import {
@@ -53,6 +54,7 @@ import {
   MessageTextRequest,
   MessageVideoRequest,
   MessageVoiceRequest,
+  SendSeenRequest,
 } from '../../structures/chatting.dto';
 import { ContactQuery, ContactRequest } from '../../structures/contacts.dto';
 import {
@@ -380,7 +382,7 @@ export abstract class WhatsappSession {
 
   abstract reply(request: MessageReplyRequest);
 
-  abstract sendSeen(chat: ChatRequest);
+  abstract sendSeen(chat: SendSeenRequest);
 
   abstract startTyping(chat: ChatRequest);
 
@@ -530,7 +532,7 @@ export abstract class WhatsappSession {
     if (!has || refresh) {
       await this.refreshProfilePicture(id);
     }
-    return this.profilePictures.get(id);
+    return this.profilePictures.get(id) || null;
   }
 
   protected async refreshProfilePicture(id: string) {
@@ -651,7 +653,7 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public subscribePresence(id: string): Promise<void> {
+  public subscribePresence(id: string): Promise<any> {
     throw new NotImplementedByEngineError();
   }
 

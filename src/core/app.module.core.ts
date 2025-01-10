@@ -10,6 +10,7 @@ import {
   ServerDebugController,
 } from '@waha/api/server.controller';
 import { WebsocketGatewayCore } from '@waha/core/api/websocket.gateway.core';
+import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
 import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
@@ -148,6 +149,7 @@ const PROVIDERS = [
   DashboardConfigServiceCore,
   SwaggerConfigServiceCore,
   WebJSEngineConfigService,
+  GowsEngineConfigService,
   WhatsappConfigService,
   EngineConfigService,
   WebsocketGatewayCore,

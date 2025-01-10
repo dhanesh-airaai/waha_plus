@@ -41,6 +41,7 @@ export enum WAHASessionStatus {
 export enum WAHAEngine {
   WEBJS = 'WEBJS',
   NOWEB = 'NOWEB',
+  GOWS = 'GOWS',
 }
 
 export enum WAHAPresenceStatus {

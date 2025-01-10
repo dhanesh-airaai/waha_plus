@@ -32,6 +32,8 @@ export class WAMessageAckBody {
   fromMe: boolean;
   ack: WAMessageAck;
   ackName: string;
+
+  _data?: any;
 }
 
 export class WAGroupPayload {

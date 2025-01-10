@@ -1,9 +1,19 @@
+# GOWS
+ARG GOWS_GITHUB_REPO=devlikeapro/gows
+ARG GOWS_SHA=95ca63a1dee5faec75232a9f59a548dfd4e414ff
+ARG WAHA_DASHBOARD_GITHUB_REPO=devlikeapro/dashboard
+ARG WAHA_DASHBOARD_SHA=a1c839d8da94d1cade182addffdfc42fc0cf7ed3
+
 #
 # Build
 #
 ARG NODE_VERSION=22.8-bullseye
 FROM node:${NODE_VERSION} AS build
 ENV PUPPETEER_SKIP_DOWNLOAD=True
+
+# install protoc
+RUN apt-get update && \
+    apt-get install protobuf-compiler -y
 
 # npm packages
 WORKDIR /src
@@ -18,6 +28,16 @@ RUN yarn install
 WORKDIR /src
 ADD . /src
 RUN yarn install
+
+# Build node grpc client for GOWS engine
+WORKDIR /gows/proto
+ARG GOWS_GITHUB_REPO
+ARG GOWS_SHA
+RUN wget https://raw.githubusercontent.com/${GOWS_GITHUB_REPO}/${GOWS_SHA}/proto/gows.proto
+WORKDIR /src
+
+RUN make proto-gows
+
 RUN yarn build && find ./dist -name "*.d.ts" -delete
 
 #
@@ -26,14 +46,40 @@ RUN yarn build && find ./dist -name "*.d.ts" -delete
 FROM node:${NODE_VERSION} AS dashboard
 
 # Download WAHA Dashboard
-ENV WAHA_DASHBOARD_SHA fed4e50e88e4d26c610e3289fd0d8657cb866543
+ARG WAHA_DASHBOARD_GITHUB_REPO
+ARG WAHA_DASHBOARD_SHA
 RUN \
-    wget https://github.com/devlikeapro/dashboard/archive/${WAHA_DASHBOARD_SHA}.zip \
+    wget https://github.com/${WAHA_DASHBOARD_GITHUB_REPO}/archive/${WAHA_DASHBOARD_SHA}.zip \
     && unzip ${WAHA_DASHBOARD_SHA}.zip -d /tmp/dashboard \
     && mkdir -p /dashboard \
     && mv /tmp/dashboard/dashboard-${WAHA_DASHBOARD_SHA}/* /dashboard/ \
     && rm -rf ${WAHA_DASHBOARD_SHA}.zip \
     && rm -rf /tmp/dashboard/dashboard-${WAHA_DASHBOARD_SHA}
+
+#
+# GOWS
+#
+FROM golang:1.23-bullseye AS gows
+# install protoc
+RUN apt-get update && \
+    apt-get install protobuf-compiler -y
+
+# Image processing for thumbnails
+RUN apt-get update  \
+    && apt-get install -y libvips-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG GOWS_GITHUB_REPO
+ARG GOWS_SHA
+RUN git clone https://github.com/${GOWS_GITHUB_REPO} gows && \
+    cd gows && \
+    git checkout ${GOWS_SHA}
+
+WORKDIR /go/gows
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+RUN make all
+
 
 #
 # Final
@@ -50,6 +96,11 @@ RUN echo "USE_BROWSER=$USE_BROWSER"
 
 # Install ffmpeg to generate previews for videos
 RUN apt-get update && apt-get install -y ffmpeg --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+# Image processing for thumbnails
+RUN apt-get update  \
+    && apt-get install -y libvips \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install zip and unzip - either for chromium or chrome
 RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
@@ -100,7 +151,13 @@ RUN if [ "$USE_BROWSER" = "chrome" ]; then \
           && rm -rf /var/lib/apt/lists/*; \
     fi
 
-# Set the ENV for NOWEB docker image
+# GOWS requirements
+# libc6
+RUN  apt-get update \
+     && apt-get install -y libc6 \
+     && rm -rf /var/lib/apt/lists/*
+
+# Set the ENV for docker image
 ENV WHATSAPP_DEFAULT_ENGINE=$WHATSAPP_DEFAULT_ENGINE
 
 # Attach sources, install packages
@@ -109,6 +166,10 @@ COPY package.json ./
 COPY --from=build /src/node_modules ./node_modules
 COPY --from=build /src/dist ./dist
 COPY --from=dashboard /dashboard ./dist/dashboard
+COPY --from=gows /go/gows/bin/gows /app/gows
+ENV WAHA_GOWS_PATH /app/gows
+ENV WAHA_GOWS_SOCKET /tmp/gows.sock
+
 COPY entrypoint.sh /entrypoint.sh
 
 # Chokidar options to monitor file changes
