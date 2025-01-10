@@ -4,6 +4,11 @@ import {
   OnApplicationBootstrap,
   OnModuleInit,
 } from '@nestjs/common';
+import {
+  EngineBootstrap,
+  NoopEngineBootstrap,
+} from '@waha/core/abc/EngineBootstrap';
+import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
@@ -11,6 +16,7 @@ import { MediaManager } from '@waha/core/media/MediaManager';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { LocalSessionMeRepository } from '@waha/core/storage/LocalSessionMeRepository';
 import { LocalSessionWorkerRepository } from '@waha/core/storage/LocalSessionWorkerRepository';
+import { WhatsappSessionGoWSPlus } from '@waha/plus/engines/gows/session.gows.plus';
 import { MongoSessionMeRepository } from '@waha/plus/storage/MongoSessionMeRepository';
 import { MongoSessionWorkerRepository } from '@waha/plus/storage/MongoSessionWorkerRepository';
 import { WAHAWebhookSessionStatus } from '@waha/structures/webhooks.dto';
@@ -63,6 +69,8 @@ export class SessionManagerPlus
   private readonly sessions: Record<string, WhatsappSession>;
 
   protected readonly EngineClass: typeof WhatsappSession;
+  protected readonly engineBootstrap: EngineBootstrap;
+
   protected events2: DefaultMap<
     string,
     DefaultMap<WAHAEvents, SwitchObservable<any>>
@@ -72,13 +80,15 @@ export class SessionManagerPlus
     config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
     private webjsEngineConfigService: WebJSEngineConfigService,
+    gowsConfigService: GowsEngineConfigService,
     log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
   ) {
-    super(config, log);
+    super(log, config, gowsConfigService);
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
+    this.engineBootstrap = this.getEngineBootstrap(engineName);
 
     this.events2 = new DefaultMap(
       (session: string) =>
@@ -96,6 +106,7 @@ export class SessionManagerPlus
   }
 
   async onApplicationBootstrap() {
+    await this.engineBootstrap.bootstrap();
     await this.restartSessions();
   }
 
@@ -202,6 +213,8 @@ export class SessionManagerPlus
       return WhatsappSessionWebJSPlus;
     } else if (engine === WAHAEngine.NOWEB) {
       return WhatsappSessionNoWebPlus;
+    } else if (engine === WAHAEngine.GOWS) {
+      return WhatsappSessionGoWSPlus;
     } else {
       throw new Error(`Unknown whatsapp engine '${engine}'.`);
     }
@@ -216,6 +229,7 @@ export class SessionManagerPlus
     this.log.info('All sessions have been stopped.');
     this.stopEvents();
     await this.store?.close();
+    await this.engineBootstrap.shutdown();
   }
 
   private async clearStorage() {
@@ -287,6 +301,8 @@ export class SessionManagerPlus
     };
     if (this.EngineClass === WhatsappSessionWebJSPlus) {
       sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
+    } else if (this.EngineClass === WhatsappSessionGoWSPlus) {
+      sessionConfig.engineConfig = this.gowsConfigService.getConfig();
     }
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);

@@ -3,6 +3,7 @@ import * as process from 'node:process';
 import { INestApplication, MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
 import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
@@ -93,6 +94,7 @@ const PROVIDERS = [
   WhatsappConfigService,
   EngineConfigService,
   WebJSEngineConfigService,
+  GowsEngineConfigService,
   ApiKeyStrategy,
   WebsocketGatewayPlus,
   MediaLocalStorageConfig,
