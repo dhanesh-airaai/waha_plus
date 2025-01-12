@@ -5,7 +5,7 @@ import { Logger } from 'pino';
 import { pipeline } from 'stream/promises';
 import { Store } from 'whatsapp-web.js';
 
-import { MongoStore } from '../../storage/MongoStore';
+import { MongoStore } from '../../storage/mongo/MongoStore';
 
 class WebJSMongoAuth implements Store {
   private store: MongoStore;

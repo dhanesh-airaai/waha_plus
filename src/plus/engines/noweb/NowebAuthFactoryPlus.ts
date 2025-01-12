@@ -3,7 +3,7 @@ import { join } from 'path';
 import { DataStore } from '../../../core/abc/DataStore';
 import { NowebAuthFactoryCore } from '../../../core/engines/noweb/NowebAuthFactoryCore';
 import { LocalStore } from '../../../core/storage/LocalStore';
-import { MongoStore } from '../../storage/MongoStore';
+import { MongoStore } from '../../storage/mongo/MongoStore';
 import { makeSureJsonFile } from '../../utils/jsonutils';
 import { NoWebMongoDbAuth } from './NoWebMongoDbAuth';
 

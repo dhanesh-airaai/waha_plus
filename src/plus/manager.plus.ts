@@ -4,10 +4,7 @@ import {
   OnApplicationBootstrap,
   OnModuleInit,
 } from '@nestjs/common';
-import {
-  EngineBootstrap,
-  NoopEngineBootstrap,
-} from '@waha/core/abc/EngineBootstrap';
+import { EngineBootstrap } from '@waha/core/abc/EngineBootstrap';
 import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
@@ -17,8 +14,8 @@ import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { LocalSessionMeRepository } from '@waha/core/storage/LocalSessionMeRepository';
 import { LocalSessionWorkerRepository } from '@waha/core/storage/LocalSessionWorkerRepository';
 import { WhatsappSessionGoWSPlus } from '@waha/plus/engines/gows/session.gows.plus';
-import { MongoSessionMeRepository } from '@waha/plus/storage/MongoSessionMeRepository';
-import { MongoSessionWorkerRepository } from '@waha/plus/storage/MongoSessionWorkerRepository';
+import { MongoSessionMeRepository } from '@waha/plus/storage/mongo/MongoSessionMeRepository';
+import { MongoSessionWorkerRepository } from '@waha/plus/storage/mongo/MongoSessionWorkerRepository';
 import { WAHAWebhookSessionStatus } from '@waha/structures/webhooks.dto';
 import { DefaultMap } from '@waha/utils/DefaultMap';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
@@ -53,9 +50,9 @@ import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
 import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
 import { LocalStorePlus } from './storage/LocalStorePlus';
-import { MongoSessionAuthRepository } from './storage/MongoSessionAuthRepository';
-import { MongoSessionConfigRepository } from './storage/MongoSessionConfigRepository';
-import { MongoStore } from './storage/MongoStore';
+import { MongoSessionAuthRepository } from './storage/mongo/MongoSessionAuthRepository';
+import { MongoSessionConfigRepository } from './storage/mongo/MongoSessionConfigRepository';
+import { MongoStore } from './storage/mongo/MongoStore';
 
 const ALL = '*';
 

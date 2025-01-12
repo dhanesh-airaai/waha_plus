@@ -8,7 +8,7 @@ import { WhatsappConfigService } from '../../config.service';
 import { SessionManager } from '../../core/abc/manager.abc';
 import { WAHAHealthCheckService } from '../../core/abc/WAHAHealthCheckService';
 import { LocalStore } from '../../core/storage/LocalStore';
-import { MongoStore } from '../storage/MongoStore';
+import { MongoStore } from '../storage/mongo/MongoStore';
 import { CheckFreeDiskSpaceIndicator } from './CheckFreeDiskSpaceIndicator';
 import { MongoStoreHealthIndicator } from './MongoStoreHealthIndicator';
 

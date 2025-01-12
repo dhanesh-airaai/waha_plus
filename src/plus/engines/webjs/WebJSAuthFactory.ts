@@ -5,7 +5,7 @@ import { RemoteAuth, Zipper } from '@waha/plus/engines/webjs/RemoteAuth';
 import { StreamZipper } from '@waha/plus/engines/webjs/StreamZipper';
 import { WebJSMongoAuth } from '@waha/plus/engines/webjs/WebJSMongoAuth';
 import { ZipUnzipZipper } from '@waha/plus/engines/webjs/ZipUnzipZipper';
-import { MongoStore } from '@waha/plus/storage/MongoStore';
+import { MongoStore } from '@waha/plus/storage/mongo/MongoStore';
 import { LoggerBuilder } from '@waha/utils/logging';
 import { Logger } from 'pino';
 import { AuthStrategy } from 'whatsapp-web.js';

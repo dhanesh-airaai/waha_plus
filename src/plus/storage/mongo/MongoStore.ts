@@ -1,7 +1,7 @@
 import { Document } from 'bson';
 import { MongoClient } from 'mongodb';
 
-import { DataStore } from '../../core/abc/DataStore';
+import { DataStore } from '../../../core/abc/DataStore';
 
 export class MongoStore extends DataStore {
   private mongo: MongoClient;

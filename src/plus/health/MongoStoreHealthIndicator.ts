@@ -5,7 +5,7 @@ import {
 } from '@nestjs/terminus';
 
 import { promiseTimeout } from '../../utils/promiseTimeout';
-import { MongoStore } from '../storage/MongoStore';
+import { MongoStore } from '../storage/mongo/MongoStore';
 
 export interface MongoStoreHealthIndicatorOptions {
   timeout: number;

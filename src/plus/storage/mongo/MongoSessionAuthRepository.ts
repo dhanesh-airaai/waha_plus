@@ -1,4 +1,4 @@
-import { ISessionAuthRepository } from '../../core/storage/ISessionAuthRepository';
+import { ISessionAuthRepository } from '../../../core/storage/ISessionAuthRepository';
 import { MongoStore } from './MongoStore';
 
 export class MongoSessionAuthRepository implements ISessionAuthRepository {

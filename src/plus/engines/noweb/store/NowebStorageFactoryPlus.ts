@@ -4,7 +4,7 @@ import { NowebStorageFactoryCore } from '@waha/core/engines/noweb/store/NowebSto
 import { Sqlite3Storage } from '@waha/core/engines/noweb/store/sqlite3/Sqlite3Storage';
 import { LocalStore } from '@waha/core/storage/LocalStore';
 import { MongoStorage } from '@waha/plus/engines/noweb/store/mongodb/MongoStorage';
-import { MongoStore } from '@waha/plus/storage/MongoStore';
+import { MongoStore } from '@waha/plus/storage/mongo/MongoStore';
 
 export class NowebStorageFactoryPlus extends NowebStorageFactoryCore {
   createStorage(store: DataStore, name: string): INowebStorage {
