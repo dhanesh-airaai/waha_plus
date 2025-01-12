@@ -11,8 +11,8 @@ import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaManager } from '@waha/core/media/MediaManager';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
-import { LocalSessionMeRepository } from '@waha/core/storage/LocalSessionMeRepository';
-import { LocalSessionWorkerRepository } from '@waha/core/storage/LocalSessionWorkerRepository';
+import { Sqlite3SessionMeRepository } from '@waha/core/storage/sqlite3/Sqlite3SessionMeRepository';
+import { Sqlite3SessionWorkerRepository } from '@waha/core/storage/sqlite3/Sqlite3SessionWorkerRepository';
 import { WhatsappSessionGoWSPlus } from '@waha/plus/engines/gows/session.gows.plus';
 import { MongoSessionMeRepository } from '@waha/plus/storage/mongo/MongoSessionMeRepository';
 import { MongoSessionWorkerRepository } from '@waha/plus/storage/mongo/MongoSessionWorkerRepository';
@@ -137,8 +137,8 @@ export class SessionManagerPlus
       this.sessionConfigRepository = new LocalSessionConfigRepository(
         this.store,
       );
-      this.sessionMeRepository = new LocalSessionMeRepository(this.store);
-      this.sessionWorkerRepository = new LocalSessionWorkerRepository(
+      this.sessionMeRepository = new Sqlite3SessionMeRepository(this.store);
+      this.sessionWorkerRepository = new Sqlite3SessionWorkerRepository(
         this.store,
       );
     }
