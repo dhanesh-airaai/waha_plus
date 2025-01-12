@@ -221,12 +221,15 @@ export class SessionManagerPlus
   }
 
   async beforeApplicationShutdown(signal?: string) {
-    this.log.info('Stop all sessions...');
+    this.log.info('Stopping all sessions...');
     const promises = Object.keys(this.sessions).map(async (sessionName) => {
-      await this.stop(sessionName, true);
+      await this.withLock(sessionName, async () => {
+        await this.stop(sessionName, true);
+      });
     });
     await Promise.all(promises);
     this.log.info('All sessions have been stopped.');
+
     this.stopEvents();
     await this.store?.close();
     await this.engineBootstrap.shutdown();
