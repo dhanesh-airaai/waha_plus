@@ -16,6 +16,12 @@ import { Sqlite3SessionWorkerRepository } from '@waha/core/storage/sqlite3/Sqlit
 import { WhatsappSessionGoWSPlus } from '@waha/plus/engines/gows/session.gows.plus';
 import { MongoSessionMeRepository } from '@waha/plus/storage/mongo/MongoSessionMeRepository';
 import { MongoSessionWorkerRepository } from '@waha/plus/storage/mongo/MongoSessionWorkerRepository';
+import { parsePsql } from '@waha/plus/storage/psql/PsqlConnectionConfig';
+import { PsqlSessionAuthRepository } from '@waha/plus/storage/psql/PsqlSessionAuthRepository';
+import { PsqlSessionConfigRepository } from '@waha/plus/storage/psql/PsqlSessionConfigRepository';
+import { PsqlSessionMeRepository } from '@waha/plus/storage/psql/PsqlSessionMeRepository';
+import { PsqlSessionWorkerRepository } from '@waha/plus/storage/psql/PsqlSessionWorkerRepository';
+import { PsqlStore } from '@waha/plus/storage/psql/PsqlStore';
 import { WAHAWebhookSessionStatus } from '@waha/structures/webhooks.dto';
 import { DefaultMap } from '@waha/utils/DefaultMap';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
@@ -61,7 +67,7 @@ export class SessionManagerPlus
   extends SessionManager
   implements OnModuleInit, OnApplicationBootstrap
 {
-  SESSION_STOP_TIMEOUT = 3000;
+  private SESSION_STOP_TIMEOUT = 3000;
   SESSION_UNPAIR_TIMEOUT = 1000;
   private readonly sessions: Record<string, WhatsappSession>;
 
@@ -112,6 +118,7 @@ export class SessionManagerPlus
       .getDefaultEngineName()
       .toLowerCase();
     const mongoUrl = this.config.getSessionMongoUrl();
+    const postgresUrl = this.config.getSessionPostgresUrl();
     if (mongoUrl) {
       this.log.info('Using mongo storage for session info.');
       const mongo = new MongoClient(mongoUrl);
@@ -129,6 +136,19 @@ export class SessionManagerPlus
       this.sessionWorkerRepository = new MongoSessionWorkerRepository(
         this.store,
       );
+    } else if (postgresUrl) {
+      this.log.info('Using Postgres storage for session info.');
+      const config = parsePsql(postgresUrl);
+      this.store = new PsqlStore(config, engineName);
+      await this.store.init();
+      this.sessionAuthRepository = new PsqlSessionAuthRepository(this.store);
+      this.sessionConfigRepository = new PsqlSessionConfigRepository(
+        this.store,
+      );
+      this.sessionMeRepository = new PsqlSessionMeRepository(this.store);
+      this.sessionWorkerRepository = new PsqlSessionWorkerRepository(
+        this.store,
+      );
     } else {
       this.log.info('Using local storage for session info.');
       this.store = new LocalStorePlus(engineName);
@@ -143,6 +163,7 @@ export class SessionManagerPlus
       );
     }
 
+    await this.sessionConfigRepository.init();
     await this.sessionMeRepository.init();
     await this.sessionWorkerRepository.init();
     this.listenEvents();
@@ -153,7 +174,7 @@ export class SessionManagerPlus
     let restartSessions: string[];
     if (this.config.shouldRestartAllSessions) {
       this.log.info(`Restarting ALL STOPPED sessions...`);
-      restartSessions = await this.sessionConfigRepository.getAll();
+      restartSessions = await this.sessionConfigRepository.getAllConfigs();
     } else if (this.config.shouldRestartWorkerSessions) {
       this.log.info(`Starting sessions for the worker "${this.workerId}"...`);
       restartSessions = await this.sessionWorkerRepository.getSessionsByWorker(
@@ -207,10 +228,13 @@ export class SessionManagerPlus
 
   protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
     if (engine === WAHAEngine.WEBJS) {
+      this.SESSION_STOP_TIMEOUT = 3_000;
       return WhatsappSessionWebJSPlus;
     } else if (engine === WAHAEngine.NOWEB) {
+      this.SESSION_STOP_TIMEOUT = 1_000;
       return WhatsappSessionNoWebPlus;
     } else if (engine === WAHAEngine.GOWS) {
+      this.SESSION_STOP_TIMEOUT = 10;
       return WhatsappSessionGoWSPlus;
     } else {
       throw new Error(`Unknown whatsapp engine '${engine}'.`);
@@ -253,13 +277,13 @@ export class SessionManagerPlus
   async upsert(name: string, config?: SessionConfig): Promise<void> {
     this.log.info({ session: name }, `Saving session...`);
     await this.sessionAuthRepository.init(name);
-    await this.sessionConfigRepository.save(name, config || null);
+    await this.sessionConfigRepository.saveConfig(name, config || null);
     this.log.info({ session: name }, `Session saved.`);
   }
 
   async delete(name: string): Promise<void> {
     this.log.info({ session: name }, `Deleting session...`);
-    await this.sessionConfigRepository.delete(name);
+    await this.sessionConfigRepository.deleteConfig(name);
     await this.sessionAuthRepository.clean(name);
     await this.sessionMeRepository.removeMe(name);
     await this.sessionWorkerRepository.remove(name);
@@ -274,7 +298,7 @@ export class SessionManagerPlus
     }
 
     const logger = this.log.logger.child({ session: name });
-    const config = await this.sessionConfigRepository.get(name);
+    const config = await this.sessionConfigRepository.getConfig(name);
     await this.sessionAuthRepository.init(name);
     logger.level = getPinoLogLevel(config?.debug);
     const loggerBuilder: LoggerBuilder = logger;
@@ -460,13 +484,14 @@ export class SessionManagerPlus
   private async getOfflineSessions(
     name: string = null,
   ): Promise<SessionInfo[]> {
-    let names = await this.sessionConfigRepository.getAll();
+    let names = await this.sessionConfigRepository.getAllConfigs();
     if (name) {
       names = names.filter((n) => n === name);
     }
     const sessions = names.map(async (sessionName) => {
       const status = WAHASessionStatus.STOPPED;
-      const sessionConfig = await this.sessionConfigRepository.get(sessionName);
+      const sessionConfig =
+        await this.sessionConfigRepository.getConfig(sessionName);
       const me = await this.sessionMeRepository.getMe(sessionName);
       return {
         name: sessionName,

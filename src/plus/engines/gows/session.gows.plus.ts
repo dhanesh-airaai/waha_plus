@@ -1,10 +1,8 @@
 import { getAudioDuration, getAudioWaveform } from '@adiwajshing/baileys';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
 import { WhatsappSessionGoWSCore } from '@waha/core/engines/gows/session.gows.core';
-import {
-  toCusFormat,
-  toJID,
-} from '@waha/core/engines/noweb/session.noweb.core';
+import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
+import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -13,10 +11,11 @@ import {
 } from '@waha/structures/chatting.dto';
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import axios from 'axios';
-import { Logger } from 'pino';
 import { promisify } from 'util';
 
 export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
+  protected authFactory = new GowsAuthFactoryPlus();
+
   private async fetch(url: string): Promise<Buffer> {
     // fetch url using axios
     return axios.get(url, { responseType: 'arraybuffer' }).then((res) => {
