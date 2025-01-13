@@ -2,8 +2,12 @@ import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepositor
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
 import { INowebStorage } from '@waha/core/engines/noweb/store/INowebStorage';
-import { NOWEB_STORE_SCHEMA } from '@waha/core/engines/noweb/store/Schema';
-import { Schema } from '@waha/core/storage/sqlite3/Schema';
+import {
+  NowebLabelAssociationsMetadata,
+  NowebMessagesMetadata,
+} from '@waha/core/engines/noweb/store/metadata';
+import { NOWEB_STORE_SCHEMA } from '@waha/core/engines/noweb/store/schemas';
+import { Schema } from '@waha/core/storage/Schema';
 import { MongoGroupRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoGroupRepository';
 import { MongoLabelAssociationsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelAssociationsRepository';
 import { MongoLabelsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelsRepository';
@@ -108,11 +112,10 @@ export class MongoStorage extends INowebStorage {
   }
 
   getMessagesRepository() {
-    const metadata = this.getMessagesMetadata();
     return new MongoMessagesRepository(
       this.db,
       this.getSchema('messages'),
-      metadata,
+      NowebMessagesMetadata,
     );
   }
 
@@ -121,11 +124,10 @@ export class MongoStorage extends INowebStorage {
   }
 
   getLabelAssociationRepository(): ILabelAssociationRepository {
-    const metadata = this.getLabelAssociationMetadata();
     return new MongoLabelAssociationsRepository(
       this.db,
       this.getSchema('labelAssociations'),
-      metadata,
+      NowebLabelAssociationsMetadata,
     );
   }
 

@@ -3,7 +3,7 @@ import {
   convertProtobufToPlainObject,
   replaceLongsWithNumber,
 } from '@waha/core/engines/noweb/utils';
-import { Field, Schema } from '@waha/core/storage/sqlite3/Schema';
+import { Field, Schema } from '@waha/core/storage/Schema';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 import { MongoPaginator } from '@waha/utils/Paginator';
 import { Collection, Db } from 'mongodb';
