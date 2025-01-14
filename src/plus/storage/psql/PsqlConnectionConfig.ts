@@ -4,6 +4,7 @@ export interface PsqlConnectionConfig {
   user: string;
   password: string;
   database: string;
+  application_name?: string;
   ssl: boolean | { rejectUnauthorized: boolean };
 }
 
