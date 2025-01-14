@@ -59,7 +59,8 @@ export class PsqlStore extends DataStore {
     if (!exists) {
       return;
     }
-    await this.main.raw(`DROP DATABASE ??`, [name]);
+    // Force close all connections to the database
+    await this.main.raw(`DROP DATABASE ?? WITH (FORCE);`, [name]);
   }
 
   async close(): Promise<any> {
@@ -85,5 +86,14 @@ export class PsqlStore extends DataStore {
     const dbname = this.getSessionDbName(name);
     const config = changeDatabasePsql(this.config, dbname);
     return stringifyPsql(config);
+  }
+
+  public buildSessionKnex(name: string): Knex.Knex {
+    const dbName = this.getSessionDbName(name);
+    const config = changeDatabasePsql(this.config, dbName);
+    return Knex({
+      client: 'pg',
+      connection: config,
+    });
   }
 }
