@@ -188,6 +188,11 @@ export class RemoteAuth implements AuthStrategy {
 
   async destroy() {
     this.backupSyncRunner.stop();
+    // @ts-ignore
+    if (this.store.close) {
+      // @ts-ignore
+      await this.store.close();
+    }
   }
 
   async disconnect() {

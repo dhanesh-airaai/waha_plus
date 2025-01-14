@@ -25,7 +25,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   }
 
   protected async buildClient() {
-    const authStrategy = this.authFactory.buildAuth(
+    const authStrategy = await this.authFactory.buildAuth(
       this.sessionStore,
       this.name,
       this.loggerBuilder,
