@@ -7,7 +7,11 @@ import {
 import Knex from 'knex';
 
 export class PsqlStore extends DataStore {
+  // postgres database
+  // Use to create new databases
   private main: Knex.Knex;
+  // waha database
+  // Use to store the WAHA session data
   public knex: Knex.Knex;
 
   constructor(
@@ -19,7 +23,10 @@ export class PsqlStore extends DataStore {
   }
 
   async init(sessionName?: string): Promise<void> {
-    if (!sessionName && !this.knex) {
+    if (!sessionName) {
+      if (this.knex) {
+        return;
+      }
       const dbName = this.getMainDbName();
       await this.upsertDatabase(dbName);
       const config = changeDatabasePsql(this.config, dbName);
