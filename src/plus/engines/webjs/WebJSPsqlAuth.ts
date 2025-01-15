@@ -1,4 +1,5 @@
 import { sleep } from '@nestjs/terminus/dist/utils';
+import { PsqlFileRepository } from '@waha/plus/storage/psql/PsqlFileRepository';
 import * as fs from 'fs/promises';
 import Knex from 'knex';
 import { Logger } from 'pino';
@@ -9,29 +10,26 @@ interface Options {
   path?: string;
 }
 
-const Migrations = [
-  `CREATE TABLE IF NOT EXISTS files
-   (
-       id         SERIAL PRIMARY KEY,
-       name       TEXT  NOT NULL,
-       content    BYTEA NOT NULL,
-       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   )`,
-  // name is unique constraint
-  `CREATE UNIQUE INDEX IF NOT EXISTS files_name_index ON files (name)`,
-];
+class WebjsFileRepository extends PsqlFileRepository {
+  get tableName() {
+    return 'files';
+  }
+}
 
 export class WebJSPsqlAuth implements Store {
+  private repository: PsqlFileRepository;
+
   constructor(
     private knex: Knex.Knex,
     private logger: Logger,
-  ) {}
+  ) {
+    this.repository = new WebjsFileRepository(knex, logger);
+  }
 
   async sessionExists(options: Options): Promise<boolean> {
     this.logger.info('Checking if session exists...');
     const filename = this.getAuthFileName(options);
-    const result = await this.knex('files').where('name', filename);
-    const exists = result.length > 0;
+    const exists = await this.repository.exists(filename);
     this.logger.info(`Session exists: ${exists}`);
     return exists;
   }
@@ -39,7 +37,7 @@ export class WebJSPsqlAuth implements Store {
   async delete(options: Options): Promise<any> {
     this.logger.debug('Deleting session...');
     const filename = this.getAuthFileName(options);
-    await this.knex('files').where('name', filename).del();
+    await this.repository.delete(filename);
     this.logger.debug('Session deleted.');
   }
 
@@ -47,31 +45,19 @@ export class WebJSPsqlAuth implements Store {
     this.logger.debug('Saving session...');
     const filename = this.getAuthFileName(options);
     const content = await fs.readFile(filename);
-    const now = new Date().toISOString();
-    // Upsert
-    await this.knex('files')
-      .insert({
-        name: filename,
-        content: content,
-        created_at: now,
-      })
-      .onConflict('name')
-      .merge({
-        content: this.knex.raw('EXCLUDED.content'),
-        created_at: this.knex.raw('EXCLUDED.created_at'),
-      });
+    await this.repository.save(filename, content);
     this.logger.debug('Session saved.');
   }
 
   async extract(options: Options) {
     this.logger.debug('Extracting existing session...');
     const filename = this.getAuthFileName(options);
-    const result = await this.knex('files').where('name', filename);
-    if (result.length === 0) {
+    const data = await this.repository.fetch(filename);
+    if (data === null) {
       this.logger.warn('Session does not exist.');
       return;
     }
-    const content = result[0].content;
+    const content = data.content;
     await fs.writeFile(options.path, content);
 
     // Wait a second before giving the zip file to next phase
@@ -80,9 +66,7 @@ export class WebJSPsqlAuth implements Store {
   }
 
   async init() {
-    for (const migration of Migrations) {
-      await this.knex.raw(migration);
-    }
+    await this.repository.init();
   }
 
   private getAuthFileName(options: Options): string {
