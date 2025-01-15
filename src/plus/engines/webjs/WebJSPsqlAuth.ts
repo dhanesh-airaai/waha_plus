@@ -57,8 +57,8 @@ export class WebJSPsqlAuth implements Store {
       })
       .onConflict('name')
       .merge({
-        content: content,
-        created_at: now,
+        content: this.knex.raw('EXCLUDED.content'),
+        created_at: this.knex.raw('EXCLUDED.created_at'),
       });
     this.logger.debug('Session saved.');
   }
