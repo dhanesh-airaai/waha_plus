@@ -11,6 +11,7 @@ import { parseBool } from '@waha/helpers';
 import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
 import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
 import { HttpsExpress } from '@waha/plus/HttpsExpress';
+import { MediaPsqlStorageModule } from '@waha/plus/media/psql/media.psql.storage.module';
 import { MediaS3StorageModule } from '@waha/plus/media/s3/media.s3.storage.module';
 import { isDebugEnabled } from '@waha/utils/logging';
 import * as Joi from 'joi';
@@ -41,7 +42,9 @@ import { SessionManagerPlus } from './manager.plus';
 const IMPORTS_MEDIA = [
   ConfigModule.forRoot({
     validationSchema: Joi.object({
-      WAHA_MEDIA_STORAGE: Joi.string().valid('LOCAL', 'S3').default('LOCAL'),
+      WAHA_MEDIA_STORAGE: Joi.string()
+        .valid('LOCAL', 'S3', 'POSTGRESQL')
+        .default('LOCAL'),
     }),
   }),
   ConditionalModule.registerWhen(
@@ -53,6 +56,11 @@ const IMPORTS_MEDIA = [
   ConditionalModule.registerWhen(
     MediaS3StorageModule,
     (env: NodeJS.ProcessEnv) => env['WAHA_MEDIA_STORAGE'] == 'S3',
+    { debug: isDebugEnabled() },
+  ),
+  ConditionalModule.registerWhen(
+    MediaPsqlStorageModule,
+    (env: NodeJS.ProcessEnv) => env['WAHA_MEDIA_STORAGE'] == 'POSTGRESQL',
     { debug: isDebugEnabled() },
   ),
 ];

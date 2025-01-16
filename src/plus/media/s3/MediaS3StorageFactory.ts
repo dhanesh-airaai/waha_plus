@@ -20,7 +20,8 @@ export class MediaS3StorageFactory extends MediaStorageFactory {
     this.defaultBucket = this.s3config.bucket;
   }
 
-  build(logger: Logger): IMediaStorage {
+  async build(name: string, logger: Logger): Promise<IMediaStorage> {
+    // S3 uses the same buckets for all sessions
     return new MediaS3Storage(
       this.s3client,
       this.s3url,

@@ -76,6 +76,9 @@ export class PsqlFileRepository {
   async fetch(fullpath: string): Promise<FileData | null> {
     const result = await this.table().where('fullpath', fullpath);
     const data = result.length > 0 ? result[0] : null;
+    if (!data) {
+      return null;
+    }
     data.created_at = new Date(data.created_at).getTime();
     this.touch(fullpath).catch((err) => {
       this.logger.error(`Failed to save last accessed time: ${err}`);

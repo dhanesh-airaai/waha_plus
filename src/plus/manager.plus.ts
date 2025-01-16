@@ -140,7 +140,7 @@ export class SessionManagerPlus
     } else if (postgresUrl) {
       this.log.info('Using Postgres storage for session info.');
       const config = parsePsql(postgresUrl);
-      config.application_name = `WAHA/${VERSION.version}`;
+      config.application_name = `WAHA ${VERSION.version}`;
       this.store = new PsqlStore(config, engineName);
       await this.store.init();
       this.sessionAuthRepository = new PsqlSessionAuthRepository(this.store);
@@ -259,7 +259,8 @@ export class SessionManagerPlus
   }
 
   private async clearStorage() {
-    const storage = this.mediaStorageFactory.build(
+    const storage = await this.mediaStorageFactory.build(
+      'all',
       this.log.logger.child({ name: 'Storage' }),
     );
     await storage.purge();
@@ -305,7 +306,8 @@ export class SessionManagerPlus
     logger.level = getPinoLogLevel(config?.debug);
     const loggerBuilder: LoggerBuilder = logger;
 
-    const storage = this.mediaStorageFactory.build(
+    const storage = await this.mediaStorageFactory.build(
+      name,
       loggerBuilder.child({ name: 'Storage' }),
     );
     await storage.init();

@@ -7,6 +7,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import {
+  getMetadata,
   IMediaStorage,
   MediaData,
   MediaStorageData,
@@ -32,15 +33,12 @@ export class MediaS3Storage implements IMediaStorage {
 
   async save(buffer: Buffer, data: MediaData): Promise<boolean> {
     const key = this.getKey(data);
+    const metadata = getMetadata(data);
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
       Body: buffer,
-      Metadata: {
-        'waha-session': data.session,
-        'waha-message-id': data.message.id,
-        'waha-media-filename': data.file.filename,
-      },
+      Metadata: metadata,
     });
     await this.client.send(command);
     return true;
@@ -102,5 +100,9 @@ export class MediaS3Storage implements IMediaStorage {
       }
       throw e;
     }
+  }
+
+  async close() {
+    return;
   }
 }
