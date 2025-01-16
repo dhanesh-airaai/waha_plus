@@ -11,6 +11,7 @@ import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaManager } from '@waha/core/media/MediaManager';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
+import { LocalStoreCore } from '@waha/core/storage/LocalStoreCore';
 import { Sqlite3SessionMeRepository } from '@waha/core/storage/sqlite3/Sqlite3SessionMeRepository';
 import { Sqlite3SessionWorkerRepository } from '@waha/core/storage/sqlite3/Sqlite3SessionWorkerRepository';
 import { WhatsappSessionGoWSPlus } from '@waha/plus/engines/gows/session.gows.plus';
@@ -56,7 +57,6 @@ import {
 import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
 import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
-import { LocalStorePlus } from './storage/LocalStorePlus';
 import { MongoSessionAuthRepository } from './storage/mongo/MongoSessionAuthRepository';
 import { MongoSessionConfigRepository } from './storage/mongo/MongoSessionConfigRepository';
 import { MongoStore } from './storage/mongo/MongoStore';
@@ -153,7 +153,7 @@ export class SessionManagerPlus
       );
     } else {
       this.log.info('Using local storage for session info.');
-      this.store = new LocalStorePlus(engineName);
+      this.store = new LocalStoreCore(engineName);
       await this.store.init();
       this.sessionAuthRepository = new LocalSessionAuthRepository(this.store);
       this.sessionConfigRepository = new LocalSessionConfigRepository(
