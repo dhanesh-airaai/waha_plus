@@ -1,11 +1,11 @@
 import { join } from 'path';
 
-import { DataStore } from '../../../core/abc/DataStore';
-import { NowebAuthFactoryCore } from '../../../core/engines/noweb/NowebAuthFactoryCore';
-import { LocalStore } from '../../../core/storage/LocalStore';
-import { MongoStore } from '../../storage/mongo/MongoStore';
-import { makeSureJsonFile } from '../../utils/jsonutils';
-import { NoWebMongoDbAuth } from './NoWebMongoDbAuth';
+import { DataStore } from '../../../../core/abc/DataStore';
+import { NowebAuthFactoryCore } from '../../../../core/engines/noweb/NowebAuthFactoryCore';
+import { LocalStore } from '../../../../core/storage/LocalStore';
+import { MongoStore } from '../../../storage/mongo/MongoStore';
+import { makeSureJsonFile } from '../../../utils/jsonutils';
+import { NoWebMongoDbAuth } from './mongodb/NoWebMongoDbAuth';
 
 export class NowebAuthFactoryPlus extends NowebAuthFactoryCore {
   buildAuth(store: DataStore, name: string) {

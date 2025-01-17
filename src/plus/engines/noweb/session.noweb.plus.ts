@@ -22,7 +22,7 @@ import {
   VoiceStatus,
 } from '@waha/structures/status.dto';
 
-import { NowebAuthFactoryPlus } from './NowebAuthFactoryPlus';
+import { NowebAuthFactoryPlus } from './store/NowebAuthFactoryPlus';
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   authFactory = new NowebAuthFactoryPlus();
