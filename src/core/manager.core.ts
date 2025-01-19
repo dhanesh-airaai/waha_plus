@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  OnModuleInit,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { EngineBootstrap } from '@waha/core/abc/EngineBootstrap';
@@ -57,7 +58,7 @@ enum DefaultSessionStatus {
 }
 
 @Injectable()
-export class SessionManagerCore extends SessionManager {
+export class SessionManagerCore extends SessionManager implements OnModuleInit {
   SESSION_STOP_TIMEOUT = 3000;
 
   // session - exists and running (or failed or smth)
@@ -389,5 +390,13 @@ export class SessionManagerCore extends SessionManager {
 
   protected stopEvents() {
     complete(this.events2);
+  }
+
+  async onModuleInit() {
+    await this.init();
+  }
+
+  async init() {
+    await this.store.init();
   }
 }
