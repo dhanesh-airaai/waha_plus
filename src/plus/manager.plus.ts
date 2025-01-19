@@ -29,7 +29,7 @@ import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
-import { VERSION } from '@waha/version';
+import { getEngineName, VERSION } from '@waha/version';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
 import { PinoLogger } from 'nestjs-pino';
@@ -140,7 +140,8 @@ export class SessionManagerPlus
     } else if (postgresUrl) {
       this.log.info('Using Postgres storage for session info.');
       const config = parsePsql(postgresUrl);
-      config.application_name = `WAHA ${VERSION.version} - Manager`;
+      const engine = getEngineName();
+      config.application_name = `WAHA(${engine}) ${VERSION.version} - Manager`;
       this.store = new PsqlStore(config, engineName);
       await this.store.init();
       this.sessionAuthRepository = new PsqlSessionAuthRepository(this.store);

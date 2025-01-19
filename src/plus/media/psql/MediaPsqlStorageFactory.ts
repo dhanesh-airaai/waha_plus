@@ -5,7 +5,7 @@ import { MediaPsqlStorage } from '@waha/plus/media/psql/MediaPsqlStorage';
 import { MediaPsqlStorageConfig } from '@waha/plus/media/psql/MediaPsqlStorageConfig';
 import { parsePsql } from '@waha/plus/storage/psql/PsqlConnectionConfig';
 import { PsqlStore } from '@waha/plus/storage/psql/PsqlStore';
-import { VERSION } from '@waha/version';
+import { getEngineName, VERSION } from '@waha/version';
 import { Logger } from 'pino';
 
 @Injectable()
@@ -20,7 +20,8 @@ export class MediaPsqlStorageFactory
     private engineConfigService: EngineConfigService,
   ) {
     const config = parsePsql(psqlConfig.databaseUrl);
-    config.application_name = `WAHA ${VERSION.version} - Media`;
+    const engine = getEngineName();
+    config.application_name = `WAHA(${engine}) ${VERSION.version} - Media`;
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.store = new PsqlStore(config, engineName);
     this.filesURL = psqlConfig.filesURL;
