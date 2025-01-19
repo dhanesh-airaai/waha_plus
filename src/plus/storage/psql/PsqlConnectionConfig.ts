@@ -45,6 +45,11 @@ export function changeDatabasePsql(config: PsqlConnectionConfig, name: string) {
   };
 }
 
+export function addSuffix(config: PsqlConnectionConfig, suffix: string) {
+  suffix = suffix || 'Unknown';
+  config.application_name = `${config.application_name}/${suffix}`;
+}
+
 export function stringifyPsql(config: PsqlConnectionConfig): string {
   const url = new URL(
     `postgresql://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`,

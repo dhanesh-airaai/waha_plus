@@ -140,7 +140,7 @@ export class SessionManagerPlus
     } else if (postgresUrl) {
       this.log.info('Using Postgres storage for session info.');
       const config = parsePsql(postgresUrl);
-      config.application_name = `WAHA ${VERSION.version}`;
+      config.application_name = `WAHA ${VERSION.version} - Manager`;
       this.store = new PsqlStore(config, engineName);
       await this.store.init();
       this.sessionAuthRepository = new PsqlSessionAuthRepository(this.store);

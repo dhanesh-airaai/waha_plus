@@ -1,5 +1,6 @@
 import { DataStore } from '@waha/core/abc/DataStore';
 import {
+  addSuffix,
   changeDatabasePsql,
   PsqlConnectionConfig,
   stringifyPsql,
@@ -10,6 +11,7 @@ export class PsqlStore extends DataStore {
   // postgres database
   // Use to create new databases
   private main: Knex.Knex;
+
   // waha database
   // Use to store the WAHA session data
   public knex: Knex.Knex;
@@ -19,7 +21,11 @@ export class PsqlStore extends DataStore {
     private engine: string,
   ) {
     super();
-    this.main = Knex({ client: 'pg', connection: config });
+    this.main = Knex({
+      client: 'pg',
+      connection: config,
+      useNullAsDefault: true,
+    });
   }
 
   async init(sessionName?: string): Promise<void> {
@@ -30,9 +36,11 @@ export class PsqlStore extends DataStore {
       const dbName = this.getMainDbName();
       await this.upsertDatabase(dbName);
       const config = changeDatabasePsql(this.config, dbName);
+      addSuffix(config, 'Sessions');
       this.knex = Knex({
         client: 'pg',
         connection: config,
+        useNullAsDefault: true,
       });
     } else {
       const dbName = this.getSessionDbName(sessionName);
@@ -95,12 +103,14 @@ export class PsqlStore extends DataStore {
     return stringifyPsql(config);
   }
 
-  public buildSessionKnex(name: string): Knex.Knex {
+  public buildSessionKnex(name: string, suffix: string): Knex.Knex {
     const dbName = this.getSessionDbName(name);
     const config = changeDatabasePsql(this.config, dbName);
+    addSuffix(config, suffix);
     return Knex({
       client: 'pg',
       connection: config,
+      useNullAsDefault: true,
     });
   }
 }

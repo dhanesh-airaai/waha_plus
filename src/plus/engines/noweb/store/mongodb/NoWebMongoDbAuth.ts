@@ -6,7 +6,7 @@ import { Collection, Db, Document } from 'mongodb';
 const AsyncLock = require('async-lock');
 
 function mongoKey(id: string) {
-  // . -> -
+  // Replace . to -
   return id.replace(/\./g, '-');
 }
 
@@ -149,6 +149,9 @@ export class NoWebMongoDbAuth {
       },
       saveCreds: () => {
         return this.writeData(this.creds, 'creds');
+      },
+      close: async () => {
+        return;
       },
     };
   }

@@ -31,14 +31,16 @@ export class MediaPsqlStorageFactory
     logger: Logger,
     init: boolean = true,
   ): Promise<MediaPsqlStorage> {
+    if (init && name !== 'all') {
+      await this.store.init(name);
+    }
+
     let knex;
     if (name === 'all') {
       knex = this.store.knex;
     } else {
-      knex = this.store.buildSessionKnex(name);
-    }
-    if (init && name !== 'all') {
-      await this.store.init(name);
+      const suffix = init ? 'Session' : 'Fetch';
+      knex = this.store.buildSessionKnex(name, suffix);
     }
     return new MediaPsqlStorage(knex, this.filesURL, logger);
   }

@@ -48,7 +48,7 @@ export class WebJSAuthFactory {
     loggerBuilder: LoggerBuilder,
   ) {
     const logger = loggerBuilder.child({ name: WebJSPsqlAuth.name });
-    const knex = store.buildSessionKnex(name);
+    const knex = store.buildSessionKnex(name, 'Session/Auth');
     const authStore = new WebJSPsqlAuth(knex, logger);
     await authStore.init();
     const zipper = this.getAvailableZipper(logger);
