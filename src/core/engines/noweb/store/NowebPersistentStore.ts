@@ -225,7 +225,7 @@ export class NowebPersistentStore implements INowebStore {
   private async onChatUpsert(chats: Chat[]) {
     for (const chat of chats) {
       delete chat['messages'];
-      chat.conversationTimestamp = toNumber(chat.conversationTimestamp);
+      chat.conversationTimestamp = toNumber(chat.conversationTimestamp) || null;
       await this.chatRepo.save(chat);
     }
     this.logger.info(`store sync - '${chats.length}' synced chats`);
@@ -312,7 +312,7 @@ export class NowebPersistentStore implements INowebStore {
     for (const update of updates) {
       const chat = (await this.chatRepo.getById(update.id)) || ({} as Chat);
       Object.assign(chat, update);
-      chat.conversationTimestamp = toNumber(chat.conversationTimestamp);
+      chat.conversationTimestamp = toNumber(chat.conversationTimestamp) || null;
       delete chat['messages'];
       await this.chatRepo.save(chat);
     }
@@ -343,7 +343,7 @@ export class NowebPersistentStore implements INowebStore {
 
   private async onContactUpdate(updates: Partial<Contact>[]) {
     for (const update of updates) {
-      const contact = await this.contactRepo.getById(update.id);
+      let contact = await this.contactRepo.getById(update.id);
 
       if (!contact) {
         this.logger.warn(
@@ -351,7 +351,7 @@ export class NowebPersistentStore implements INowebStore {
             update,
           )}'`,
         );
-        continue;
+        contact = {} as Contact;
         // TODO: Find contact by hash if not found
         //  find contact by attrs.hash, when user is not saved as a contact
         //  check the in-memory for that

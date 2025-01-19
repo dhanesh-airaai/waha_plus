@@ -475,13 +475,17 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
         this.logger.error(e, e.stack);
       });
       this.logger.info('Creds saved');
-      this.authNOWEBStore = null;
     }
     this.status = WAHASessionStatus.STOPPED;
     this.stopEvents();
 
+    this.mediaManager.close();
     await this.end();
     await this.store?.close();
+    this.authNOWEBStore?.close().catch((err) => {
+      this.logger.error('Failed to close NOWEB auth store');
+      this.logger.error(err, err.stack);
+    });
   }
 
   protected async failed() {
@@ -1112,8 +1116,18 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     if (isJidStatusBroadcast(id)) {
       return null;
     }
-    const url = await this.sock.profilePictureUrl(contact, 'image');
-    return url;
+    try {
+      const url = await this.sock.profilePictureUrl(contact, 'image');
+      return url;
+    } catch (err) {
+      if (err.message == 'item-not-found') {
+        return null;
+      }
+      if (err.message == 'not-authorized') {
+        return null;
+      }
+      throw err;
+    }
   }
 
   public async blockContact(request: ContactRequest) {
@@ -1945,6 +1959,10 @@ export class NOWEBEngineMediaProcessor implements IMediaEngineProcessor<any> {
 
   getMessageId(message: any): string {
     return message.key.id;
+  }
+
+  getChatId(message: any): string {
+    return toCusFormat(message.key.remoteJid);
   }
 
   getMimetype(message: any): string {

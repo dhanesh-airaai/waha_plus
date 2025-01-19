@@ -1,4 +1,5 @@
-import { PaginationParams } from '@waha/structures/pagination.dto';
+import { IJsonQuery } from '@waha/core/storage/sql/IJsonQuery';
+import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 import * as lodash from 'lodash';
 
 export abstract class Paginator {
@@ -42,19 +43,27 @@ export class KnexPaginator extends Paginator {
   indexes: string[] = [];
   dataField: string = 'data';
 
+  constructor(
+    pagination: PaginationParams,
+    protected jsonQuery: IJsonQuery,
+  ) {
+    super(pagination);
+  }
+
   protected sort(query: any) {
     if (!this.pagination?.sortBy) {
       return query;
     }
     const sortBy = this.pagination.sortBy;
-    const direction = this.pagination.sortOrder || 'asc';
+    const direction = this.pagination.sortOrder || SortOrder.ASC;
     if (this.indexes.includes(sortBy)) {
       return query.orderBy(sortBy, direction);
     }
-    // Use data->"$.{field}"
+
     // Make sure to sanitize sortBy to prevent SQL injection
     // sqlite3 doesn't support binding for column names and direction
-    return query.orderByRaw(`${this.dataField}->'$.${sortBy}' ${direction}`);
+    const sql = this.jsonQuery.sortBy(this.dataField, sortBy, direction);
+    return query.orderByRaw(sql);
   }
 
   protected limit(query: any) {

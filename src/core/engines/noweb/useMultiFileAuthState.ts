@@ -32,6 +32,7 @@ export const useMultiFileAuthState = async (
 ): Promise<{
   state: AuthenticationState;
   saveCreds: () => Promise<void>;
+  close: () => Promise<void>;
 }> => {
   const writeData = (data: any, file: string) => {
     const filePath = join(folder, fixFileName(file));
@@ -116,6 +117,9 @@ export const useMultiFileAuthState = async (
     },
     saveCreds: () => {
       return writeData(creds, 'creds.json');
+    },
+    close: async () => {
+      return;
     },
   };
 };

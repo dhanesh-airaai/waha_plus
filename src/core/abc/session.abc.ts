@@ -242,12 +242,13 @@ export abstract class WhatsappSession {
     // References:
     // https://github.com/pedroslopez/whatsapp-web.js/issues/1420
     // https://github.com/wppconnect-team/wppconnect/issues/1326
+    // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
     // https://www.bannerbear.com/blog/ways-to-speed-up-puppeteer-screenshots/
     return [
       '--aggressive-cache-discard',
       '--disable-accelerated-2d-canvas',
       '--disable-application-cache',
-      '--disable-background-networking',
+      // '--disable-background-networking', // COMMENTED to test WEBJS stability
       // DO NOT disable software rasterizer, it will break the video
       // https://github.com/devlikeapro/waha/issues/629
       // '--disable-software-rasterizer',
@@ -257,13 +258,13 @@ export abstract class WhatsappSession {
       '--disable-default-apps',
       '--disable-dev-shm-usage',
       '--disable-extensions',
-      '--disable-features=site-per-process',
-      '--disable-gpu',
+      // '--disable-features=site-per-process', // COMMENTED to test WEBJS stability
+      //'--disable-gpu', // COMMENTED to test WEBJS stability
       '--disable-offer-store-unmasked-wallet-cards',
       '--disable-offline-load-stale-cache',
       '--disable-popup-blocking',
       '--disable-setuid-sandbox',
-      '--disable-site-isolation-trials', // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
+      '--disable-site-isolation-trials',
       '--disable-speech-api',
       '--disable-sync',
       '--disable-translate',
@@ -273,7 +274,7 @@ export abstract class WhatsappSession {
       '--ignore-certificate-errors',
       '--ignore-ssl-errors',
       // https://github.com/devlikeapro/waha/issues/725
-      // '--in-process-gpu', // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
+      // '--in-process-gpu', // COMMENTED to test WEBJS stability
       '--metrics-recording-only',
       '--mute-audio',
       '--no-default-browser-check',
@@ -282,7 +283,7 @@ export abstract class WhatsappSession {
       '--no-sandbox',
       '--no-zygote',
       '--password-store=basic',
-      '--renderer-process-limit=2', // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
+      // '--renderer-process-limit=2', // COMMENTED to test WEBJS stability
       '--safebrowsing-disable-auto-update',
       // '--single-process',
       '--use-mock-keychain',
@@ -538,8 +539,8 @@ export abstract class WhatsappSession {
   protected async refreshProfilePicture(id: string) {
     this.profilePictures.del(id);
     const url = await this.fetchContactProfilePicture(id).catch((err) => {
-      this.logger.error('Error fetching profile picture');
-      this.logger.error(err, err.stack);
+      this.logger.warn('Error fetching profile picture');
+      this.logger.warn(err, err.stack);
       return null;
     });
     this.profilePictures.set(id, url);

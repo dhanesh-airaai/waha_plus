@@ -1,5 +1,6 @@
 import { GroupMetadata } from '@adiwajshing/baileys/lib/Types/GroupMetadata';
 import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepository';
+import { NowebGroupsSchema } from '@waha/core/engines/noweb/store/schemas';
 import { KnexPaginator } from '@waha/utils/Paginator';
 
 import { NOWEBSqlite3KVRepository } from './NOWEBSqlite3KVRepository';
@@ -13,4 +14,8 @@ export class Sqlite3GroupRepository
   implements IGroupRepository
 {
   protected Paginator = Paginator;
+
+  get schema() {
+    return NowebGroupsSchema;
+  }
 }

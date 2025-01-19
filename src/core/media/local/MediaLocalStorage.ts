@@ -92,4 +92,8 @@ export class MediaLocalStorage implements IMediaStorage {
       this.lifetimeMs,
     );
   }
+
+  async close() {
+    return;
+  }
 }

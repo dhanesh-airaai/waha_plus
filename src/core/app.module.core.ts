@@ -107,7 +107,9 @@ export const IMPORTS_CORE = [
 const IMPORTS_MEDIA = [
   ConfigModule.forRoot({
     validationSchema: Joi.object({
-      WAHA_MEDIA_STORAGE: Joi.string().valid('LOCAL', 'S3').default('LOCAL'),
+      WAHA_MEDIA_STORAGE: Joi.string()
+        .valid('LOCAL', 'S3', 'POSTGRESQL')
+        .default('LOCAL'),
     }),
   }),
   MediaLocalStorageModule,

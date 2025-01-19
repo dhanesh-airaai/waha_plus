@@ -74,7 +74,7 @@ import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import * as lodash from 'lodash';
 import { fromEvent, merge, mergeMap, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import {
+import WAWebJS, {
   Call,
   Channel as WEBJSChannel,
   Chat,
@@ -263,6 +263,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     this.status = WAHASessionStatus.STOPPED;
     this.stopEvents();
     this.startDelayedJob.cancel();
+    this.mediaManager.close();
     await this.end();
   }
 
@@ -1318,6 +1319,10 @@ export class WEBJSEngineMediaProcessor
     }
     // Can't get media for revoked messages
     return message.type !== 'revoked';
+  }
+
+  getChatId(message: Message): string {
+    return message.id.remote;
   }
 
   getMessageId(message: Message): string {

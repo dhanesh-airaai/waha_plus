@@ -10,6 +10,7 @@ interface IMediaManager {
     message: Message,
     session: string,
   ): Promise<Message>;
+  close(): void;
 }
 
 export { IMediaManager };

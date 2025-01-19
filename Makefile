@@ -61,3 +61,8 @@ gows:
 	cd ../gows && \
 	export PATH=${HOME}/go/bin:${PATH} && \
 	make all
+
+copy-dashboard:
+	cd ../waha-hub/ui && \
+	make copy-waha
+

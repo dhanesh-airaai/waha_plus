@@ -9,10 +9,8 @@ import { LocalStore } from './LocalStore';
 const Database = require('better-sqlite3');
 
 export class LocalStoreCore extends LocalStore {
-  protected readonly baseDirectory: string = path.join(
-    os.tmpdir(),
-    'waha-sessions',
-  );
+  protected readonly baseDirectory: string =
+    process.env.WAHA_LOCAL_STORE_BASE_DIR || './.sessions';
 
   private readonly engine: string;
   private db: any;
@@ -54,8 +52,7 @@ export class LocalStoreCore extends LocalStore {
   }
 
   protected getDirectoryPath(name: string): string {
-    const suffix = crypto.createHash('md5').update(name).digest('hex');
-    return path.join(this.getEngineDirectory(), `${name}-${suffix}`);
+    return path.join(this.getEngineDirectory(), name);
   }
 
   getWAHADatabase(): any {

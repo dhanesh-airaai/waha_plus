@@ -1,6 +1,6 @@
 # GOWS
 ARG GOWS_GITHUB_REPO=devlikeapro/gows
-ARG GOWS_SHA=95ca63a1dee5faec75232a9f59a548dfd4e414ff
+ARG GOWS_SHA=39ba4dcceeeb6e6fab172ee71ad1c09deea4db16
 ARG WAHA_DASHBOARD_GITHUB_REPO=devlikeapro/dashboard
 ARG WAHA_DASHBOARD_SHA=a1c839d8da94d1cade182addffdfc42fc0cf7ed3
 

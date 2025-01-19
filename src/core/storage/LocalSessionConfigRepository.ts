@@ -30,7 +30,7 @@ export class LocalSessionConfigRepository extends ISessionConfigRepository {
     return true;
   }
 
-  async get(sessionName: string): Promise<SessionConfig | null> {
+  async getConfig(sessionName: string): Promise<SessionConfig | null> {
     const filepath = this.getFilePath(sessionName);
     // Check file exists
     if (!(await fileExists(filepath))) {
@@ -48,7 +48,7 @@ export class LocalSessionConfigRepository extends ISessionConfigRepository {
     return JSON.parse(content);
   }
 
-  async save(sessionName: string, config: SessionConfig | null) {
+  async saveConfig(sessionName: string, config: SessionConfig | null) {
     // Create folder if not exist
     const folder = this.store.getSessionDirectory(sessionName);
     await fs.mkdir(folder, { recursive: true });
@@ -62,12 +62,12 @@ export class LocalSessionConfigRepository extends ISessionConfigRepository {
     return this.store.getFilePath(sessionName, this.FILENAME);
   }
 
-  async delete(sessionName: string): Promise<void> {
+  async deleteConfig(sessionName: string): Promise<void> {
     const sessionDirectory = this.store.getSessionDirectory(sessionName);
     await fs.remove(sessionDirectory);
   }
 
-  async getAll(): Promise<string[]> {
+  async getAllConfigs(): Promise<string[]> {
     await this.store.init();
     const content = await fs.readdir(this.store.getEngineDirectory(), {
       withFileTypes: true,
@@ -75,5 +75,9 @@ export class LocalSessionConfigRepository extends ISessionConfigRepository {
     return content
       .filter((dirent) => dirent.isDirectory())
       .map((dirent) => dirent.name);
+  }
+
+  async init() {
+    return;
   }
 }

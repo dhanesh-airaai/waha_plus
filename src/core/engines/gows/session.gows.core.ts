@@ -142,6 +142,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       this.logger.error('Failed to start the client');
       this.logger.error(err, err.stack);
       this.status = WAHASessionStatus.FAILED;
+      throw err;
     }
   }
 
@@ -326,6 +327,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     this.events?.stop();
     this.stopEvents();
     this.client?.close();
+    this.mediaManager.close();
   }
 
   public async requestCode(phoneNumber: string, method: string, params?: any) {
@@ -802,6 +804,10 @@ export class GOWSEngineMediaProcessor implements IMediaEngineProcessor<any> {
 
   hasMedia(message: any): boolean {
     return Boolean(extractMediaContent(message.Message));
+  }
+
+  getChatId(message: any): string {
+    return toCusFormat(message.Info.Chat);
   }
 
   getMessageId(message: any): string {

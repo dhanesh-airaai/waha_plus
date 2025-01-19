@@ -52,6 +52,7 @@ export class MediaManager implements IMediaManager {
     session: string,
   ): Promise<WAMedia | null> {
     const messageId = processor.getMessageId(message);
+    const chatId = processor.getChatId(message);
     const mimetype = processor.getMimetype(message);
     const filename = processor.getFilename(message);
     if (!this.shouldProcessMimetype(mimetype)) {
@@ -66,6 +67,7 @@ export class MediaManager implements IMediaManager {
       session: session,
       message: {
         id: messageId,
+        chatId: chatId,
       },
       file: {
         extension: extension,
@@ -194,5 +196,11 @@ export class MediaManager implements IMediaManager {
       );
       throw error;
     }
+  }
+
+  close() {
+    this.storage.close().catch((err) => {
+      this.log.error(`Failed to close media storage: ${err}`);
+    });
   }
 }

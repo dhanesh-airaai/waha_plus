@@ -1,4 +1,6 @@
-import { ALL_JID } from '@waha/core/engines/noweb/session.noweb.core';
+import { NowebMessagesMetadata } from '@waha/core/engines/noweb/store/metadata';
+import { NowebMessagesSchema } from '@waha/core/engines/noweb/store/schemas';
+import { SqlMessagesMethods } from '@waha/core/engines/noweb/store/sql/SqlMessagesMethods';
 import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 
@@ -9,8 +11,20 @@ export class Sqlite3MessagesRepository
   extends NOWEBSqlite3KVRepository<any>
   implements IMessagesRepository
 {
+  get schema() {
+    return NowebMessagesSchema;
+  }
+
+  get methods() {
+    return new SqlMessagesMethods(this);
+  }
+
+  get metadata() {
+    return NowebMessagesMetadata;
+  }
+
   upsert(messages: any[]): Promise<void> {
-    return this.upsertMany(messages);
+    return this.methods.upsert(messages);
   }
 
   async getAllByJid(
@@ -18,36 +32,11 @@ export class Sqlite3MessagesRepository
     filter: GetChatMessagesFilter,
     pagination: PaginationParams,
   ): Promise<any[]> {
-    let query = this.select();
-    if (jid !== ALL_JID) {
-      query = this.select().where({ jid: jid });
-    }
-    if (filter['filter.timestamp.lte'] != null) {
-      query = query.where(
-        'messageTimestamp',
-        '<=',
-        filter['filter.timestamp.lte'],
-      );
-    }
-    if (filter['filter.timestamp.gte'] != null) {
-      query = query.where(
-        'messageTimestamp',
-        '>=',
-        filter['filter.timestamp.gte'],
-      );
-    }
-    if (filter['filter.fromMe'] != null) {
-      // filter by data->"$.key.fromMe"
-      query = query.whereRaw("data->'$.key.fromMe' = ?", [
-        filter['filter.fromMe'] ? 'true' : 'false',
-      ]);
-    }
-    query = this.pagination(query, pagination);
-    return this.all(query);
+    return this.methods.getAllByJid(jid, filter, pagination);
   }
 
   async getByJidById(jid: string, id: string): Promise<any> {
-    return this.getBy({ jid: jid, id: id });
+    return this.methods.getByJidById(jid, id);
   }
 
   async updateByJidAndId(
@@ -55,23 +44,14 @@ export class Sqlite3MessagesRepository
     id: string,
     update: any,
   ): Promise<boolean> {
-    const entity = await this.getByJidById(jid, id);
-    if (!entity) {
-      return false;
-    }
-    Object.assign(entity, update);
-    await this.upsertOne(entity);
+    return this.methods.updateByJidAndId(jid, id, update);
   }
 
   async deleteByJidByIds(jid: string, ids: string[]): Promise<void> {
-    const query = `DELETE
-                   FROM ${this.table}
-                   WHERE jid = ?
-                     AND id IN (${ids.map(() => '?').join(', ')})`;
-    this.db.prepare(query).run([jid, ...ids]);
+    return this.methods.deleteByJidByIds(jid, ids);
   }
 
   deleteAllByJid(jid: string): Promise<void> {
-    return this.deleteBy({ jid: jid });
+    return this.methods.deleteAllByJid(jid);
   }
 }

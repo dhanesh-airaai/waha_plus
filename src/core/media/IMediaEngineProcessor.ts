@@ -11,6 +11,8 @@ interface IMediaEngineProcessor<Message> {
 
   getMessageId(message: Message): string;
 
+  getChatId(message: Message): string;
+
   getMediaBuffer(message: Message): Promise<Buffer | null>;
 }
 

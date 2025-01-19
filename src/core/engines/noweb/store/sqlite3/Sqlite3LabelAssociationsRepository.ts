@@ -3,6 +3,9 @@ import {
   LabelAssociationType,
 } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
+import { NowebLabelAssociationsMetadata } from '@waha/core/engines/noweb/store/metadata';
+import { NowebLabelAssociationsSchema } from '@waha/core/engines/noweb/store/schemas';
+import { SqlLabelAssociationsMethods } from '@waha/core/engines/noweb/store/sql/SqlLabelAssociationsMethods';
 
 import { NOWEBSqlite3KVRepository } from './NOWEBSqlite3KVRepository';
 
@@ -10,31 +13,34 @@ export class Sqlite3LabelAssociationsRepository
   extends NOWEBSqlite3KVRepository<LabelAssociation>
   implements ILabelAssociationRepository
 {
+  get schema() {
+    return NowebLabelAssociationsSchema;
+  }
+
+  get metadata() {
+    return NowebLabelAssociationsMetadata;
+  }
+
+  get methods() {
+    return new SqlLabelAssociationsMethods(this);
+  }
+
   async deleteOne(association: LabelAssociation): Promise<void> {
-    await this.deleteBy({
-      type: association.type,
-      chatId: association.chatId,
-      labelId: association.labelId,
-      // @ts-ignore: messageId doesn't existing in ChatLabelAssociation
-      messageId: association.messageId || null,
-    });
+    return this.methods.deleteOne(association);
   }
 
   async deleteByLabelId(labelId: string): Promise<void> {
-    await this.deleteBy({ labelId: labelId });
+    return this.methods.deleteByLabelId(labelId);
   }
 
   getAssociationsByLabelId(
     labelId: string,
     type: LabelAssociationType,
   ): Promise<LabelAssociation[]> {
-    return this.getAllBy({
-      type: type,
-      labelId: labelId,
-    });
+    return this.methods.getAssociationsByLabelId(labelId, type);
   }
 
   getAssociationsByChatId(chatId: string): Promise<LabelAssociation[]> {
-    return this.getAllBy({ chatId: chatId, type: LabelAssociationType.Chat });
+    return this.methods.getAssociationsByChatId(chatId);
   }
 }

@@ -6,6 +6,9 @@ import { S3MediaData } from '@waha/structures/media.s3.dto';
 interface Message {
   // false_111111111@c.us_AAAAAAAAAAAAAA
   id: string;
+
+  // 1111111@c.us
+  chatId: string;
 }
 
 interface File {
@@ -37,6 +40,19 @@ abstract class IMediaStorage {
   abstract getStorageData(data: MediaData): Promise<MediaStorageData>;
 
   abstract purge(): Promise<void>;
+
+  abstract close(): Promise<void>;
+}
+
+export function getMetadata(data: MediaData): any {
+  const now = new Date();
+  return {
+    'waha-session': data.session,
+    'waha-chat-id': data.message.chatId,
+    'waha-message-id': data.message.id,
+    'waha-media-filename': data.file.filename,
+    'waha-created-at': now.getTime(),
+  };
 }
 
 export { IMediaStorage };

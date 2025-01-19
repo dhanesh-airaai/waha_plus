@@ -166,8 +166,9 @@ export class SessionDetailedInfo extends SessionInfo {
   engine?: any;
 }
 
-const MONGO_DB_NAME_LIMIT = 64;
-const MONGO_DB_NAME_PREFIX_LEN = 'waha_noweb'.length;
+// Affect almost all Databases - Sqlite, MongoDB, Postgres.
+const DB_NAME_LIMIT = 64;
+const DB_NAME_MAX_PREFIX_LEN = 'waha_noweb'.length;
 
 export class SessionCreateRequest {
   @ApiProperty({
@@ -177,7 +178,7 @@ export class SessionCreateRequest {
   })
   @IsString()
   @IsOptional()
-  @MaxLength(MONGO_DB_NAME_LIMIT - MONGO_DB_NAME_PREFIX_LEN)
+  @MaxLength(DB_NAME_LIMIT - DB_NAME_MAX_PREFIX_LEN)
   name: string | undefined;
 
   @ValidateNested()

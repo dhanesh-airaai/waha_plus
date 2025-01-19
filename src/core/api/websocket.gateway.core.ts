@@ -96,17 +96,25 @@ export class WebsocketGatewayCore
 
   async beforeApplicationShutdown(signal?: string) {
     this.logger.log('Shutting down websocket server');
+    this.heartbeat?.stop();
+
     // Allow pending messages to be sent, it can be even 1ms, just to release the event loop
     await sleep(100);
-    this.server?.clients.forEach((options, client) => {
-      // @ts-ignore
-      this.logger.debug(`Closing client connection - ${client.id}...`);
-      client.close(1001, 'Server is shutting down');
-    });
-    // Do not turn off heartbeat service here,
-    // it's responsible for terminating the connection that is not alive
+    // Close clients and server
+    await this.close(this.server);
     this.logger.log('Websocket server is down');
-    this.heartbeat?.stop();
+  }
+
+  // Cherry-pick from nestjs new version
+  // https://github.com/nestjs/nest/pull/13531/files
+  private async close(server: any) {
+    const closeEventSignal = new Promise((resolve, reject) =>
+      server.close((err) => (err ? reject(err) : resolve(undefined))),
+    );
+    for (const ws of server.clients) {
+      ws.terminate();
+    }
+    await closeEventSignal;
   }
 
   afterInit(server: Server) {

@@ -11,7 +11,8 @@ export class MediaLocalStorageFactory extends MediaStorageFactory {
     super();
   }
 
-  build(logger: Logger): IMediaStorage {
+  async build(name: string, logger: Logger): Promise<IMediaStorage> {
+    // Local storage uses the same folder for all sessions
     return new MediaLocalStorage(
       logger,
       this.config.filesFolder,
