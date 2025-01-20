@@ -1,4 +1,5 @@
 import { getAudioDuration, getAudioWaveform } from '@adiwajshing/baileys';
+import { Jid } from '@waha/core/engines/const';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
 import { WhatsappSessionGoWSCore } from '@waha/core/engines/gows/session.gows.core';
 import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
@@ -10,6 +11,11 @@ import {
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
+import {
+  ImageStatus,
+  VideoStatus,
+  VoiceStatus,
+} from '@waha/structures/status.dto';
 import axios from 'axios';
 import { promisify } from 'util';
 
@@ -45,11 +51,21 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     const jid = toJID(this.ensureSuffix(request.chatId));
     const media = await this.fileToMedia(request.file);
     media.type = type;
+
+    // Only for Voice Status
+    let backgroundColor: messages.OptionalString | null = null;
+    if (request.backgroundColor) {
+      backgroundColor = new messages.OptionalString({
+        value: request.backgroundColor,
+      });
+    }
+
     const message = new messages.MessageRequest({
       jid: jid,
       text: request.caption,
       session: this.session,
       media: media,
+      backgroundColor: backgroundColor,
     });
 
     if (media.type == messages.MediaType.AUDIO) {
@@ -81,6 +97,40 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   }
 
   async sendVideo(request: MessageVideoRequest) {
+    return await this.sendMedia(messages.MediaType.VIDEO, request);
+  }
+
+  public async sendImageStatus(status: ImageStatus) {
+    this.checkStatusRequest(status);
+    const request: MessageImageRequest = {
+      file: status.file,
+      caption: status.caption,
+      chatId: Jid.BROADCAST,
+      session: null,
+    };
+    return await this.sendMedia(messages.MediaType.IMAGE, request);
+  }
+
+  public async sendVoiceStatus(status: VoiceStatus) {
+    this.checkStatusRequest(status);
+    const request: MessageVoiceRequest = {
+      file: status.file,
+      chatId: Jid.BROADCAST,
+      session: null,
+      // @ts-ignore
+      backgroundColor: status.backgroundColor,
+    };
+    return await this.sendMedia(messages.MediaType.AUDIO, request);
+  }
+
+  public async sendVideoStatus(status: VideoStatus) {
+    this.checkStatusRequest(status);
+    const request: MessageVideoRequest = {
+      file: status.file,
+      caption: status.caption,
+      chatId: Jid.BROADCAST,
+      session: null,
+    };
     return await this.sendMedia(messages.MediaType.VIDEO, request);
   }
 }
