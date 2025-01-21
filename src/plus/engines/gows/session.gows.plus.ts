@@ -4,6 +4,7 @@ import { messages } from '@waha/core/engines/gows/grpc/gows';
 import { WhatsappSessionGoWSCore } from '@waha/core/engines/gows/session.gows.core';
 import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
+import { Channel, CreateChannelRequest } from '@waha/structures/channels.dto';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -132,5 +133,20 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
       session: null,
     };
     return await this.sendMedia(messages.MediaType.VIDEO, request);
+  }
+
+  public async channelsCreateChannel(
+    request: CreateChannelRequest,
+  ): Promise<Channel> {
+    const media = await this.fileToMedia(request.picture);
+    const req = new messages.CreateNewsletterRequest({
+      session: this.session,
+      name: request.name,
+      description: request.description,
+      picture: media.content,
+    });
+    const response = await promisify(this.client.CreateNewsletter)(req);
+    const newsletter = response.toObject() as messages.Newsletter;
+    return this.toChannel(newsletter);
   }
 }
