@@ -22,7 +22,7 @@ export class WebsocketHeartbeatJob {
           this.logger.debug(
             `Terminating client connection due to heartbeat timeout, ${client.id}`,
           );
-          return client.terminate();
+          client.terminate();
         }
 
         client.isAlive = false;

@@ -1,4 +1,5 @@
 src/core/engines/gows/grpc
+src/core/engines/gows/proto
 .env
 *.heapsnapshot
 .yarn

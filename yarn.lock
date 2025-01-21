@@ -12646,6 +12646,7 @@ __metadata:
     ulid: ^2.3.0
     whatsapp-web.js: "github:devlikeapro/whatsapp-web.js#fork-main-channels"
     write-file-atomic: ^6.0.0
+    yargs: ^17.7.2
   dependenciesMeta:
     bufferutil:
       optional: true

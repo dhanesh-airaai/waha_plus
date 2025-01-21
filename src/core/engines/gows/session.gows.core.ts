@@ -1,8 +1,17 @@
-import { isJidGroup, jidNormalizedUser } from '@adiwajshing/baileys';
+import {
+  getUrlFromDirectPath,
+  isJidGroup,
+  isJidStatusBroadcast,
+  jidNormalizedUser,
+} from '@adiwajshing/baileys';
 import * as grpc from '@grpc/grpc-js';
 import { connectivityState } from '@grpc/grpc-js';
 import { UnprocessableEntityException } from '@nestjs/common';
-import { WhatsappSession } from '@waha/core/abc/session.abc';
+import {
+  getChannelInviteLink,
+  WhatsappSession,
+} from '@waha/core/abc/session.abc';
+import { Jid } from '@waha/core/engines/const';
 import { EventsFromObservable } from '@waha/core/engines/gows/EventsFromObservable';
 import { GowsEventStreamObservable } from '@waha/core/engines/gows/GowsEventStreamObservable';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
@@ -12,9 +21,18 @@ import {
   toCusFormat,
   toJID,
 } from '@waha/core/engines/noweb/session.noweb.core';
-import { AvailableInPlusVersion } from '@waha/core/exceptions';
+import {
+  AvailableInPlusVersion,
+  NotImplementedByEngineError,
+} from '@waha/core/exceptions';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
+import {
+  Channel,
+  ChannelRole,
+  CreateChannelRequest,
+  ListChannelsQuery,
+} from '@waha/structures/channels.dto';
 import {
   ChatRequest,
   CheckNumberStatusQuery,
@@ -27,6 +45,7 @@ import {
   MessageTextRequest,
   MessageVoiceRequest,
   SendSeenRequest,
+  WANumberExistResult,
 } from '@waha/structures/chatting.dto';
 import {
   ACK_UNKNOWN,
@@ -41,6 +60,7 @@ import {
 } from '@waha/structures/presence.dto';
 import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
 import { MeInfo, ProxyConfig } from '@waha/structures/sessions.dto';
+import { StatusRequest, TextStatus } from '@waha/structures/status.dto';
 import { EnginePayload, WAMessageAckBody } from '@waha/structures/webhooks.dto';
 import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { onlyEvent } from '@waha/utils/reactive/ops/onlyEvent';
@@ -402,11 +422,38 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     return this.messageResponse(jid, data);
   }
 
+  protected checkStatusRequest(request: StatusRequest) {
+    if (request.contacts && request.contacts?.length > 0) {
+      const msg =
+        "GOWS doesn't accept 'contacts'. Remove the field to send status to all contacts.";
+      throw new UnprocessableEntityException(msg);
+    }
+  }
+
+  public async sendTextStatus(status: TextStatus) {
+    this.checkStatusRequest(status);
+
+    const message = new messages.MessageRequest({
+      jid: Jid.BROADCAST,
+      text: status.text,
+      session: this.session,
+      backgroundColor: new messages.OptionalString({
+        value: status.backgroundColor,
+      }),
+      font: new messages.OptionalUInt32({
+        value: status.font,
+      }),
+    });
+    const response = await promisify(this.client.SendMessage)(message);
+    const data = response.toObject();
+    return this.messageResponse(Jid.BROADCAST, data);
+  }
+
   protected messageResponse(jid, data) {
     const id = buildMessageId({
       ID: data.id,
       IsFromMe: true,
-      IsGroup: isJidGroup(jid),
+      IsGroup: isJidGroup(jid) || isJidStatusBroadcast(jid),
       Chat: jid,
       Sender: this.me.id,
     });
@@ -416,8 +463,20 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     };
   }
 
-  checkNumberStatus(request: CheckNumberStatusQuery) {
-    throw new Error('Method not implemented.');
+  async checkNumberStatus(
+    request: CheckNumberStatusQuery,
+  ): Promise<WANumberExistResult> {
+    const req = new messages.CheckPhonesRequest({
+      session: this.session,
+      phones: [request.phone],
+    });
+    const response = await promisify(this.client.CheckPhones)(req);
+    const data = response.toObject();
+    const info = data.infos[0];
+    return {
+      numberExists: info.registered,
+      chatId: toCusFormat(info.jid),
+    };
   }
 
   sendLocation(request: MessageLocationRequest) {
@@ -604,6 +663,116 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       id: chatId,
       presences: result?.map(this.toWahaPresenceData.bind(this)),
     };
+  }
+
+  /**
+   * Channels methods
+   */
+  protected toChannel(newsletter: messages.Newsletter): Channel {
+    const role: ChannelRole =
+      (newsletter.role?.toUpperCase() as ChannelRole) || ChannelRole.GUEST;
+    let picture = newsletter.picture;
+    if (picture.startsWith('/')) {
+      picture = getUrlFromDirectPath(picture);
+    }
+    let preview = newsletter.preview;
+    if (preview.startsWith('/')) {
+      preview = getUrlFromDirectPath(preview);
+    }
+    return {
+      id: newsletter.id,
+      name: newsletter.name,
+      description: newsletter.description,
+      invite: getChannelInviteLink(newsletter.invite),
+      picture: picture,
+      preview: preview,
+      verified: newsletter.verified,
+      role: role,
+    };
+  }
+
+  public async channelsList(query: ListChannelsQuery): Promise<Channel[]> {
+    const request = new messages.NewsletterListRequest({
+      session: this.session,
+    });
+    const response = await promisify(this.client.GetSubscribedNewsletters)(
+      request,
+    );
+    const data = response.toObject();
+    const newsletters = data.newsletters;
+    let channels: Channel[] = newsletters.map(this.toChannel.bind(this));
+    if (query.role) {
+      // @ts-ignore
+      channels = channels.filter((channel) => channel.role === query.role);
+    }
+    return channels;
+  }
+
+  public async channelsCreateChannel(
+    request: CreateChannelRequest,
+  ): Promise<Channel> {
+    const req = new messages.CreateNewsletterRequest({
+      session: this.session,
+      name: request.name,
+      description: request.description,
+    });
+    const response = await promisify(this.client.CreateNewsletter)(req);
+    const newsletter = response.toObject() as messages.Newsletter;
+    return this.toChannel(newsletter);
+  }
+
+  public async channelsGetChannel(id: string): Promise<Channel> {
+    return await this.channelsGetChannelByInviteCode(id);
+  }
+
+  public async channelsGetChannelByInviteCode(
+    inviteCode: string,
+  ): Promise<Channel> {
+    const request = new messages.NewsletterInfoRequest({
+      session: this.session,
+      id: inviteCode,
+    });
+    const response = await promisify(this.client.GetNewsletterInfo)(request);
+    const newsletter = response.toObject() as messages.Newsletter;
+    return this.toChannel(newsletter);
+  }
+
+  public channelsFollowChannel(id: string): Promise<any> {
+    return this.channelsToggleFollow(id, true);
+  }
+
+  public channelsUnfollowChannel(id: string): Promise<any> {
+    return this.channelsToggleFollow(id, false);
+  }
+
+  protected async channelsToggleFollow(id: string, follow: boolean) {
+    const request = new messages.NewsletterToggleFollowRequest({
+      session: this.session,
+      jid: id,
+      follow: follow,
+    });
+    const response = await promisify(this.client.NewsletterToggleFollow)(
+      request,
+    );
+    return response.toObject();
+  }
+
+  public channelsMuteChannel(id: string): Promise<void> {
+    return this.channelsToggleMute(id, true);
+  }
+
+  public channelsUnmuteChannel(id: string): Promise<void> {
+    return this.channelsToggleMute(id, false);
+  }
+
+  protected async channelsToggleMute(id: string, mute: boolean): Promise<any> {
+    const request = new messages.NewsletterToggleMuteRequest({
+      session: this.session,
+      jid: id,
+      mute: mute,
+    });
+    const response = await promisify(this.client.NewsletterToggleMute)(request);
+    return response.toObject();
   }
 
   //

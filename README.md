@@ -9,19 +9,13 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/devlikeapro/whatsapp-http-api)](https://hub.docker.com/r/devlikeapro/waha)
 
 - Documentation: [https://waha.devlike.pro/](https://waha.devlike.pro/)
+- Dashboard Example: [https://waha.devlike.pro/dashboard](https://waha.devlike.pro/dashboard)
 - Swagger Example: [https://waha.devlike.pro/swagger](https://waha.devlike.pro/swagger)
 
 # Tables of Contents
 
 <!-- toc -->
 
-- [Features](#features)
-  * [Messages](#messages)
-  * [Sessions](#sessions)
-  * [Security](#security)
-  * [Updates](#updates)
-  * [Groups](#groups)
-  * [Contacts](#contacts)
 - [Quick start](#quick-start)
   * [Requirements](#requirements)
   * [Send your first message](#send-your-first-message)
@@ -32,51 +26,10 @@
     + [5. Get the screenshot](#5-get-the-screenshot)
     + [6. Send a text message](#6-send-a-text-message)
   * [What is next?](#what-is-next)
+- [Development](#development)
+  * [Start the project](#start-the-project)
 
 <!-- tocstop -->
-
-# Features
-
-## Messages
-- Send messages  
-- Receive messages  
-- Message replies  
-- Send location  
-- Receive location  
-- React to messages  
-- Send media (images/documents/files) 
-- Send voice messages 
-- Receive media (images/audio/video/documents) 
-- Receive messages - webhook retries 
-
-## Sessions
-- Multi Device  
-- Get the screenshot  
-- Session saving (don't have to scan QR on every restart) 
-- Single WhatsApp account running inside one container 
-- Multiple WhatsApp account running inside one container 
-
-## Security
-- Swagger panel authentication 
-- API authentication 
-
-## Updates
-- Bug fixes and updates come as soon as they are implemented. 
-
-## Groups
-- Create a group
-- Get invite for group
-- Modify group info (subject, description)
-- Add group participants
-- Kick group participants
-- Promote/demote group participants
-
-## Contacts
-- Mute/unmute chats
-- Block/unblock contacts
-- Get contact info
-- Get profile pictures
-- Get presence (online\offline\typing) status
 
 # Quick start
 
@@ -86,13 +39,6 @@ Only thing that you must have - installed docker. Please follow the original
 instruction <a href="https://docs.docker.com/get-docker/" target="_blank" rel="noopener">how to install docker -></a>.
 
 When you are ready - come back and follows the below steps to send the first text message to WhatsApp via HTTP API!
-
-{{< details "Why Docker?" >}}
-Docker makes it easy to ship all-in-one solution with the runtime and dependencies. You don't have to worry about
-language-specific libraries or chrome installation.
-
-Also Docker makes installation and update processes so simple, just one command!
-{{< /details >}}
 
 ## Send your first message
 
@@ -114,7 +60,7 @@ docker pull devlikeapro/waha-plus
 docker logout
 ```
 
-Read more about how to get `PASSWORD` for [Plus Version →]({{< relref "plus-version" >}})
+Read more about how to get `PASSWORD` for [**➕ WAHA Plus**](https://waha.devlike.pro/docs/how-to/waha-plus/)
 
 ### 2. Run WhatsApp HTTP API
 
@@ -195,3 +141,19 @@ curl -d "{\"chatId\": \"${PHONE}@c.us\", \"text\": \"Hello from WhatsApp HTTP AP
 
 ## What is next?
 [Go and read the full documentation!](https://waha.devlike.pro/docs/overview/introduction/)
+
+# Development
+
+## Start the project
+1. Clone the repository
+2. Make sure you're using node>=22
+3. Run the following commands:
+```bash
+# Install dependencies
+yarn install
+# Fetch and compile proto files
+yarn gows:proto
+# Run
+yarn start
+# open http://localhost:3000
+```

@@ -1054,7 +1054,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
    * Status methods
    */
   protected checkStatusRequest(request: StatusRequest) {
-    if (request.contacts?.length > 0) {
+    if (request.contacts && request.contacts?.length > 0) {
       const msg =
         "WEBJS doesn't accept 'contacts'. Remove the field to send status to all contacts.";
       throw new UnprocessableEntityException(msg);

@@ -1,9 +1,3 @@
-# GOWS
-ARG GOWS_GITHUB_REPO=devlikeapro/gows
-ARG GOWS_SHA=39ba4dcceeeb6e6fab172ee71ad1c09deea4db16
-ARG WAHA_DASHBOARD_GITHUB_REPO=devlikeapro/dashboard
-ARG WAHA_DASHBOARD_SHA=a1c839d8da94d1cade182addffdfc42fc0cf7ed3
-
 #
 # Build
 #
@@ -11,12 +5,8 @@ ARG NODE_VERSION=22.8-bullseye
 FROM node:${NODE_VERSION} AS build
 ENV PUPPETEER_SKIP_DOWNLOAD=True
 
-# install protoc
-RUN apt-get update && \
-    apt-get install protobuf-compiler -y
-
 # npm packages
-WORKDIR /src
+WORKDIR /git
 COPY package.json .
 COPY yarn.lock .
 ENV YARN_CHECKSUM_BEHAVIOR=update
@@ -25,19 +15,10 @@ RUN yarn set version 3.6.3
 RUN yarn install
 
 # App
-WORKDIR /src
-ADD . /src
+WORKDIR /git
+ADD . /git
 RUN yarn install
-
-# Build node grpc client for GOWS engine
-WORKDIR /gows/proto
-ARG GOWS_GITHUB_REPO
-ARG GOWS_SHA
-RUN wget https://raw.githubusercontent.com/${GOWS_GITHUB_REPO}/${GOWS_SHA}/proto/gows.proto
-WORKDIR /src
-
-RUN make proto-gows
-
+RUN yarn gows:proto
 RUN yarn build && find ./dist -name "*.d.ts" -delete
 
 #
@@ -45,10 +26,13 @@ RUN yarn build && find ./dist -name "*.d.ts" -delete
 #
 FROM node:${NODE_VERSION} AS dashboard
 
-# Download WAHA Dashboard
-ARG WAHA_DASHBOARD_GITHUB_REPO
-ARG WAHA_DASHBOARD_SHA
+# jq to parse json
+RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
+
+COPY waha.config.json /tmp/waha.config.json
 RUN \
+    WAHA_DASHBOARD_GITHUB_REPO=$(jq -r '.waha.dashboard.repo' /tmp/waha.config.json) && \
+    WAHA_DASHBOARD_SHA=$(jq -r '.waha.dashboard.ref' /tmp/waha.config.json) && \
     wget https://github.com/${WAHA_DASHBOARD_GITHUB_REPO}/archive/${WAHA_DASHBOARD_SHA}.zip \
     && unzip ${WAHA_DASHBOARD_SHA}.zip -d /tmp/dashboard \
     && mkdir -p /dashboard \
@@ -60,6 +44,10 @@ RUN \
 # GOWS
 #
 FROM golang:1.23-bullseye AS gows
+
+# jq to parse json
+RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
+
 # install protoc
 RUN apt-get update && \
     apt-get install protobuf-compiler -y
@@ -69,9 +57,11 @@ RUN apt-get update  \
     && apt-get install -y libvips-dev \
     && rm -rf /var/lib/apt/lists/*
 
-ARG GOWS_GITHUB_REPO
-ARG GOWS_SHA
-RUN git clone https://github.com/${GOWS_GITHUB_REPO} gows && \
+COPY waha.config.json /tmp/waha.config.json
+RUN \
+    GOWS_GITHUB_REPO=$(jq -r '.waha.gows.repo' /tmp/waha.config.json) && \
+    GOWS_SHA=$(jq -r '.waha.gows.ref' /tmp/waha.config.json) && \
+    git clone https://github.com/${GOWS_GITHUB_REPO} gows && \
     cd gows && \
     git checkout ${GOWS_SHA}
 
@@ -163,8 +153,8 @@ ENV WHATSAPP_DEFAULT_ENGINE=$WHATSAPP_DEFAULT_ENGINE
 # Attach sources, install packages
 WORKDIR /app
 COPY package.json ./
-COPY --from=build /src/node_modules ./node_modules
-COPY --from=build /src/dist ./dist
+COPY --from=build /git/node_modules ./node_modules
+COPY --from=build /git/dist ./dist
 COPY --from=dashboard /dashboard ./dist/dashboard
 COPY --from=gows /go/gows/bin/gows /app/gows
 ENV WAHA_GOWS_PATH /app/gows

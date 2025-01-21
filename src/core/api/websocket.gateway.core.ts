@@ -32,7 +32,7 @@ export class WebsocketGatewayCore
     OnGatewayDisconnect,
     BeforeApplicationShutdown
 {
-  HEARTBEAT_INTERVAL = 10_000;
+  HEARTBEAT_INTERVAL = 60_000;
 
   @WebSocketServer()
   server: Server;

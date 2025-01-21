@@ -24,7 +24,7 @@ export interface StatusRequest {
 export class TextStatus {
   text: string = 'Have a look! https://github.com/';
   backgroundColor: string = '#38b42f';
-  font: number = 1;
+  font: number = 0;
 
   @ContactsProperty
   contacts?: string[];
