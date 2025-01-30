@@ -81,11 +81,27 @@ import { promisify } from 'util';
 
 import * as gows from './types';
 import MessageServiceClient = messages.MessageServiceClient;
+import {
+  optional,
+  parseJson,
+  parseJsonList,
+  statusToAck,
+} from '@waha/core/engines/gows/helpers';
+import {
+  ChatSortField,
+  ChatSummary,
+  GetChatMessageQuery,
+  GetChatMessagesFilter,
+  GetChatMessagesQuery,
+} from '@waha/structures/chats.dto';
+import { ContactQuery } from '@waha/structures/contacts.dto';
+import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 
 enum WhatsMeowEvent {
   CONNECTED = 'gows.ConnectedEventData',
   DISCONNECTED = 'events.Disconnected',
   KEEP_ALIVE_TIMEOUT = 'events.KeepAliveTimeout',
+  KEEP_ALIVE_RESTORED = 'events.KeepAliveRestored',
   QR_CHANNEL_ITEM = 'whatsmeow.QRChannelItem',
   MESSAGE = 'events.Message',
   RECEIPT = 'events.Receipt',
@@ -213,6 +229,11 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     events.on(WhatsMeowEvent.KEEP_ALIVE_TIMEOUT, () => {
       if (this.status != WAHASessionStatus.STARTING) {
         this.status = WAHASessionStatus.STARTING;
+      }
+    });
+    events.on(WhatsMeowEvent.KEEP_ALIVE_RESTORED, () => {
+      if (this.status != WAHASessionStatus.WORKING) {
+        this.status = WAHASessionStatus.WORKING;
       }
     });
     events.on(WhatsMeowEvent.QR_CHANNEL_ITEM, async (data) => {
@@ -628,7 +649,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       return {
         participant: toCusFormat(data.From),
         lastKnownPresence: lastKnownPresence,
-        lastSeen: parseTimestamp(data.LastSeen),
+        lastSeen: parseTimestampToSeconds(data.LastSeen),
       };
     }
 
@@ -775,6 +796,183 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     return response.toObject();
   }
 
+  /**
+   * Contacts methods
+   */
+
+  protected toWAContact(contact) {
+    return {
+      id: toCusFormat(contact.Jid),
+      name: contact.Name,
+      pushname: contact.PushName,
+    };
+  }
+
+  public async getContact(query: ContactQuery) {
+    const jid = toJID(query.contactId);
+    const request = new messages.EntityByIdRequest({
+      session: this.session,
+      id: jid,
+    });
+    const response = await promisify(this.client.GetContact)(request);
+    const data = parseJson(response);
+    return this.toWAContact(data);
+  }
+
+  public async getContacts(pagination: PaginationParams) {
+    const request = new messages.GetContactsRequest({
+      session: this.session,
+      pagination: new messages.Pagination({
+        limit: pagination.limit,
+        offset: pagination.offset,
+      }),
+      sortBy: new messages.SortBy({
+        field: pagination.sortBy || 'id',
+        order:
+          pagination.sortOrder === SortOrder.DESC
+            ? messages.SortBy.Order.DESC
+            : messages.SortBy.Order.ASC,
+      }),
+    });
+    const response = await promisify(this.client.GetContacts)(request);
+    const data = parseJsonList(response);
+    return data.map(this.toWAContact.bind(this));
+  }
+
+  /**
+   * Chats methods
+   */
+  public async getChatsOverview(
+    pagination: PaginationParams,
+  ): Promise<ChatSummary[]> {
+    if (!pagination.sortBy) {
+      pagination.sortBy = 'timestamp';
+    }
+    if (!pagination.sortOrder) {
+      pagination.sortOrder = SortOrder.DESC;
+    }
+    const chats = await this.getChats(pagination);
+
+    const promises = [];
+    for (const chat of chats) {
+      promises.push(this.fetchChatSummary(chat));
+    }
+    const result = await Promise.all(promises);
+    return result;
+  }
+
+  protected async fetchChatSummary(chat): Promise<ChatSummary> {
+    const id = toCusFormat(chat.id);
+    const name = chat.name;
+    const picture = await this.getContactProfilePicture(chat.id, false);
+    const messages = await this.getChatMessages(
+      chat.id,
+      { limit: 1, offset: 0, downloadMedia: false },
+      {},
+    );
+    const message = messages.length > 0 ? messages[0] : null;
+    return {
+      id: id,
+      name: name || null,
+      picture: picture,
+      lastMessage: message,
+      _chat: chat,
+    };
+  }
+
+  protected toWAChat(chat) {
+    return {
+      id: toCusFormat(chat.Jid),
+      name: chat.Name,
+      conversationTimestamp: parseTimestampToSeconds(
+        chat.ConversationTimestamp,
+      ),
+    };
+  }
+
+  public async getChats(pagination: PaginationParams) {
+    if (pagination.sortBy === ChatSortField.CONVERSATION_TIMESTAMP) {
+      pagination.sortBy = 'timestamp';
+    }
+    const request = new messages.GetChatsRequest({
+      session: this.session,
+      pagination: new messages.Pagination({
+        limit: pagination.limit,
+        offset: pagination.offset,
+      }),
+      sortBy: new messages.SortBy({
+        field: pagination.sortBy || 'id',
+        order:
+          pagination.sortOrder === SortOrder.DESC
+            ? messages.SortBy.Order.DESC
+            : messages.SortBy.Order.ASC,
+      }),
+    });
+    const response = await promisify(this.client.GetChats)(request);
+    const data = parseJsonList(response);
+    return data.map(this.toWAChat.bind(this));
+  }
+
+  public async getChatMessages(
+    chatId: string,
+    query: GetChatMessagesQuery,
+    filter: GetChatMessagesFilter,
+  ) {
+    const downloadMedia = query.downloadMedia;
+    let jid: messages.OptionalString;
+    if (chatId === 'all') {
+      jid = null;
+    } else {
+      jid = new messages.OptionalString({
+        value: toJID(this.ensureSuffix(chatId)),
+      });
+    }
+
+    const request = new messages.GetMessagesRequest({
+      session: this.session,
+      filters: new messages.MessageFilters({
+        jid: jid,
+        timestampGte: optional(
+          filter['filter.timestamp.gte'],
+          messages.OptionalUInt64,
+        ),
+        timestampLte: optional(
+          filter['filter.timestamp.lte'],
+          messages.OptionalUInt64,
+        ),
+        fromMe: optional(filter['filter.fromMe'], messages.OptionalBool),
+      }),
+      pagination: new messages.Pagination({
+        limit: query.limit,
+        offset: query.offset,
+      }),
+    });
+    const response = await promisify(this.client.GetMessages)(request);
+    const msgs = parseJsonList(response);
+    const promises = [];
+    for (const msg of msgs) {
+      promises.push(this.processIncomingMessage(msg, downloadMedia));
+    }
+    let result = await Promise.all(promises);
+    result = result.filter(Boolean);
+    return result;
+  }
+
+  public async getChatMessage(
+    chatId: string,
+    messageId: string,
+    query: GetChatMessageQuery,
+  ): Promise<null | WAMessage> {
+    const key = parseMessageIdSerialized(messageId, true);
+    const request = new messages.EntityByIdRequest({
+      session: this.session,
+      id: key.id,
+    });
+    const response = await promisify(this.client.GetMessageById)(request);
+    const msg = parseJson(response);
+    return this.processIncomingMessage(msg, query.downloadMedia);
+  }
+
   //
   // END - Methods for API
   //
@@ -811,11 +1009,17 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const id = buildMessageId(message);
     const body = this.extractBody(message.Message);
     const replyTo = null; // TODO: this.extractReplyTo(message.message);
-    const ack = null; // TODO: Extract
+
+    let ack;
+    if (message.Status) {
+      ack = statusToAck(message.Status);
+    } else {
+      ack = message.Info.IsFromMe ? WAMessageAck.SERVER : WAMessageAck.DEVICE;
+    }
 
     return {
       id: id,
-      timestamp: parseTimestamp(message.Info.Timestamp),
+      timestamp: parseTimestampToSeconds(message.Info.Timestamp),
       from: toCusFormat(fromToParticipant.from),
       fromMe: message.Info.IsFromMe,
       body: body,
@@ -942,7 +1146,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const messageId = this.buildMessageIdFromKey(reactionMessage.key);
     const reaction: WAMessageReaction = {
       id: id,
-      timestamp: parseTimestamp(message.Info.Timestamp),
+      timestamp: parseTimestampToSeconds(message.Info.Timestamp),
       from: toCusFormat(fromToParticipant.from),
       fromMe: message.Info.IsFromMe,
       to: toCusFormat(fromToParticipant.to),
@@ -1062,4 +1266,12 @@ function parseTimestamp(timestamp: string): number {
   }
   // "2024-12-25T14:28:42+03:00" => 1234567890
   return new Date(timestamp).getTime();
+}
+
+function parseTimestampToSeconds(timestamp: string): number {
+  const ms = parseTimestamp(timestamp);
+  if (!ms) {
+    return ms;
+  }
+  return Math.floor(ms / 1000);
 }

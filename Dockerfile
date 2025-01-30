@@ -58,17 +58,17 @@ RUN apt-get update  \
     && rm -rf /var/lib/apt/lists/*
 
 COPY waha.config.json /tmp/waha.config.json
+WORKDIR /go/gows
 RUN \
     GOWS_GITHUB_REPO=$(jq -r '.waha.gows.repo' /tmp/waha.config.json) && \
     GOWS_SHA=$(jq -r '.waha.gows.ref' /tmp/waha.config.json) && \
-    git clone https://github.com/${GOWS_GITHUB_REPO} gows && \
-    cd gows && \
-    git checkout ${GOWS_SHA}
-
-WORKDIR /go/gows
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-RUN make all
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; \
+    elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; \
+    else echo "Unsupported architecture: $ARCH" && exit 1; fi && \
+    mkdir -p /go/gows/bin && \
+    wget -O /go/gows/bin/gows https://github.com/${GOWS_GITHUB_REPO}/releases/download/v.${GOWS_SHA}/gows-${ARCH} && \
+    chmod +x /go/gows/bin/gows
 
 
 #

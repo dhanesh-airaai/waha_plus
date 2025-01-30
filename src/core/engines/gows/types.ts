@@ -22,3 +22,20 @@ export interface ChatPresence {
   State: ChatPresenceState;
   Media: ChatPresenceMedia;
 }
+
+/**
+ *  StatusError       Status = 0
+ *  StatusPending     Status = 1
+ *  StatusServerAck   Status = 2
+ *  StatusDeliveryAck Status = 3
+ *  StatusRead        Status = 4
+ *  StatusPlayed      Status = 5
+ */
+export enum MessageStatus {
+  Error = 0,
+  Pending = 1,
+  ServerAck = 2,
+  DeliveryAck = 3,
+  Read = 4,
+  Played = 5,
+}
