@@ -60,10 +60,7 @@ export class SwaggerConfiguratorCore {
       .addTag('🖼️ Screenshot', 'Get screenshot of WhatsApp and show QR code')
       .addTag('📤 Chatting', 'Chatting methods')
       .addTag('📢 Channels', 'Channels (newsletters) methods')
-      .addTag(
-        '🟢 Status',
-        'Status (aka stories) methods. <b>NOWEB</b> engine only!',
-      )
+      .addTag('🟢 Status', 'Status (aka stories) methods')
       .addTag('💬 Chats', `Chats methods`)
       .addTag(
         '👤 Contacts',
