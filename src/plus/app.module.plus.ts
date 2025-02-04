@@ -7,12 +7,14 @@ import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigServi
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
 import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
+import { ChannelsInfoServiceCore } from '@waha/core/services/ChannelsInfoServiceCore';
 import { parseBool } from '@waha/helpers';
 import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
 import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
 import { HttpsExpress } from '@waha/plus/HttpsExpress';
 import { MediaPsqlStorageModule } from '@waha/plus/media/psql/media.psql.storage.module';
 import { MediaS3StorageModule } from '@waha/plus/media/s3/media.s3.storage.module';
+import { ChannelsInfoServicePlus } from '@waha/plus/services/ChannelsInfoServicePlus';
 import { isDebugEnabled } from '@waha/utils/logging';
 import * as Joi from 'joi';
 import { Logger } from 'pino';
@@ -87,6 +89,10 @@ const PROVIDERS = [
   {
     provide: DashboardConfigServiceCore,
     useClass: DashboardConfigServicePlus,
+  },
+  {
+    provide: ChannelsInfoServiceCore,
+    useClass: ChannelsInfoServicePlus,
   },
   {
     provide: DashboardConfigServicePlus,
