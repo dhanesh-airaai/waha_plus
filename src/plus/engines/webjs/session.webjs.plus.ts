@@ -70,7 +70,11 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       sendMediaAsDocument: true,
       caption: request.caption,
     };
-    return this.whatsapp.sendMessage(request.chatId, media, options);
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      media,
+      options,
+    );
   }
 
   async sendImage(request: MessageImageRequest) {
@@ -80,7 +84,11 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       ...options,
       caption: request.caption,
     };
-    return this.whatsapp.sendMessage(request.chatId, media, options);
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      media,
+      options,
+    );
   }
 
   async sendVoice(request) {
@@ -90,7 +98,11 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       ...options,
       sendAudioAsVoice: true,
     };
-    return this.whatsapp.sendMessage(request.chatId, media, options);
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      media,
+      options,
+    );
   }
 
   async sendVideo(request: MessageVideoRequest) {
@@ -100,7 +112,11 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       ...options,
       caption: request.caption,
     };
-    return this.whatsapp.sendMessage(request.chatId, media, options);
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      media,
+      options,
+    );
   }
 
   /**
