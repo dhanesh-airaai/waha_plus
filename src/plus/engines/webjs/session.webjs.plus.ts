@@ -1,6 +1,20 @@
-import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
+import {
+  getChannelInviteLink,
+  getPublicUrlFromDirectPath,
+} from '@waha/core/abc/session.abc';
 import { WhatsappSessionWebJSCore } from '@waha/core/engines/webjs/session.webjs.core';
-import { WebjsClient } from '@waha/core/engines/webjs/WebjsClient';
+import {
+  WebjsChannelMessage,
+  WebjsClientPlus,
+} from '@waha/plus/engines/webjs/WebjsClientPlus';
+import {
+  ChannelListResult,
+  ChannelMessage,
+  ChannelPublicInfo,
+  ChannelSearchByText,
+  ChannelSearchByView,
+  PreviewChannelMessages,
+} from '@waha/structures/channels.dto';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -19,6 +33,7 @@ import { WebJSAuthFactory } from './WebJSAuthFactory';
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   authFactory = new WebJSAuthFactory();
+  whatsapp: WebjsClientPlus;
 
   protected getClassDirName() {
     return __dirname;
@@ -33,7 +48,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     const clientOptions = this.getClientOptions();
     clientOptions.authStrategy = authStrategy;
     this.addProxyConfig(clientOptions);
-    return new WebjsClient(clientOptions);
+    return new WebjsClientPlus(clientOptions);
   }
 
   private async fileToMedia(file: BinaryFile | RemoteFile) {
@@ -117,4 +132,106 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     };
     return this.whatsapp.sendMessage(BROADCAST_ID, media, options);
   }
+
+  /**
+   * Channels methods
+   */
+  public async previewChannelMessages(
+    inviteCode: string,
+    query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    const channelMessages = await this.whatsapp.channelFetchMessageByInvite(
+      inviteCode,
+      query.limit,
+    );
+    const promises = [];
+    for (const msg of channelMessages) {
+      promises.push(
+        this.WebjsChannelMessageToChannelMessage(msg, query.downloadMedia),
+      );
+    }
+    return await Promise.all(promises);
+  }
+
+  private async WebjsChannelMessageToChannelMessage(
+    channelMessage: WebjsChannelMessage,
+    downloadMedia: boolean,
+  ): Promise<ChannelMessage> {
+    const message = await this.processIncomingMessage(
+      channelMessage.message,
+      downloadMedia,
+    );
+    return {
+      message: message,
+      reactions: channelMessage.reactions,
+      viewCount: channelMessage.viewCount,
+    };
+  }
+
+  /**
+   * Channels Search methods
+   */
+  public async searchChannelsByView(
+    query: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    const params = {
+      view: query.view || 'TRENDING',
+      countryCodes: query.countries,
+      cursorToken: query.startCursor,
+      categories: query.categories,
+      limit: query.limit,
+    };
+    const data = await this.whatsapp.searchChannelsView(params);
+    return this.channelsRawDataToResponse(data);
+  }
+
+  public async searchChannelsByText(
+    query: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    const params = {
+      searchText: query.text,
+      cursorToken: query.startCursor,
+      categories: query.categories,
+      limit: query.limit,
+    };
+    const data = await this.whatsapp.searchChannelsText(params);
+    return this.channelsRawDataToResponse(data);
+  }
+
+  private channelsRawDataToResponse(data: any): ChannelListResult {
+    const pageInfo = data.pageInfo;
+    const newsletters = data.newsletters;
+    return {
+      page: {
+        startCursor: pageInfo.startCursor,
+        endCursor: pageInfo.endCursor,
+        hasNextPage: pageInfo.hasNextPage,
+        hasPreviousPage: pageInfo.hasPreviousPage,
+      },
+      channels: newsletters.map(NewsletterMetadataToChannel),
+    };
+  }
+}
+
+function NewsletterMetadataToChannel(data: any): ChannelPublicInfo {
+  const pictureDirectPath =
+    data.newsletterPictureMetadataMixin.picture?.[0]
+      .queryPictureDirectPathOrEmptyResponseMixinGroup?.value?.directPath;
+  const pictureUrl = getPublicUrlFromDirectPath(pictureDirectPath);
+  return {
+    id: data.idJid,
+    name: data.newsletterNameMetadataMixin.nameElementValue,
+    picture: pictureUrl,
+    description:
+      data.newsletterDescriptionMetadataMixin
+        .descriptionQueryDescriptionResponseMixin.elementValue,
+    invite: getChannelInviteLink(
+      data.newsletterInviteLinkMetadataMixin.inviteCode,
+    ),
+    subscribersCount: Number(
+      data.newsletterSubscribersMetadataMixin.subscribersCount,
+    ),
+    verified:
+      data.newsletterVerificationMetadataMixin.verificationState === 'verified',
+  };
 }
