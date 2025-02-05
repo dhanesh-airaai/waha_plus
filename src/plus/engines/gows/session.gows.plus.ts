@@ -1,10 +1,20 @@
 import { getAudioDuration, getAudioWaveform } from '@adiwajshing/baileys';
 import { Jid } from '@waha/core/engines/const';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
+import { parseJson } from '@waha/core/engines/gows/helpers';
 import { WhatsappSessionGoWSCore } from '@waha/core/engines/gows/session.gows.core';
 import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
+import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
-import { Channel, CreateChannelRequest } from '@waha/structures/channels.dto';
+import {
+  Channel,
+  ChannelListResult,
+  ChannelMessage,
+  ChannelSearchByText,
+  ChannelSearchByView,
+  CreateChannelRequest,
+  PreviewChannelMessages,
+} from '@waha/structures/channels.dto';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -148,5 +158,119 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     const response = await promisify(this.client.CreateNewsletter)(req);
     const newsletter = response.toObject() as messages.Newsletter;
     return this.toChannel(newsletter);
+  }
+
+  public async previewChannelMessages(
+    inviteCode: string,
+    query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    const downloadMedia = query.downloadMedia;
+    const request = new messages.GetNewsletterMessagesByInviteRequest({
+      session: this.session,
+      invite: inviteCode,
+      limit: query.limit,
+    });
+    const response = await promisify(this.client.GetNewsletterMessagesByInvite)(
+      request,
+    );
+    const resp = parseJson(response);
+    const promises = [];
+    for (const msg of resp.Messages) {
+      promises.push(
+        this.GowsChannelMessageToChannelMessage(
+          resp.NewsletterJID,
+          msg,
+          downloadMedia,
+        ),
+      );
+    }
+    let result = await Promise.all(promises);
+    result = result.filter(Boolean);
+    return result;
+  }
+
+  private async GowsChannelMessageToChannelMessage(
+    jid: string,
+    channelMessage: any,
+    downloadMedia: boolean,
+  ): Promise<ChannelMessage> {
+    const msg = {
+      Info: {
+        ID: channelMessage.MessageID,
+        Chat: jid,
+        Sender: jid,
+        IsFromMe: false,
+        Timestamp: channelMessage.Timestamp,
+      },
+      Message: channelMessage.Message,
+    };
+    const message = await this.processIncomingMessage(msg, downloadMedia);
+    const reactions: any =
+      sortObjectByValues(channelMessage.ReactionCounts) || {};
+    return {
+      message: message,
+      reactions: reactions,
+      viewCount: channelMessage.ViewsCount,
+    };
+  }
+
+  /**
+   * Channels Search methods
+   */
+  public async searchChannelsByView(
+    query: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    const request = new messages.SearchNewslettersByViewRequest({
+      session: this.session,
+      view: query.view,
+      categories: query.categories,
+      countries: query.countries,
+      page: new messages.SearchPage({
+        limit: query.limit,
+        startCursor: query.startCursor,
+      }),
+    });
+    const response = await promisify(this.client.SearchNewslettersByView)(
+      request,
+    );
+    return this.channelsRawDataToResponse(response);
+  }
+
+  public async searchChannelsByText(
+    query: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    const request = new messages.SearchNewslettersByTextRequest({
+      session: this.session,
+      text: query.text,
+      categories: query.categories,
+      page: new messages.SearchPage({
+        limit: query.limit,
+        startCursor: query.startCursor,
+      }),
+    });
+    const response = await promisify(this.client.SearchNewslettersByText)(
+      request,
+    );
+    return this.channelsRawDataToResponse(response);
+  }
+
+  private channelsRawDataToResponse(
+    data: messages.NewsletterSearchPageResult,
+  ): ChannelListResult {
+    const channels: Channel[] = data.newsletters.newsletters.map(
+      this.toChannel.bind(this),
+    );
+    channels.forEach((channel) => {
+      delete channel.role;
+    });
+    return {
+      page: {
+        startCursor: data.page.startCursor,
+        endCursor: data.page.endCursor,
+        hasNextPage: data.page.hasNextPage,
+        hasPreviousPage: data.page.hasPreviousPage,
+      },
+      channels: channels,
+    };
   }
 }

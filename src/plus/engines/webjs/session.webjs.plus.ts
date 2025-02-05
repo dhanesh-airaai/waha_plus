@@ -177,9 +177,14 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       channelMessage.message,
       downloadMedia,
     );
+    const reactions = {};
+    for (const reaction of channelMessage.reactions.sort((x) => -x.count)) {
+      reactions[reaction.reaction] = reaction.count;
+    }
+
     return {
       message: message,
-      reactions: channelMessage.reactions,
+      reactions: reactions,
       viewCount: channelMessage.viewCount,
     };
   }

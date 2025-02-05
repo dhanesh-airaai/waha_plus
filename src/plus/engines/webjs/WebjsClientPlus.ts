@@ -1,5 +1,4 @@
 import { WebjsClientCore } from '@waha/core/engines/webjs/WebjsClientCore';
-import { ChannelMessageReaction } from '@waha/structures/channels.dto';
 import { Message } from 'whatsapp-web.js';
 import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
 
@@ -10,6 +9,10 @@ export interface WebjsChannelMessage {
   message: Message;
   reactions: ChannelMessageReaction[];
   viewCount: number;
+}
+class ChannelMessageReaction {
+  reaction: string;
+  count: number;
 }
 
 interface _Id {
