@@ -1,13 +1,24 @@
 import { getStream, prepareWAMessageMedia } from '@adiwajshing/baileys';
-import { MediaGenerationOptions } from '@adiwajshing/baileys/lib/Types';
+import {
+  MediaGenerationOptions,
+  NewsletterFetchedUpdate,
+} from '@adiwajshing/baileys/lib/Types';
 import { UnprocessableEntityException } from '@nestjs/common';
 import {
   toJID,
   WhatsappSessionNoWebCore,
 } from '@waha/core/engines/noweb/session.noweb.core';
-import { parseBool } from '@waha/helpers';
+import { parseBool, sortObjectByValues } from '@waha/helpers';
 import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
-import { CreateChannelRequest } from '@waha/structures/channels.dto';
+import {
+  Channel,
+  ChannelListResult,
+  ChannelMessage,
+  ChannelSearchByText,
+  ChannelSearchByView,
+  CreateChannelRequest,
+  PreviewChannelMessages,
+} from '@waha/structures/channels.dto';
 import {
   MessageFileRequest,
   MessageImageRequest,
@@ -22,6 +33,7 @@ import {
   VoiceStatus,
 } from '@waha/structures/status.dto';
 
+import { NowebClient } from './NowebClient';
 import { NowebAuthFactoryPlus } from './store/NowebAuthFactoryPlus';
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
@@ -45,6 +57,10 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     };
     const { imageMessage } = await prepareWAMessageMedia(message, options);
     return imageMessage;
+  }
+
+  get client(): NowebClient {
+    return new NowebClient(this.sock);
   }
 
   protected fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
@@ -156,6 +172,76 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Channels methods
    */
+  public async previewChannelMessages(
+    inviteCode: string,
+    query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    const downloadMedia = query.downloadMedia;
+    const updates = await this.sock.newsletterFetchMessages(
+      'invite',
+      inviteCode,
+      query.limit,
+      null,
+    );
+    const promises = [];
+    for (const update of updates) {
+      promises.push(
+        this.NewsletterFetchedUpdateToChannelMessage(update, downloadMedia),
+      );
+    }
+    let result = await Promise.all(promises);
+    result = result.filter(Boolean);
+    return result;
+  }
+
+  private async NewsletterFetchedUpdateToChannelMessage(
+    update: NewsletterFetchedUpdate,
+    downloadMedia: boolean,
+  ): Promise<ChannelMessage> {
+    let reactions: any = Object.fromEntries(
+      update.reactions.map(({ code, count }) => [code, count]),
+    );
+    reactions = sortObjectByValues(reactions) || {};
+    const message = await this.processIncomingMessage(
+      update.message,
+      downloadMedia,
+    );
+    return {
+      message: message,
+      reactions: reactions,
+      viewCount: update.views,
+    };
+  }
+
+  /**
+   * Channels Search methods
+   */
+  public async searchChannelsByView(
+    query: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    const response = await this.client.searchChannelsByView(query);
+    const channels: Channel[] = response.newsletters.map(
+      this.toChannel.bind(this),
+    );
+    return {
+      page: response.page,
+      channels: channels,
+    };
+  }
+
+  public async searchChannelsByText(
+    query: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    const response = await this.client.searchChannelsByText(query);
+    const channels: Channel[] = response.newsletters.map(
+      this.toChannel.bind(this),
+    );
+    return {
+      page: response.page,
+      channels: channels,
+    };
+  }
+
   public async channelsCreateChannel(request: CreateChannelRequest) {
     const channel = await super.channelsCreateChannel(request);
 
