@@ -18,7 +18,6 @@ RUN yarn install
 WORKDIR /git
 ADD . /git
 RUN yarn install
-RUN yarn gows:proto
 RUN yarn build && find ./dist -name "*.d.ts" -delete
 
 #
