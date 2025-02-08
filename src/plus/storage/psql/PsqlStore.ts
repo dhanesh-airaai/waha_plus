@@ -7,6 +7,11 @@ import {
 } from '@waha/plus/storage/psql/PsqlConnectionConfig';
 import Knex from 'knex';
 
+const PoolConfig = {
+  min: 0,
+  max: 10,
+};
+
 export class PsqlStore extends DataStore {
   // postgres database
   // Use to create new databases
@@ -25,6 +30,7 @@ export class PsqlStore extends DataStore {
       client: 'pg',
       connection: config,
       useNullAsDefault: true,
+      pool: PoolConfig,
     });
   }
 
@@ -41,6 +47,7 @@ export class PsqlStore extends DataStore {
         client: 'pg',
         connection: config,
         useNullAsDefault: true,
+        pool: PoolConfig,
       });
     } else {
       const dbName = this.getSessionDbName(sessionName);
@@ -111,6 +118,7 @@ export class PsqlStore extends DataStore {
       client: 'pg',
       connection: config,
       useNullAsDefault: true,
+      pool: PoolConfig,
     });
   }
 }
