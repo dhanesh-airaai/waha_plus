@@ -13,6 +13,7 @@ import {
   MediaStorageData,
 } from '@waha/core/media/IMediaStorage';
 import { MediaS3UrlResolver } from '@waha/plus/media/s3/MediaS3UrlResolver';
+import * as lodash from 'lodash';
 import { Logger } from 'pino';
 
 export class MediaS3Storage implements IMediaStorage {
@@ -33,7 +34,8 @@ export class MediaS3Storage implements IMediaStorage {
 
   async save(buffer: Buffer, data: MediaData): Promise<boolean> {
     const key = this.getKey(data);
-    const metadata = getMetadata(data);
+    let metadata = getMetadata(data);
+    metadata = await this.stringifyMetadata(metadata);
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
@@ -42,6 +44,16 @@ export class MediaS3Storage implements IMediaStorage {
     });
     await this.client.send(command);
     return true;
+  }
+
+  async stringifyMetadata(metadata) {
+    metadata = lodash.cloneDeep(metadata);
+    // Convert all metadata values to string because
+    // underlying S3 SDK will call .trim() on them
+    for (const key in metadata) {
+      metadata[key] = String(metadata[key]);
+    }
+    return metadata;
   }
 
   async exists(data: MediaData): Promise<boolean> {
