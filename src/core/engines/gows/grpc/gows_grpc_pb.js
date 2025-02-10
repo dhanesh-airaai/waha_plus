@@ -136,6 +136,17 @@ function deserialize_messages_GetMessagesRequest(buffer_arg) {
   return gows_pb.GetMessagesRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_messages_GetNewsletterMessagesByInviteRequest(arg) {
+  if (!(arg instanceof gows_pb.GetNewsletterMessagesByInviteRequest)) {
+    throw new Error('Expected argument of type messages.GetNewsletterMessagesByInviteRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_GetNewsletterMessagesByInviteRequest(buffer_arg) {
+  return gows_pb.GetNewsletterMessagesByInviteRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_messages_Json(arg) {
   if (!(arg instanceof gows_pb.Json)) {
     throw new Error('Expected argument of type messages.Json');
@@ -246,6 +257,17 @@ function deserialize_messages_NewsletterListRequest(buffer_arg) {
   return gows_pb.NewsletterListRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_messages_NewsletterSearchPageResult(arg) {
+  if (!(arg instanceof gows_pb.NewsletterSearchPageResult)) {
+    throw new Error('Expected argument of type messages.NewsletterSearchPageResult');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_NewsletterSearchPageResult(buffer_arg) {
+  return gows_pb.NewsletterSearchPageResult.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_messages_NewsletterToggleFollowRequest(arg) {
   if (!(arg instanceof gows_pb.NewsletterToggleFollowRequest)) {
     throw new Error('Expected argument of type messages.NewsletterToggleFollowRequest');
@@ -321,6 +343,28 @@ function serialize_messages_ProfilePictureResponse(arg) {
 
 function deserialize_messages_ProfilePictureResponse(buffer_arg) {
   return gows_pb.ProfilePictureResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_SearchNewslettersByTextRequest(arg) {
+  if (!(arg instanceof gows_pb.SearchNewslettersByTextRequest)) {
+    throw new Error('Expected argument of type messages.SearchNewslettersByTextRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_SearchNewslettersByTextRequest(buffer_arg) {
+  return gows_pb.SearchNewslettersByTextRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_SearchNewslettersByViewRequest(arg) {
+  if (!(arg instanceof gows_pb.SearchNewslettersByViewRequest)) {
+    throw new Error('Expected argument of type messages.SearchNewslettersByViewRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_SearchNewslettersByViewRequest(buffer_arg) {
+  return gows_pb.SearchNewslettersByViewRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_messages_Session(arg) {
@@ -560,6 +604,39 @@ getSubscribedNewsletters: {
     requestDeserialize: deserialize_messages_NewsletterInfoRequest,
     responseSerialize: serialize_messages_Newsletter,
     responseDeserialize: deserialize_messages_Newsletter,
+  },
+  getNewsletterMessagesByInvite: {
+    path: '/messages.MessageService/GetNewsletterMessagesByInvite',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.GetNewsletterMessagesByInviteRequest,
+    responseType: gows_pb.Json,
+    requestSerialize: serialize_messages_GetNewsletterMessagesByInviteRequest,
+    requestDeserialize: deserialize_messages_GetNewsletterMessagesByInviteRequest,
+    responseSerialize: serialize_messages_Json,
+    responseDeserialize: deserialize_messages_Json,
+  },
+  searchNewslettersByView: {
+    path: '/messages.MessageService/SearchNewslettersByView',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.SearchNewslettersByViewRequest,
+    responseType: gows_pb.NewsletterSearchPageResult,
+    requestSerialize: serialize_messages_SearchNewslettersByViewRequest,
+    requestDeserialize: deserialize_messages_SearchNewslettersByViewRequest,
+    responseSerialize: serialize_messages_NewsletterSearchPageResult,
+    responseDeserialize: deserialize_messages_NewsletterSearchPageResult,
+  },
+  searchNewslettersByText: {
+    path: '/messages.MessageService/SearchNewslettersByText',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.SearchNewslettersByTextRequest,
+    responseType: gows_pb.NewsletterSearchPageResult,
+    requestSerialize: serialize_messages_SearchNewslettersByTextRequest,
+    requestDeserialize: deserialize_messages_SearchNewslettersByTextRequest,
+    responseSerialize: serialize_messages_NewsletterSearchPageResult,
+    responseDeserialize: deserialize_messages_NewsletterSearchPageResult,
   },
   createNewsletter: {
     path: '/messages.MessageService/CreateNewsletter',

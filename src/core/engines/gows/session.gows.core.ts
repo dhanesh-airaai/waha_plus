@@ -29,9 +29,14 @@ import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
 import {
   Channel,
+  ChannelListResult,
+  ChannelMessage,
   ChannelRole,
+  ChannelSearchByText,
+  ChannelSearchByView,
   CreateChannelRequest,
   ListChannelsQuery,
+  PreviewChannelMessages,
 } from '@waha/structures/channels.dto';
 import {
   ChatRequest,
@@ -111,6 +116,11 @@ enum WhatsMeowEvent {
   LOGGED_OUT = 'events.LoggedOut',
 }
 
+const gRPCClientConfig = {
+  'grpc.max_send_message_length': 128 * 1024 * 1024,
+  'grpc.max_receive_message_length': 128 * 1024 * 1024,
+};
+
 export interface GowsConfig {
   connection: string;
 }
@@ -170,6 +180,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     this.client = new MessageServiceClient(
       this.engineConfig.connection,
       grpc.credentials.createInsecure(),
+      gRPCClientConfig,
     );
 
     try {
@@ -199,6 +210,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
         const client = new messages.EventStreamClient(
           this.engineConfig.connection,
           grpc.credentials.createInsecure(),
+          gRPCClientConfig,
         );
         const stream = client.StreamEvents(this.session);
         return { client, stream };
@@ -689,6 +701,25 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   /**
    * Channels methods
    */
+  public searchChannelsByView(
+    query: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    throw new AvailableInPlusVersion();
+  }
+
+  public searchChannelsByText(
+    query: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    throw new AvailableInPlusVersion();
+  }
+
+  public async previewChannelMessages(
+    inviteCode: string,
+    query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    throw new AvailableInPlusVersion();
+  }
+
   protected toChannel(newsletter: messages.Newsletter): Channel {
     const role: ChannelRole =
       (newsletter.role?.toUpperCase() as ChannelRole) || ChannelRole.GUEST;
@@ -709,6 +740,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       preview: preview,
       verified: newsletter.verified,
       role: role,
+      subscribersCount: newsletter.subscriberCount,
     };
   }
 
@@ -977,7 +1009,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   // END - Methods for API
   //
 
-  private async processIncomingMessage(message, downloadMedia = true) {
+  protected async processIncomingMessage(message, downloadMedia = true) {
     // if there is no text or media message
     if (!message) return;
     if (!message.Message) return;
@@ -1195,6 +1227,7 @@ export class GOWSEngineMediaProcessor implements IMediaEngineProcessor<any> {
   async getMediaBuffer(message: any): Promise<Buffer | null> {
     const data = JSON.stringify(message.Message);
     const request = new messages.DownloadMediaRequest({
+      // double "session" it's not a mistake here
       session: this.session.session,
       message: data,
     });

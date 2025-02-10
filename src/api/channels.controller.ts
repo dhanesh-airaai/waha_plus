@@ -3,31 +3,129 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Query,
+  UsePipes,
 } from '@nestjs/common';
-import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ChannelsInfoServiceCore } from '@waha/core/services/ChannelsInfoServiceCore';
 import {
   SessionApiParam,
   WorkingSessionParam,
 } from '@waha/nestjs/params/SessionApiParam';
+import { WAHAValidationPipe } from '@waha/nestjs/pipes/WAHAValidationPipe';
 import {
   Channel,
+  ChannelCategory,
+  ChannelCountry,
+  ChannelListResult,
+  ChannelMessage,
+  ChannelSearchByText,
+  ChannelSearchByView,
+  ChannelView,
   CreateChannelRequest,
   ListChannelsQuery,
   NewsletterIdApiParam,
   NewsletterIdOrInviteCodeApiParam,
+  PreviewChannelMessages,
 } from '@waha/structures/channels.dto';
 
 import { SessionManager } from '../core/abc/manager.abc';
-import { isNewsletter, WhatsappSession } from '../core/abc/session.abc';
+import {
+  isNewsletter,
+  parseChannelInviteLink,
+  WhatsappSession,
+} from '../core/abc/session.abc';
 
 @ApiSecurity('api_key')
 @Controller('api/:session/channels')
 @ApiTags('📢 Channels')
 export class ChannelsController {
-  constructor(private manager: SessionManager) {}
+  constructor(
+    private manager: SessionManager,
+    private channelsInfoService: ChannelsInfoServiceCore,
+  ) {}
+
+  @Post('/search/by-view')
+  @HttpCode(HttpStatus.OK)
+  @SessionApiParam
+  @UsePipes(new WAHAValidationPipe())
+  @ApiOperation({ summary: 'Search for channels (by view)' })
+  async searchByView(
+    @WorkingSessionParam session: WhatsappSession,
+    @Body() request: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    return session.searchChannelsByView(request);
+  }
+
+  @Post('/search/by-text')
+  @HttpCode(HttpStatus.OK)
+  @SessionApiParam
+  @UsePipes(new WAHAValidationPipe())
+  @ApiOperation({ summary: 'Search for channels (by text)' })
+  async searchByText(
+    @WorkingSessionParam session: WhatsappSession,
+    @Body() request: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    return session.searchChannelsByText(request);
+  }
+
+  @Get('/search/views')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get list of views for channel search' })
+  getSearchViews(): Promise<ChannelView[]> {
+    return this.channelsInfoService.getViews();
+  }
+
+  @Get('/search/countries')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get list of countries for channel search' })
+  getSearchCountries(): Promise<ChannelCountry[]> {
+    return this.channelsInfoService.getCountries();
+  }
+
+  @Get('/search/categories')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get list of categories for channel search' })
+  getSearchCategories(): Promise<ChannelCategory[]> {
+    return this.channelsInfoService.getCategories();
+  }
+
+  @Get(':id/messages/preview')
+  @SessionApiParam
+  @UsePipes(new WAHAValidationPipe())
+  @ApiParam({
+    name: 'id',
+    description: 'Channel id or invite code',
+    required: true,
+    type: 'string',
+    schema: {
+      default: '0029Va4K0PZ5a245NkngBA2M',
+    },
+  })
+  @ApiOperation({
+    summary: 'Preview channel messages',
+    description:
+      'You can use either ' +
+      'invite code (https://www.whatsapp.com/channel/123) or (123)' +
+      'OR' +
+      'Channel ID (123@newsletter).',
+  })
+  async previewChannelMessages(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') code: string,
+    @Query() query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    if (isNewsletter(code)) {
+      const channel = await session.channelsGetChannel(code);
+      code = parseChannelInviteLink(channel.invite);
+    }
+    const inviteCode = parseChannelInviteLink(code);
+    return session.previewChannelMessages(inviteCode, query);
+  }
 
   @Get('')
   @SessionApiParam
@@ -76,8 +174,7 @@ export class ChannelsController {
     if (isNewsletter(id)) {
       return session.channelsGetChannel(id);
     } else {
-      // https://www.whatsapp.com/channel/123 => 123
-      const inviteCode = id.split('/').pop();
+      const inviteCode = parseChannelInviteLink(id);
       return session.channelsGetChannelByInviteCode(inviteCode);
     }
   }

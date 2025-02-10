@@ -18,15 +18,19 @@ const { LoadPaginator } = require('./_Paginator.js');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ChatFactory = require('whatsapp-web.js/src/factories/ChatFactory');
 
-export class WebjsClient extends Client {
+export class WebjsClientCore extends Client {
   constructor(options) {
     super(options);
     // Wait until it's READY and inject more utils
     this.on(Events.READY, async () => {
-      await this.pupPage.evaluate(LoadLodash);
-      await this.pupPage.evaluate(LoadPaginator);
-      await this.pupPage.evaluate(LoadWAHA);
+      await this.injectWaha();
     });
+  }
+
+  async injectWaha() {
+    await this.pupPage.evaluate(LoadLodash);
+    await this.pupPage.evaluate(LoadPaginator);
+    await this.pupPage.evaluate(LoadWAHA);
   }
 
   async unpair() {

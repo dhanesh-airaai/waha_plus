@@ -2862,6 +2862,7 @@ export namespace messages {
             picture?: string;
             verified?: boolean;
             role?: string;
+            subscriberCount?: number;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -2889,6 +2890,9 @@ export namespace messages {
                 }
                 if ("role" in data && data.role != undefined) {
                     this.role = data.role;
+                }
+                if ("subscriberCount" in data && data.subscriberCount != undefined) {
+                    this.subscriberCount = data.subscriberCount;
                 }
             }
         }
@@ -2940,6 +2944,12 @@ export namespace messages {
         set role(value: string) {
             pb_1.Message.setField(this, 8, value);
         }
+        get subscriberCount() {
+            return pb_1.Message.getFieldWithDefault(this, 9, 0) as number;
+        }
+        set subscriberCount(value: number) {
+            pb_1.Message.setField(this, 9, value);
+        }
         static fromObject(data: {
             id?: string;
             name?: string;
@@ -2949,6 +2959,7 @@ export namespace messages {
             picture?: string;
             verified?: boolean;
             role?: string;
+            subscriberCount?: number;
         }): Newsletter {
             const message = new Newsletter({});
             if (data.id != null) {
@@ -2975,6 +2986,9 @@ export namespace messages {
             if (data.role != null) {
                 message.role = data.role;
             }
+            if (data.subscriberCount != null) {
+                message.subscriberCount = data.subscriberCount;
+            }
             return message;
         }
         toObject() {
@@ -2987,6 +3001,7 @@ export namespace messages {
                 picture?: string;
                 verified?: boolean;
                 role?: string;
+                subscriberCount?: number;
             } = {};
             if (this.id != null) {
                 data.id = this.id;
@@ -3012,6 +3027,9 @@ export namespace messages {
             if (this.role != null) {
                 data.role = this.role;
             }
+            if (this.subscriberCount != null) {
+                data.subscriberCount = this.subscriberCount;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -3034,6 +3052,8 @@ export namespace messages {
                 writer.writeBool(7, this.verified);
             if (this.role.length)
                 writer.writeString(8, this.role);
+            if (this.subscriberCount != 0)
+                writer.writeInt64(9, this.subscriberCount);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -3066,6 +3086,9 @@ export namespace messages {
                         break;
                     case 8:
                         message.role = reader.readString();
+                        break;
+                    case 9:
+                        message.subscriberCount = reader.readInt64();
                         break;
                     default: reader.skipField();
                 }
@@ -3237,6 +3260,751 @@ export namespace messages {
         }
         static deserializeBinary(bytes: Uint8Array): NewsletterInfoRequest {
             return NewsletterInfoRequest.deserialize(bytes);
+        }
+    }
+    export class GetNewsletterMessagesByInviteRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            session?: Session;
+            invite?: string;
+            limit?: number;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("session" in data && data.session != undefined) {
+                    this.session = data.session;
+                }
+                if ("invite" in data && data.invite != undefined) {
+                    this.invite = data.invite;
+                }
+                if ("limit" in data && data.limit != undefined) {
+                    this.limit = data.limit;
+                }
+            }
+        }
+        get session() {
+            return pb_1.Message.getWrapperField(this, Session, 1) as Session;
+        }
+        set session(value: Session) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_session() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get invite() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set invite(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get limit() {
+            return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
+        }
+        set limit(value: number) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            session?: ReturnType<typeof Session.prototype.toObject>;
+            invite?: string;
+            limit?: number;
+        }): GetNewsletterMessagesByInviteRequest {
+            const message = new GetNewsletterMessagesByInviteRequest({});
+            if (data.session != null) {
+                message.session = Session.fromObject(data.session);
+            }
+            if (data.invite != null) {
+                message.invite = data.invite;
+            }
+            if (data.limit != null) {
+                message.limit = data.limit;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                session?: ReturnType<typeof Session.prototype.toObject>;
+                invite?: string;
+                limit?: number;
+            } = {};
+            if (this.session != null) {
+                data.session = this.session.toObject();
+            }
+            if (this.invite != null) {
+                data.invite = this.invite;
+            }
+            if (this.limit != null) {
+                data.limit = this.limit;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_session)
+                writer.writeMessage(1, this.session, () => this.session.serialize(writer));
+            if (this.invite.length)
+                writer.writeString(2, this.invite);
+            if (this.limit != 0)
+                writer.writeInt64(3, this.limit);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetNewsletterMessagesByInviteRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetNewsletterMessagesByInviteRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.session, () => message.session = Session.deserialize(reader));
+                        break;
+                    case 2:
+                        message.invite = reader.readString();
+                        break;
+                    case 3:
+                        message.limit = reader.readInt64();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetNewsletterMessagesByInviteRequest {
+            return GetNewsletterMessagesByInviteRequest.deserialize(bytes);
+        }
+    }
+    export class SearchPage extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            limit?: number;
+            startCursor?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("limit" in data && data.limit != undefined) {
+                    this.limit = data.limit;
+                }
+                if ("startCursor" in data && data.startCursor != undefined) {
+                    this.startCursor = data.startCursor;
+                }
+            }
+        }
+        get limit() {
+            return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+        }
+        set limit(value: number) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get startCursor() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set startCursor(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            limit?: number;
+            startCursor?: string;
+        }): SearchPage {
+            const message = new SearchPage({});
+            if (data.limit != null) {
+                message.limit = data.limit;
+            }
+            if (data.startCursor != null) {
+                message.startCursor = data.startCursor;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                limit?: number;
+                startCursor?: string;
+            } = {};
+            if (this.limit != null) {
+                data.limit = this.limit;
+            }
+            if (this.startCursor != null) {
+                data.startCursor = this.startCursor;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.limit != 0)
+                writer.writeUint64(2, this.limit);
+            if (this.startCursor.length)
+                writer.writeString(3, this.startCursor);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SearchPage {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SearchPage();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 2:
+                        message.limit = reader.readUint64();
+                        break;
+                    case 3:
+                        message.startCursor = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): SearchPage {
+            return SearchPage.deserialize(bytes);
+        }
+    }
+    export class SearchNewslettersByViewRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            session?: Session;
+            page?: SearchPage;
+            view?: string;
+            categories?: string[];
+            countries?: string[];
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [4, 5], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("session" in data && data.session != undefined) {
+                    this.session = data.session;
+                }
+                if ("page" in data && data.page != undefined) {
+                    this.page = data.page;
+                }
+                if ("view" in data && data.view != undefined) {
+                    this.view = data.view;
+                }
+                if ("categories" in data && data.categories != undefined) {
+                    this.categories = data.categories;
+                }
+                if ("countries" in data && data.countries != undefined) {
+                    this.countries = data.countries;
+                }
+            }
+        }
+        get session() {
+            return pb_1.Message.getWrapperField(this, Session, 1) as Session;
+        }
+        set session(value: Session) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_session() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get page() {
+            return pb_1.Message.getWrapperField(this, SearchPage, 2) as SearchPage;
+        }
+        set page(value: SearchPage) {
+            pb_1.Message.setWrapperField(this, 2, value);
+        }
+        get has_page() {
+            return pb_1.Message.getField(this, 2) != null;
+        }
+        get view() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set view(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get categories() {
+            return pb_1.Message.getFieldWithDefault(this, 4, []) as string[];
+        }
+        set categories(value: string[]) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        get countries() {
+            return pb_1.Message.getFieldWithDefault(this, 5, []) as string[];
+        }
+        set countries(value: string[]) {
+            pb_1.Message.setField(this, 5, value);
+        }
+        static fromObject(data: {
+            session?: ReturnType<typeof Session.prototype.toObject>;
+            page?: ReturnType<typeof SearchPage.prototype.toObject>;
+            view?: string;
+            categories?: string[];
+            countries?: string[];
+        }): SearchNewslettersByViewRequest {
+            const message = new SearchNewslettersByViewRequest({});
+            if (data.session != null) {
+                message.session = Session.fromObject(data.session);
+            }
+            if (data.page != null) {
+                message.page = SearchPage.fromObject(data.page);
+            }
+            if (data.view != null) {
+                message.view = data.view;
+            }
+            if (data.categories != null) {
+                message.categories = data.categories;
+            }
+            if (data.countries != null) {
+                message.countries = data.countries;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                session?: ReturnType<typeof Session.prototype.toObject>;
+                page?: ReturnType<typeof SearchPage.prototype.toObject>;
+                view?: string;
+                categories?: string[];
+                countries?: string[];
+            } = {};
+            if (this.session != null) {
+                data.session = this.session.toObject();
+            }
+            if (this.page != null) {
+                data.page = this.page.toObject();
+            }
+            if (this.view != null) {
+                data.view = this.view;
+            }
+            if (this.categories != null) {
+                data.categories = this.categories;
+            }
+            if (this.countries != null) {
+                data.countries = this.countries;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_session)
+                writer.writeMessage(1, this.session, () => this.session.serialize(writer));
+            if (this.has_page)
+                writer.writeMessage(2, this.page, () => this.page.serialize(writer));
+            if (this.view.length)
+                writer.writeString(3, this.view);
+            if (this.categories.length)
+                writer.writeRepeatedString(4, this.categories);
+            if (this.countries.length)
+                writer.writeRepeatedString(5, this.countries);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SearchNewslettersByViewRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SearchNewslettersByViewRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.session, () => message.session = Session.deserialize(reader));
+                        break;
+                    case 2:
+                        reader.readMessage(message.page, () => message.page = SearchPage.deserialize(reader));
+                        break;
+                    case 3:
+                        message.view = reader.readString();
+                        break;
+                    case 4:
+                        pb_1.Message.addToRepeatedField(message, 4, reader.readString());
+                        break;
+                    case 5:
+                        pb_1.Message.addToRepeatedField(message, 5, reader.readString());
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): SearchNewslettersByViewRequest {
+            return SearchNewslettersByViewRequest.deserialize(bytes);
+        }
+    }
+    export class SearchNewslettersByTextRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            session?: Session;
+            page?: SearchPage;
+            text?: string;
+            categories?: string[];
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [4], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("session" in data && data.session != undefined) {
+                    this.session = data.session;
+                }
+                if ("page" in data && data.page != undefined) {
+                    this.page = data.page;
+                }
+                if ("text" in data && data.text != undefined) {
+                    this.text = data.text;
+                }
+                if ("categories" in data && data.categories != undefined) {
+                    this.categories = data.categories;
+                }
+            }
+        }
+        get session() {
+            return pb_1.Message.getWrapperField(this, Session, 1) as Session;
+        }
+        set session(value: Session) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_session() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get page() {
+            return pb_1.Message.getWrapperField(this, SearchPage, 2) as SearchPage;
+        }
+        set page(value: SearchPage) {
+            pb_1.Message.setWrapperField(this, 2, value);
+        }
+        get has_page() {
+            return pb_1.Message.getField(this, 2) != null;
+        }
+        get text() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set text(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get categories() {
+            return pb_1.Message.getFieldWithDefault(this, 4, []) as string[];
+        }
+        set categories(value: string[]) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        static fromObject(data: {
+            session?: ReturnType<typeof Session.prototype.toObject>;
+            page?: ReturnType<typeof SearchPage.prototype.toObject>;
+            text?: string;
+            categories?: string[];
+        }): SearchNewslettersByTextRequest {
+            const message = new SearchNewslettersByTextRequest({});
+            if (data.session != null) {
+                message.session = Session.fromObject(data.session);
+            }
+            if (data.page != null) {
+                message.page = SearchPage.fromObject(data.page);
+            }
+            if (data.text != null) {
+                message.text = data.text;
+            }
+            if (data.categories != null) {
+                message.categories = data.categories;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                session?: ReturnType<typeof Session.prototype.toObject>;
+                page?: ReturnType<typeof SearchPage.prototype.toObject>;
+                text?: string;
+                categories?: string[];
+            } = {};
+            if (this.session != null) {
+                data.session = this.session.toObject();
+            }
+            if (this.page != null) {
+                data.page = this.page.toObject();
+            }
+            if (this.text != null) {
+                data.text = this.text;
+            }
+            if (this.categories != null) {
+                data.categories = this.categories;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_session)
+                writer.writeMessage(1, this.session, () => this.session.serialize(writer));
+            if (this.has_page)
+                writer.writeMessage(2, this.page, () => this.page.serialize(writer));
+            if (this.text.length)
+                writer.writeString(3, this.text);
+            if (this.categories.length)
+                writer.writeRepeatedString(4, this.categories);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SearchNewslettersByTextRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SearchNewslettersByTextRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.session, () => message.session = Session.deserialize(reader));
+                        break;
+                    case 2:
+                        reader.readMessage(message.page, () => message.page = SearchPage.deserialize(reader));
+                        break;
+                    case 3:
+                        message.text = reader.readString();
+                        break;
+                    case 4:
+                        pb_1.Message.addToRepeatedField(message, 4, reader.readString());
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): SearchNewslettersByTextRequest {
+            return SearchNewslettersByTextRequest.deserialize(bytes);
+        }
+    }
+    export class SearchPageResult extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            startCursor?: string;
+            endCursor?: string;
+            hasNextPage?: boolean;
+            hasPreviousPage?: boolean;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("startCursor" in data && data.startCursor != undefined) {
+                    this.startCursor = data.startCursor;
+                }
+                if ("endCursor" in data && data.endCursor != undefined) {
+                    this.endCursor = data.endCursor;
+                }
+                if ("hasNextPage" in data && data.hasNextPage != undefined) {
+                    this.hasNextPage = data.hasNextPage;
+                }
+                if ("hasPreviousPage" in data && data.hasPreviousPage != undefined) {
+                    this.hasPreviousPage = data.hasPreviousPage;
+                }
+            }
+        }
+        get startCursor() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set startCursor(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get endCursor() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set endCursor(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get hasNextPage() {
+            return pb_1.Message.getFieldWithDefault(this, 3, false) as boolean;
+        }
+        set hasNextPage(value: boolean) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get hasPreviousPage() {
+            return pb_1.Message.getFieldWithDefault(this, 4, false) as boolean;
+        }
+        set hasPreviousPage(value: boolean) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        static fromObject(data: {
+            startCursor?: string;
+            endCursor?: string;
+            hasNextPage?: boolean;
+            hasPreviousPage?: boolean;
+        }): SearchPageResult {
+            const message = new SearchPageResult({});
+            if (data.startCursor != null) {
+                message.startCursor = data.startCursor;
+            }
+            if (data.endCursor != null) {
+                message.endCursor = data.endCursor;
+            }
+            if (data.hasNextPage != null) {
+                message.hasNextPage = data.hasNextPage;
+            }
+            if (data.hasPreviousPage != null) {
+                message.hasPreviousPage = data.hasPreviousPage;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                startCursor?: string;
+                endCursor?: string;
+                hasNextPage?: boolean;
+                hasPreviousPage?: boolean;
+            } = {};
+            if (this.startCursor != null) {
+                data.startCursor = this.startCursor;
+            }
+            if (this.endCursor != null) {
+                data.endCursor = this.endCursor;
+            }
+            if (this.hasNextPage != null) {
+                data.hasNextPage = this.hasNextPage;
+            }
+            if (this.hasPreviousPage != null) {
+                data.hasPreviousPage = this.hasPreviousPage;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.startCursor.length)
+                writer.writeString(1, this.startCursor);
+            if (this.endCursor.length)
+                writer.writeString(2, this.endCursor);
+            if (this.hasNextPage != false)
+                writer.writeBool(3, this.hasNextPage);
+            if (this.hasPreviousPage != false)
+                writer.writeBool(4, this.hasPreviousPage);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SearchPageResult {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SearchPageResult();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.startCursor = reader.readString();
+                        break;
+                    case 2:
+                        message.endCursor = reader.readString();
+                        break;
+                    case 3:
+                        message.hasNextPage = reader.readBool();
+                        break;
+                    case 4:
+                        message.hasPreviousPage = reader.readBool();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): SearchPageResult {
+            return SearchPageResult.deserialize(bytes);
+        }
+    }
+    export class NewsletterSearchPageResult extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            page?: SearchPageResult;
+            newsletters?: NewsletterList;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("page" in data && data.page != undefined) {
+                    this.page = data.page;
+                }
+                if ("newsletters" in data && data.newsletters != undefined) {
+                    this.newsletters = data.newsletters;
+                }
+            }
+        }
+        get page() {
+            return pb_1.Message.getWrapperField(this, SearchPageResult, 1) as SearchPageResult;
+        }
+        set page(value: SearchPageResult) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_page() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get newsletters() {
+            return pb_1.Message.getWrapperField(this, NewsletterList, 2) as NewsletterList;
+        }
+        set newsletters(value: NewsletterList) {
+            pb_1.Message.setWrapperField(this, 2, value);
+        }
+        get has_newsletters() {
+            return pb_1.Message.getField(this, 2) != null;
+        }
+        static fromObject(data: {
+            page?: ReturnType<typeof SearchPageResult.prototype.toObject>;
+            newsletters?: ReturnType<typeof NewsletterList.prototype.toObject>;
+        }): NewsletterSearchPageResult {
+            const message = new NewsletterSearchPageResult({});
+            if (data.page != null) {
+                message.page = SearchPageResult.fromObject(data.page);
+            }
+            if (data.newsletters != null) {
+                message.newsletters = NewsletterList.fromObject(data.newsletters);
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                page?: ReturnType<typeof SearchPageResult.prototype.toObject>;
+                newsletters?: ReturnType<typeof NewsletterList.prototype.toObject>;
+            } = {};
+            if (this.page != null) {
+                data.page = this.page.toObject();
+            }
+            if (this.newsletters != null) {
+                data.newsletters = this.newsletters.toObject();
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_page)
+                writer.writeMessage(1, this.page, () => this.page.serialize(writer));
+            if (this.has_newsletters)
+                writer.writeMessage(2, this.newsletters, () => this.newsletters.serialize(writer));
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): NewsletterSearchPageResult {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new NewsletterSearchPageResult();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.page, () => message.page = SearchPageResult.deserialize(reader));
+                        break;
+                    case 2:
+                        reader.readMessage(message.newsletters, () => message.newsletters = NewsletterList.deserialize(reader));
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): NewsletterSearchPageResult {
+            return NewsletterSearchPageResult.deserialize(bytes);
         }
     }
     export class CreateNewsletterRequest extends pb_1.Message {
@@ -4881,6 +5649,33 @@ export namespace messages {
                 responseSerialize: (message: Newsletter) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => Newsletter.deserialize(new Uint8Array(bytes))
             },
+            GetNewsletterMessagesByInvite: {
+                path: "/messages.MessageService/GetNewsletterMessagesByInvite",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: GetNewsletterMessagesByInviteRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => GetNewsletterMessagesByInviteRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: Json) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => Json.deserialize(new Uint8Array(bytes))
+            },
+            SearchNewslettersByView: {
+                path: "/messages.MessageService/SearchNewslettersByView",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: SearchNewslettersByViewRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => SearchNewslettersByViewRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: NewsletterSearchPageResult) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => NewsletterSearchPageResult.deserialize(new Uint8Array(bytes))
+            },
+            SearchNewslettersByText: {
+                path: "/messages.MessageService/SearchNewslettersByText",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: SearchNewslettersByTextRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => SearchNewslettersByTextRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: NewsletterSearchPageResult) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => NewsletterSearchPageResult.deserialize(new Uint8Array(bytes))
+            },
             CreateNewsletter: {
                 path: "/messages.MessageService/CreateNewsletter",
                 requestStream: false,
@@ -4979,6 +5774,9 @@ export namespace messages {
         abstract CheckPhones(call: grpc_1.ServerUnaryCall<CheckPhonesRequest, CheckPhonesResponse>, callback: grpc_1.sendUnaryData<CheckPhonesResponse>): void;
         abstract GetSubscribedNewsletters(call: grpc_1.ServerUnaryCall<NewsletterListRequest, NewsletterList>, callback: grpc_1.sendUnaryData<NewsletterList>): void;
         abstract GetNewsletterInfo(call: grpc_1.ServerUnaryCall<NewsletterInfoRequest, Newsletter>, callback: grpc_1.sendUnaryData<Newsletter>): void;
+        abstract GetNewsletterMessagesByInvite(call: grpc_1.ServerUnaryCall<GetNewsletterMessagesByInviteRequest, Json>, callback: grpc_1.sendUnaryData<Json>): void;
+        abstract SearchNewslettersByView(call: grpc_1.ServerUnaryCall<SearchNewslettersByViewRequest, NewsletterSearchPageResult>, callback: grpc_1.sendUnaryData<NewsletterSearchPageResult>): void;
+        abstract SearchNewslettersByText(call: grpc_1.ServerUnaryCall<SearchNewslettersByTextRequest, NewsletterSearchPageResult>, callback: grpc_1.sendUnaryData<NewsletterSearchPageResult>): void;
         abstract CreateNewsletter(call: grpc_1.ServerUnaryCall<CreateNewsletterRequest, Newsletter>, callback: grpc_1.sendUnaryData<Newsletter>): void;
         abstract NewsletterToggleMute(call: grpc_1.ServerUnaryCall<NewsletterToggleMuteRequest, Empty>, callback: grpc_1.sendUnaryData<Empty>): void;
         abstract NewsletterToggleFollow(call: grpc_1.ServerUnaryCall<NewsletterToggleFollowRequest, Empty>, callback: grpc_1.sendUnaryData<Empty>): void;
@@ -5037,6 +5835,15 @@ export namespace messages {
         };
         GetNewsletterInfo: GrpcUnaryServiceInterface<NewsletterInfoRequest, Newsletter> = (message: NewsletterInfoRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Newsletter>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Newsletter>, callback?: grpc_1.requestCallback<Newsletter>): grpc_1.ClientUnaryCall => {
             return super.GetNewsletterInfo(message, metadata, options, callback);
+        };
+        GetNewsletterMessagesByInvite: GrpcUnaryServiceInterface<GetNewsletterMessagesByInviteRequest, Json> = (message: GetNewsletterMessagesByInviteRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Json>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Json>, callback?: grpc_1.requestCallback<Json>): grpc_1.ClientUnaryCall => {
+            return super.GetNewsletterMessagesByInvite(message, metadata, options, callback);
+        };
+        SearchNewslettersByView: GrpcUnaryServiceInterface<SearchNewslettersByViewRequest, NewsletterSearchPageResult> = (message: SearchNewslettersByViewRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<NewsletterSearchPageResult>, options?: grpc_1.CallOptions | grpc_1.requestCallback<NewsletterSearchPageResult>, callback?: grpc_1.requestCallback<NewsletterSearchPageResult>): grpc_1.ClientUnaryCall => {
+            return super.SearchNewslettersByView(message, metadata, options, callback);
+        };
+        SearchNewslettersByText: GrpcUnaryServiceInterface<SearchNewslettersByTextRequest, NewsletterSearchPageResult> = (message: SearchNewslettersByTextRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<NewsletterSearchPageResult>, options?: grpc_1.CallOptions | grpc_1.requestCallback<NewsletterSearchPageResult>, callback?: grpc_1.requestCallback<NewsletterSearchPageResult>): grpc_1.ClientUnaryCall => {
+            return super.SearchNewslettersByText(message, metadata, options, callback);
         };
         CreateNewsletter: GrpcUnaryServiceInterface<CreateNewsletterRequest, Newsletter> = (message: CreateNewsletterRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Newsletter>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Newsletter>, callback?: grpc_1.requestCallback<Newsletter>): grpc_1.ClientUnaryCall => {
             return super.CreateNewsletter(message, metadata, options, callback);

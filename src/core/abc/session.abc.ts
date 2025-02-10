@@ -1,7 +1,12 @@
 import {
   Channel,
+  ChannelListResult,
+  ChannelMessage,
+  ChannelSearchByText,
+  ChannelSearchByView,
   CreateChannelRequest,
   ListChannelsQuery,
+  PreviewChannelMessages,
 } from '@waha/structures/channels.dto';
 import {
   ChatSummary,
@@ -326,22 +331,10 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public authorizeCode(code: string) {
-    throw new NotImplementedByEngineError();
-  }
-
   abstract getScreenshot(): Promise<Buffer>;
 
   public getSessionMeInfo(): MeInfo | null {
     return null;
-  }
-
-  public getCaptcha(): Promise<QR> {
-    throw new NotImplementedByEngineError();
-  }
-
-  public saveCaptcha(code: string) {
-    throw new NotImplementedByEngineError();
   }
 
   /**
@@ -537,8 +530,16 @@ export abstract class WhatsappSession {
   }
 
   protected async refreshProfilePicture(id: string) {
+    let fn: Promise<string>;
+    if (isNewsletter(id)) {
+      fn = this.channelsGetChannel(id).then(
+        (channel: Channel) => channel.picture || channel.preview,
+      );
+    } else {
+      fn = this.fetchContactProfilePicture(id);
+    }
     this.profilePictures.del(id);
-    const url = await this.fetchContactProfilePicture(id).catch((err) => {
+    const url = await fn.catch((err) => {
       this.logger.warn('Error fetching profile picture');
       this.logger.warn(err, err.stack);
       return null;
@@ -661,6 +662,25 @@ export abstract class WhatsappSession {
   /**
    * Channels methods
    */
+  public searchChannelsByView(
+    query: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public searchChannelsByText(
+    query: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async previewChannelMessages(
+    inviteCode: string,
+    query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    throw new NotImplementedByEngineError();
+  }
+
   public channelsList(query: ListChannelsQuery): Promise<Channel[]> {
     throw new NotImplementedByEngineError();
   }
@@ -771,4 +791,14 @@ export function isNewsletter(jid: string) {
 
 export function getChannelInviteLink(code: string) {
   return `https://whatsapp.com/channel/${code}`;
+}
+
+export function parseChannelInviteLink(link: string): string {
+  // https://www.whatsapp.com/channel/123 => 123
+  const code = link.split('/').pop();
+  return code;
+}
+
+export function getPublicUrlFromDirectPath(directPath: string) {
+  return `https://pps.whatsapp.net${directPath}`;
 }

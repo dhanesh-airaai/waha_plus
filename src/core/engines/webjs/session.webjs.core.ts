@@ -4,7 +4,7 @@ import {
   WhatsappSession,
 } from '@waha/core/abc/session.abc';
 import { LocalAuth } from '@waha/core/engines/webjs/LocalAuth';
-import { WebjsClient } from '@waha/core/engines/webjs/WebjsClient';
+import { WebjsClientCore } from '@waha/core/engines/webjs/WebjsClientCore';
 import {
   AvailableInPlusVersion,
   NotImplementedByEngineError,
@@ -15,9 +15,14 @@ import { splitAt } from '@waha/helpers';
 import { PairingCodeResponse } from '@waha/structures/auth.dto';
 import {
   Channel,
+  ChannelListResult,
+  ChannelMessage,
   ChannelRole,
+  ChannelSearchByText,
+  ChannelSearchByView,
   CreateChannelRequest,
   ListChannelsQuery,
+  PreviewChannelMessages,
 } from '@waha/structures/channels.dto';
 import {
   ChatSortField,
@@ -106,7 +111,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   private engineStateCheckDelayedJob: SingleDelayedJobRunner;
   private shouldRestart: boolean;
 
-  whatsapp: WebjsClient;
+  whatsapp: WebjsClientCore;
   protected qr: QR;
 
   public constructor(config) {
@@ -169,7 +174,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       rmMaxRetries: undefined,
     });
     this.addProxyConfig(clientOptions);
-    return new WebjsClient(clientOptions);
+    return new WebjsClientCore(clientOptions);
   }
 
   private restartClient() {
@@ -479,7 +484,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
   reply(request: MessageReplyRequest) {
     const options = this.getMessageOptions(request);
-    return this.whatsapp.sendMessage(request.chatId, request.text, options);
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      request.text,
+      options,
+    );
   }
 
   sendImage(request: MessageImageRequest) {
@@ -499,12 +508,16 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       name: request.title,
     });
     const options = this.getMessageOptions(request);
-    return this.whatsapp.sendMessage(request.chatId, location, options);
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      location,
+      options,
+    );
   }
 
   async forwardMessage(request: MessageForwardRequest): Promise<WAMessage> {
     const forwardMessage = this.recreateMessage(request.messageId);
-    const msg = await forwardMessage.forward(request.chatId);
+    const msg = await forwardMessage.forward(this.ensureSuffix(request.chatId));
     // Return "sent: true" for now
     // need to research how to get the data from WebJS
     // @ts-ignore
@@ -512,17 +525,23 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   async sendSeen(request: SendSeenRequest) {
-    const chat: Chat = await this.whatsapp.getChatById(request.chatId);
+    const chat: Chat = await this.whatsapp.getChatById(
+      this.ensureSuffix(request.chatId),
+    );
     await chat.sendSeen();
   }
 
   async startTyping(request: ChatRequest) {
-    const chat: Chat = await this.whatsapp.getChatById(request.chatId);
+    const chat: Chat = await this.whatsapp.getChatById(
+      this.ensureSuffix(request.chatId),
+    );
     await chat.sendStateTyping();
   }
 
   async stopTyping(request: ChatRequest) {
-    const chat: Chat = await this.whatsapp.getChatById(request.chatId);
+    const chat: Chat = await this.whatsapp.getChatById(
+      this.ensureSuffix(request.chatId),
+    );
     await chat.clearState();
   }
 
@@ -658,7 +677,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   async deleteChat(chatId) {
-    const chat = await this.whatsapp.getChatById(chatId);
+    const chat = await this.whatsapp.getChatById(this.ensureSuffix(chatId));
     return chat.delete();
   }
 
@@ -922,6 +941,25 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Channels methods
    */
+  public searchChannelsByView(
+    query: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    throw new AvailableInPlusVersion();
+  }
+
+  public searchChannelsByText(
+    query: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    throw new AvailableInPlusVersion();
+  }
+
+  public async previewChannelMessages(
+    inviteCode: string,
+    query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    throw new AvailableInPlusVersion();
+  }
+
   protected ChatToChannel(chat: WEBJSChannel): Channel {
     // @ts-ignore
     const metadata = chat.channelMetadata;
@@ -938,6 +976,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       picture: null,
       verified: metadata.verified,
       role: role,
+      subscribersCount: null,
     };
   }
 
@@ -955,6 +994,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       picture: metadata.pictureUrl,
       verified: metadata.isVerified,
       role: role,
+      subscribersCount: metadata.subscribersCount,
     };
   }
 
@@ -965,6 +1005,10 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       // @ts-ignore
       channels = channels.filter((channel) => channel.role === query.role);
     }
+
+    // Exclude GUEST, browser saves the data
+    // when we search channels or getting messages
+    channels = channels.filter((channel) => channel.role === 'GUEST');
 
     const promises = channels.map(async (channel) =>
       this.whatsapp.getProfilePicUrl(channel.id),
@@ -1211,7 +1255,10 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     this.events2.get(WAHAEvents.CALL_RECEIVED).switch(calls$);
   }
 
-  private async processIncomingMessage(message: Message, downloadMedia = true) {
+  protected async processIncomingMessage(
+    message: Message,
+    downloadMedia = true,
+  ) {
     if (downloadMedia) {
       try {
         message = await this.downloadMedia(message);
@@ -1267,7 +1314,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
   protected extractReplyTo(message: Message): ReplyToMessage | null {
     // @ts-ignore
-    const quotedMsg = message.rawData.quotedMsg;
+    const quotedMsg = message.rawData?.quotedMsg;
     if (!quotedMsg) {
       return;
     }

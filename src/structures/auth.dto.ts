@@ -35,14 +35,6 @@ export class RequestCodeRequest {
   localeCountry: string;
 }
 
-export class OTPRequest {
-  code: string;
-}
-
-export class CaptchaBody {
-  code: string;
-}
-
 export class PairingCodeResponse {
   code: string;
 }

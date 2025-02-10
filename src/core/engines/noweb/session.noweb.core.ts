@@ -48,9 +48,14 @@ import { PairingCodeResponse } from '@waha/structures/auth.dto';
 import { CallData } from '@waha/structures/calls.dto';
 import {
   Channel,
+  ChannelListResult,
+  ChannelMessage,
   ChannelRole,
+  ChannelSearchByText,
+  ChannelSearchByView,
   CreateChannelRequest,
   ListChannelsQuery,
+  PreviewChannelMessages,
 } from '@waha/structures/channels.dto';
 import {
   ChatSummary,
@@ -149,6 +154,7 @@ import {
 import {
   ensureSuffix,
   getChannelInviteLink,
+  getPublicUrlFromDirectPath,
   isNewsletter,
   WhatsappSession,
 } from '../../abc/session.abc';
@@ -1316,6 +1322,25 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   /**
    * Channels methods
    */
+  public searchChannelsByView(
+    query: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    throw new AvailableInPlusVersion();
+  }
+
+  public searchChannelsByText(
+    query: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    throw new AvailableInPlusVersion();
+  }
+
+  public async previewChannelMessages(
+    inviteCode: string,
+    query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    throw new AvailableInPlusVersion();
+  }
+
   protected toChannel(newsletter: NewsletterMetadata): Channel {
     const role =
       // @ts-ignore
@@ -1323,20 +1348,21 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       (newsletter.viewer_metadata?.view_role as ChannelRole) ||
       ChannelRole.GUEST;
     const preview = newsletter.preview
-      ? getUrlFromDirectPath(newsletter.preview)
+      ? getPublicUrlFromDirectPath(newsletter.preview)
       : null;
     const picture = newsletter.picture
-      ? getUrlFromDirectPath(newsletter.picture)
+      ? getPublicUrlFromDirectPath(newsletter.picture)
       : null;
     return {
       id: newsletter.id,
       name: newsletter.name,
       description: newsletter.description,
       invite: getChannelInviteLink(newsletter.invite),
-      preview: preview,
-      picture: picture,
+      preview: preview || picture,
+      picture: picture || preview,
       verified: newsletter.verification === 'VERIFIED',
       role: role,
+      subscribersCount: newsletter.subscribers,
     };
   }
 
@@ -1636,7 +1662,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return reaction;
   }
 
-  private async processIncomingMessage(message, downloadMedia = true) {
+  protected async processIncomingMessage(message, downloadMedia = true) {
     // if there is no text or media message
     if (!message) return;
     if (!message.message) return;

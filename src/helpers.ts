@@ -30,4 +30,11 @@ function splitAt(str: string, index) {
   return [fst.join(''), snd.join('')];
 }
 
+export function sortObjectByValues(obj: any) {
+  return Object.fromEntries(
+    // @ts-ignore
+    Object.entries(obj).sort(([, v1], [, v2]) => v2 - v1),
+  );
+}
+
 export { flipObject, parseBool, splitAt };

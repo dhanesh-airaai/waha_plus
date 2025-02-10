@@ -14,6 +14,7 @@ import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigServi
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
 import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
+import { ChannelsInfoServiceCore } from '@waha/core/services/ChannelsInfoServiceCore';
 import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
 import {
   getPinoHttpUseLevel,
@@ -148,6 +149,7 @@ const PROVIDERS = [
     provide: APP_INTERCEPTOR,
     useClass: BufferJsonReplacerInterceptor,
   },
+  ChannelsInfoServiceCore,
   DashboardConfigServiceCore,
   SwaggerConfigServiceCore,
   WebJSEngineConfigService,
