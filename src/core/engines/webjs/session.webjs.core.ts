@@ -57,6 +57,7 @@ import {
   WAHASessionStatus,
   WAMessageAck,
 } from '@waha/structures/enums.dto';
+import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import {
   CreateGroupRequest,
   GroupSortField,
@@ -455,6 +456,30 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     };
   }
 
+  /**
+   * Profile methods
+   */
+  public async setProfileName(name: string): Promise<boolean> {
+    await this.whatsapp.setPushName(name);
+    return true;
+  }
+
+  public async setProfileStatus(status: string): Promise<boolean> {
+    await this.whatsapp.setStatus(status);
+    return true;
+  }
+
+  protected setProfilePicture(file: BinaryFile | RemoteFile): Promise<boolean> {
+    throw new AvailableInPlusVersion();
+  }
+
+  protected deleteProfilePicture(): Promise<boolean> {
+    throw new AvailableInPlusVersion();
+  }
+
+  /**
+   * Other methods
+   */
   sendText(request: MessageTextRequest) {
     const options = this.getMessageOptions(request);
     return this.whatsapp.sendMessage(
@@ -1297,9 +1322,9 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       body: message.body,
       // Media
       // @ts-ignore
-      hasMedia: Boolean(message.media),
+      hasMedia: Boolean(message.hasMedia),
       // @ts-ignore
-      media: message.media,
+      media: message.media || null,
       // @ts-ignore
       mediaUrl: message.media?.url,
       // @ts-ignore

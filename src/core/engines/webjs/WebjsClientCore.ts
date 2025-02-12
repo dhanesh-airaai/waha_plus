@@ -33,6 +33,17 @@ export class WebjsClientCore extends Client {
     await this.pupPage.evaluate(LoadWAHA);
   }
 
+  async setPushName(name: string) {
+    await this.pupPage.evaluate(async (pushName) => {
+      return await window['WAHA'].WAWebSetPushnameConnAction.setPushname(
+        pushName,
+      );
+    }, name);
+    if (this.info) {
+      this.info.pushname = name;
+    }
+  }
+
   async unpair() {
     await this.pupPage.evaluate(async () => {
       if (

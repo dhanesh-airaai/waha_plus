@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TerminusModule } from '@nestjs/terminus';
 import { ChannelsController } from '@waha/api/channels.controller';
+import { ProfileController } from '@waha/api/profile.controller';
 import {
   ServerController,
   ServerDebugController,
@@ -121,6 +122,7 @@ const IMPORTS = [...IMPORTS_CORE, ...IMPORTS_MEDIA];
 export const CONTROLLERS = [
   AuthController,
   SessionsController,
+  ProfileController,
   ChattingController,
   ChatsController,
   ChannelsController,

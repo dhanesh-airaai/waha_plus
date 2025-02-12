@@ -649,6 +649,27 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   }
 
   /**
+   * Profile methods
+   */
+  public async setProfileName(name: string): Promise<boolean> {
+    await this.sock.updateProfileName(name);
+    return true;
+  }
+
+  public async setProfileStatus(status: string): Promise<boolean> {
+    await this.sock.updateProfileStatus(status);
+    return true;
+  }
+
+  protected setProfilePicture(file: BinaryFile | RemoteFile): Promise<boolean> {
+    throw new AvailableInPlusVersion();
+  }
+
+  protected deleteProfilePicture(): Promise<boolean> {
+    throw new AvailableInPlusVersion();
+  }
+
+  /**
    * Other methods
    */
   async checkNumberStatus(
@@ -1108,10 +1129,6 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   async getContacts(pagination: PaginationParams) {
     const contacts = await this.store.getContacts(pagination);
     return contacts.map(this.toWAContact);
-  }
-
-  public async getContactAbout(query: ContactQuery) {
-    throw new NotImplementedByEngineError();
   }
 
   public async fetchContactProfilePicture(id: string) {
@@ -1696,6 +1713,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     const body = this.extractBody(message.message);
     const replyTo = this.extractReplyTo(message.message);
     const ack = message.ack || message.status - 1;
+    const mediaContent = extractMediaContent(message.message);
     return Promise.resolve({
       id: id,
       timestamp: ensureNumber(message.messageTimestamp),
@@ -1705,8 +1723,8 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       to: toCusFormat(fromToParticipant.to),
       participant: toCusFormat(fromToParticipant.participant),
       // Media
-      hasMedia: Boolean(message.media),
-      media: message.media,
+      hasMedia: Boolean(mediaContent),
+      media: message.media || null,
       mediaUrl: message.media?.url,
       // @ts-ignore
       ack: ack,

@@ -323,6 +323,17 @@ function deserialize_messages_PresenceRequest(buffer_arg) {
   return gows_pb.PresenceRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_messages_ProfileNameRequest(arg) {
+  if (!(arg instanceof gows_pb.ProfileNameRequest)) {
+    throw new Error('Expected argument of type messages.ProfileNameRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_ProfileNameRequest(buffer_arg) {
+  return gows_pb.ProfileNameRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_messages_ProfilePictureRequest(arg) {
   if (!(arg instanceof gows_pb.ProfilePictureRequest)) {
     throw new Error('Expected argument of type messages.ProfilePictureRequest');
@@ -343,6 +354,17 @@ function serialize_messages_ProfilePictureResponse(arg) {
 
 function deserialize_messages_ProfilePictureResponse(buffer_arg) {
   return gows_pb.ProfilePictureResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_ProfileStatusRequest(arg) {
+  if (!(arg instanceof gows_pb.ProfileStatusRequest)) {
+    throw new Error('Expected argument of type messages.ProfileStatusRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_ProfileStatusRequest(buffer_arg) {
+  return gows_pb.ProfileStatusRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_messages_SearchNewslettersByTextRequest(arg) {
@@ -387,6 +409,17 @@ function serialize_messages_SessionStateResponse(arg) {
 
 function deserialize_messages_SessionStateResponse(buffer_arg) {
   return gows_pb.SessionStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_SetProfilePictureRequest(arg) {
+  if (!(arg instanceof gows_pb.SetProfilePictureRequest)) {
+    throw new Error('Expected argument of type messages.SetProfilePictureRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_SetProfilePictureRequest(buffer_arg) {
+  return gows_pb.SetProfilePictureRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_messages_StartSessionRequest(arg) {
@@ -486,6 +519,42 @@ startSession: {
     responseType: gows_pb.Empty,
     requestSerialize: serialize_messages_Session,
     requestDeserialize: deserialize_messages_Session,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  //
+// Profile
+//
+setProfileName: {
+    path: '/messages.MessageService/SetProfileName',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.ProfileNameRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_ProfileNameRequest,
+    requestDeserialize: deserialize_messages_ProfileNameRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  setProfileStatus: {
+    path: '/messages.MessageService/SetProfileStatus',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.ProfileStatusRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_ProfileStatusRequest,
+    requestDeserialize: deserialize_messages_ProfileStatusRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  setProfilePicture: {
+    path: '/messages.MessageService/SetProfilePicture',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.SetProfilePictureRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_SetProfilePictureRequest,
+    requestDeserialize: deserialize_messages_SetProfilePictureRequest,
     responseSerialize: serialize_messages_Empty,
     responseDeserialize: deserialize_messages_Empty,
   },

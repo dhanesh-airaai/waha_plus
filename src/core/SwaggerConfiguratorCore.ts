@@ -57,6 +57,7 @@ export class SwaggerConfiguratorCore {
       .setVersion(VERSION.version)
       .addTag('🖥️ Sessions', 'Control WhatsApp sessions (accounts)')
       .addTag('🔑 Auth', 'Authentication')
+      .addTag('🆔 Profile', 'Your profile information')
       .addTag('🖼️ Screenshot', 'Get screenshot of WhatsApp and show QR code')
       .addTag('📤 Chatting', 'Chatting methods')
       .addTag('📢 Channels', 'Channels (newsletters) methods')

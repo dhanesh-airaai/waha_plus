@@ -15,6 +15,7 @@ import {
   GetChatMessagesQuery,
 } from '@waha/structures/chats.dto';
 import { SendButtonsRequest } from '@waha/structures/chatting.buttons.dto';
+import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { WAMessage } from '@waha/structures/responses.dto';
@@ -338,6 +339,55 @@ export abstract class WhatsappSession {
   }
 
   /**
+   * Profile methods
+   */
+  public setProfileName(name: string): Promise<boolean> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public setProfileStatus(status: string): Promise<boolean> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async updateProfilePicture(
+    file: BinaryFile | RemoteFile | null,
+  ): Promise<boolean> {
+    if (file) {
+      await this.setProfilePicture(file);
+    } else {
+      await this.deleteProfilePicture();
+    }
+
+    // Refresh profile picture after update
+    setTimeout(() => {
+      this.logger.info('Refreshing my profile picture after update...');
+      this.refreshMyProfilePicture()
+        .then(() => {
+          this.logger.info('Refreshed my profile picture after update');
+        })
+        .catch((err) => {
+          this.logger.error('Error refreshing my profile picture after update');
+          this.logger.error(err, err.stack);
+        });
+    }, 3_000);
+
+    return true;
+  }
+
+  protected async refreshMyProfilePicture() {
+    const me = this.getSessionMeInfo();
+    await this.getContactProfilePicture(me.id, true);
+  }
+
+  protected setProfilePicture(file: BinaryFile | RemoteFile): Promise<boolean> {
+    throw new NotImplementedByEngineError();
+  }
+
+  protected deleteProfilePicture(): Promise<boolean> {
+    throw new NotImplementedByEngineError();
+  }
+
+  /**
    * Other methods
    */
   abstract checkNumberStatus(request: CheckNumberStatusQuery);
@@ -508,7 +558,7 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public getContactAbout(query: ContactQuery) {
+  public getContactAbout(query: ContactQuery): Promise<{ about: string }> {
     throw new NotImplementedByEngineError();
   }
 

@@ -1,7 +1,7 @@
 import { extractMessageContent, proto } from '@adiwajshing/baileys';
 
 export function extractMediaContent(
-  content: proto.IMessage | null | undefined,
+  content: any | proto.IMessage | null | undefined,
 ) {
   content = extractMessageContent(content);
   const mediaContent =

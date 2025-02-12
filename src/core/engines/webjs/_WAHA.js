@@ -11,4 +11,14 @@ exports.LoadWAHA = () => {
     const chatPromises = chats.map((chat) => window.WWebJS.getChatModel(chat));
     return await Promise.all(chatPromises);
   };
+
+  // Set push name
+  window.WAHA.WAWebSetPushnameConnAction = window.require(
+    'WAWebSetPushnameConnAction',
+  );
+
+  // Get my status
+  window.WAHA.WAWebTextStatusCollection = window.require(
+    'WAWebTextStatusCollection',
+  );
 };

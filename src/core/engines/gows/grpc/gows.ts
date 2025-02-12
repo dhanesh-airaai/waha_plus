@@ -1209,6 +1209,285 @@ export namespace messages {
             return Session.deserialize(bytes);
         }
     }
+    export class ProfileNameRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            session?: Session;
+            name?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("session" in data && data.session != undefined) {
+                    this.session = data.session;
+                }
+                if ("name" in data && data.name != undefined) {
+                    this.name = data.name;
+                }
+            }
+        }
+        get session() {
+            return pb_1.Message.getWrapperField(this, Session, 1) as Session;
+        }
+        set session(value: Session) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_session() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get name() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set name(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            session?: ReturnType<typeof Session.prototype.toObject>;
+            name?: string;
+        }): ProfileNameRequest {
+            const message = new ProfileNameRequest({});
+            if (data.session != null) {
+                message.session = Session.fromObject(data.session);
+            }
+            if (data.name != null) {
+                message.name = data.name;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                session?: ReturnType<typeof Session.prototype.toObject>;
+                name?: string;
+            } = {};
+            if (this.session != null) {
+                data.session = this.session.toObject();
+            }
+            if (this.name != null) {
+                data.name = this.name;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_session)
+                writer.writeMessage(1, this.session, () => this.session.serialize(writer));
+            if (this.name.length)
+                writer.writeString(2, this.name);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): ProfileNameRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new ProfileNameRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.session, () => message.session = Session.deserialize(reader));
+                        break;
+                    case 2:
+                        message.name = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): ProfileNameRequest {
+            return ProfileNameRequest.deserialize(bytes);
+        }
+    }
+    export class ProfileStatusRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            session?: Session;
+            status?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("session" in data && data.session != undefined) {
+                    this.session = data.session;
+                }
+                if ("status" in data && data.status != undefined) {
+                    this.status = data.status;
+                }
+            }
+        }
+        get session() {
+            return pb_1.Message.getWrapperField(this, Session, 1) as Session;
+        }
+        set session(value: Session) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_session() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get status() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set status(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            session?: ReturnType<typeof Session.prototype.toObject>;
+            status?: string;
+        }): ProfileStatusRequest {
+            const message = new ProfileStatusRequest({});
+            if (data.session != null) {
+                message.session = Session.fromObject(data.session);
+            }
+            if (data.status != null) {
+                message.status = data.status;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                session?: ReturnType<typeof Session.prototype.toObject>;
+                status?: string;
+            } = {};
+            if (this.session != null) {
+                data.session = this.session.toObject();
+            }
+            if (this.status != null) {
+                data.status = this.status;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_session)
+                writer.writeMessage(1, this.session, () => this.session.serialize(writer));
+            if (this.status.length)
+                writer.writeString(2, this.status);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): ProfileStatusRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new ProfileStatusRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.session, () => message.session = Session.deserialize(reader));
+                        break;
+                    case 2:
+                        message.status = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): ProfileStatusRequest {
+            return ProfileStatusRequest.deserialize(bytes);
+        }
+    }
+    export class SetProfilePictureRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            session?: Session;
+            picture?: Uint8Array;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("session" in data && data.session != undefined) {
+                    this.session = data.session;
+                }
+                if ("picture" in data && data.picture != undefined) {
+                    this.picture = data.picture;
+                }
+            }
+        }
+        get session() {
+            return pb_1.Message.getWrapperField(this, Session, 1) as Session;
+        }
+        set session(value: Session) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_session() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get picture() {
+            return pb_1.Message.getFieldWithDefault(this, 2, new Uint8Array(0)) as Uint8Array;
+        }
+        set picture(value: Uint8Array) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            session?: ReturnType<typeof Session.prototype.toObject>;
+            picture?: Uint8Array;
+        }): SetProfilePictureRequest {
+            const message = new SetProfilePictureRequest({});
+            if (data.session != null) {
+                message.session = Session.fromObject(data.session);
+            }
+            if (data.picture != null) {
+                message.picture = data.picture;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                session?: ReturnType<typeof Session.prototype.toObject>;
+                picture?: Uint8Array;
+            } = {};
+            if (this.session != null) {
+                data.session = this.session.toObject();
+            }
+            if (this.picture != null) {
+                data.picture = this.picture;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_session)
+                writer.writeMessage(1, this.session, () => this.session.serialize(writer));
+            if (this.picture.length)
+                writer.writeBytes(2, this.picture);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SetProfilePictureRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SetProfilePictureRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.session, () => message.session = Session.deserialize(reader));
+                        break;
+                    case 2:
+                        message.picture = reader.readBytes();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): SetProfilePictureRequest {
+            return SetProfilePictureRequest.deserialize(bytes);
+        }
+    }
     export class AudioInfo extends pb_1.Message {
         #one_of_decls: number[][] = [];
         constructor(data?: any[] | {
@@ -5559,6 +5838,33 @@ export namespace messages {
                 responseSerialize: (message: Empty) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => Empty.deserialize(new Uint8Array(bytes))
             },
+            SetProfileName: {
+                path: "/messages.MessageService/SetProfileName",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: ProfileNameRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => ProfileNameRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: Empty) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => Empty.deserialize(new Uint8Array(bytes))
+            },
+            SetProfileStatus: {
+                path: "/messages.MessageService/SetProfileStatus",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: ProfileStatusRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => ProfileStatusRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: Empty) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => Empty.deserialize(new Uint8Array(bytes))
+            },
+            SetProfilePicture: {
+                path: "/messages.MessageService/SetProfilePicture",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: SetProfilePictureRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => SetProfilePictureRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: Empty) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => Empty.deserialize(new Uint8Array(bytes))
+            },
             SendMessage: {
                 path: "/messages.MessageService/SendMessage",
                 requestStream: false,
@@ -5764,6 +6070,9 @@ export namespace messages {
         abstract GetSessionState(call: grpc_1.ServerUnaryCall<Session, SessionStateResponse>, callback: grpc_1.sendUnaryData<SessionStateResponse>): void;
         abstract RequestCode(call: grpc_1.ServerUnaryCall<PairCodeRequest, PairCodeResponse>, callback: grpc_1.sendUnaryData<PairCodeResponse>): void;
         abstract Logout(call: grpc_1.ServerUnaryCall<Session, Empty>, callback: grpc_1.sendUnaryData<Empty>): void;
+        abstract SetProfileName(call: grpc_1.ServerUnaryCall<ProfileNameRequest, Empty>, callback: grpc_1.sendUnaryData<Empty>): void;
+        abstract SetProfileStatus(call: grpc_1.ServerUnaryCall<ProfileStatusRequest, Empty>, callback: grpc_1.sendUnaryData<Empty>): void;
+        abstract SetProfilePicture(call: grpc_1.ServerUnaryCall<SetProfilePictureRequest, Empty>, callback: grpc_1.sendUnaryData<Empty>): void;
         abstract SendMessage(call: grpc_1.ServerUnaryCall<MessageRequest, MessageResponse>, callback: grpc_1.sendUnaryData<MessageResponse>): void;
         abstract SendReaction(call: grpc_1.ServerUnaryCall<MessageReaction, MessageResponse>, callback: grpc_1.sendUnaryData<MessageResponse>): void;
         abstract GetProfilePicture(call: grpc_1.ServerUnaryCall<ProfilePictureRequest, ProfilePictureResponse>, callback: grpc_1.sendUnaryData<ProfilePictureResponse>): void;
@@ -5805,6 +6114,15 @@ export namespace messages {
         };
         Logout: GrpcUnaryServiceInterface<Session, Empty> = (message: Session, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Empty>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Empty>, callback?: grpc_1.requestCallback<Empty>): grpc_1.ClientUnaryCall => {
             return super.Logout(message, metadata, options, callback);
+        };
+        SetProfileName: GrpcUnaryServiceInterface<ProfileNameRequest, Empty> = (message: ProfileNameRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Empty>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Empty>, callback?: grpc_1.requestCallback<Empty>): grpc_1.ClientUnaryCall => {
+            return super.SetProfileName(message, metadata, options, callback);
+        };
+        SetProfileStatus: GrpcUnaryServiceInterface<ProfileStatusRequest, Empty> = (message: ProfileStatusRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Empty>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Empty>, callback?: grpc_1.requestCallback<Empty>): grpc_1.ClientUnaryCall => {
+            return super.SetProfileStatus(message, metadata, options, callback);
+        };
+        SetProfilePicture: GrpcUnaryServiceInterface<SetProfilePictureRequest, Empty> = (message: SetProfilePictureRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Empty>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Empty>, callback?: grpc_1.requestCallback<Empty>): grpc_1.ClientUnaryCall => {
+            return super.SetProfilePicture(message, metadata, options, callback);
         };
         SendMessage: GrpcUnaryServiceInterface<MessageRequest, MessageResponse> = (message: MessageRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<MessageResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<MessageResponse>, callback?: grpc_1.requestCallback<MessageResponse>): grpc_1.ClientUnaryCall => {
             return super.SendMessage(message, metadata, options, callback);
