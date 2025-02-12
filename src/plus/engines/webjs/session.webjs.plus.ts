@@ -62,6 +62,23 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return new MessageMedia(file.mimetype, file.data, file.filename);
   }
 
+  /**
+   * Profile methods
+   */
+  protected async setProfilePicture(
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    const media = await this.fileToMedia(file);
+    return await this.whatsapp.setProfilePicture(media);
+  }
+
+  protected async deleteProfilePicture(): Promise<boolean> {
+    return await this.whatsapp.deleteProfilePicture();
+  }
+
+  /**
+   * Send media methods
+   */
   async sendFile(request: MessageFileRequest) {
     const media = await this.fileToMedia(request.file);
     let options = this.getMessageOptions(request);

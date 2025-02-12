@@ -32,6 +32,7 @@ import {
   VideoStatus,
   VoiceStatus,
 } from '@waha/structures/status.dto';
+import axios from 'axios';
 
 import { NowebClient } from './NowebClient';
 import { NowebAuthFactoryPlus } from './store/NowebAuthFactoryPlus';
@@ -63,6 +64,13 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return new NowebClient(this.sock);
   }
 
+  private async fetch(url: string): Promise<Buffer> {
+    // fetch url using axios
+    return axios.get(url, { responseType: 'arraybuffer' }).then((res) => {
+      return Buffer.from(res.data);
+    });
+  }
+
   protected fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
     if (!('url' in file || 'data' in file)) {
       throw new UnprocessableEntityException(
@@ -88,6 +96,38 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       };
     }
   }
+
+  /**
+   * Profile methods
+   */
+  protected async setProfilePicture(
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    let content: Buffer;
+    if ('data' in file) {
+      content = Buffer.from(file.data, 'base64');
+    } else if ('url' in file) {
+      content = await this.fetch(file.url);
+    } else {
+      throw new UnprocessableEntityException(
+        'Either file.url or file.data must be specified.',
+      );
+    }
+
+    const me = this.getSessionMeInfo();
+    await this.sock.updateProfilePicture(me.id, content);
+    return true;
+  }
+
+  protected async deleteProfilePicture(): Promise<boolean> {
+    const me = this.getSessionMeInfo();
+    await this.sock.removeProfilePicture(me.id);
+    return true;
+  }
+
+  /**
+   * Send media methods
+   */
 
   async sendImage(request: MessageImageRequest) {
     const message: any = this.fileToMessage(

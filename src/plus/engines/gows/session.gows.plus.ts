@@ -58,6 +58,34 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     });
   }
 
+  /**
+   * Profile methods
+   */
+  protected async setProfilePicture(
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    const media = await this.fileToMedia(file);
+    const request = new messages.SetProfilePictureRequest({
+      session: this.session,
+      picture: media.content,
+    });
+    const response = await promisify(this.client.SetProfilePicture)(request);
+    response.toObject();
+    return true;
+  }
+
+  protected async deleteProfilePicture(): Promise<boolean> {
+    const request = new messages.SetProfilePictureRequest({
+      session: this.session,
+    });
+    const response = await promisify(this.client.SetProfilePicture)(request);
+    response.toObject();
+    return true;
+  }
+
+  /**
+   * Send media methods
+   */
   private async sendMedia(type: messages.MediaType, request: any) {
     const jid = toJID(this.ensureSuffix(request.chatId));
     const media = await this.fileToMedia(request.file);
