@@ -23,7 +23,7 @@ export class PsqlFilesController {
     private logger: PinoLogger,
   ) {
     this.storages = new NodeCache({
-      stdTTL: 10 * 60, // 10 minutes
+      stdTTL: 60, // 1 minute
       useClones: false,
     });
     this.storages.on('del', async (key, value) => {
