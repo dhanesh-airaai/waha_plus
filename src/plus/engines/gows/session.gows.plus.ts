@@ -28,7 +28,10 @@ import {
   VoiceStatus,
 } from '@waha/structures/status.dto';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import { promisify } from 'util';
+
+axiosRetry(axios, { retries: 3 });
 
 export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   protected authFactory = new GowsAuthFactoryPlus();

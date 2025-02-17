@@ -33,6 +33,9 @@ import {
   VoiceStatus,
 } from '@waha/structures/status.dto';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
+
+axiosRetry(axios, { retries: 3 });
 
 import { NowebClient } from './NowebClient';
 import { NowebAuthFactoryPlus } from './store/NowebAuthFactoryPlus';
