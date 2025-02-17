@@ -3,6 +3,12 @@ import {
   getChannelInviteLink,
   WhatsappSession,
 } from '@waha/core/abc/session.abc';
+import {
+  ToGroupV2JoinEvent,
+  ToGroupV2LeaveEvent,
+  ToGroupV2ParticipantsEvent,
+  ToGroupV2UpdateEvent,
+} from '@waha/core/engines/webjs/groups.webjs';
 import { LocalAuth } from '@waha/core/engines/webjs/LocalAuth';
 import { WebjsClientCore } from '@waha/core/engines/webjs/WebjsClientCore';
 import {
@@ -78,9 +84,9 @@ import { PaginatorInMemory } from '@waha/utils/Paginator';
 import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import * as lodash from 'lodash';
-import { fromEvent, merge, mergeMap, Observable } from 'rxjs';
+import { filter, fromEvent, merge, mergeMap, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import WAWebJS, {
+import {
   Call,
   Channel as WEBJSChannel,
   Chat,
@@ -88,6 +94,7 @@ import WAWebJS, {
   Contact,
   Events,
   GroupChat,
+  GroupNotification,
   Label as WEBJSLabel,
   Location,
   Message,
@@ -1233,10 +1240,52 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     //
     // Groups
     //
-    const groupJoin$ = fromEvent(this.whatsapp, Events.GROUP_JOIN);
-    this.events2.get(WAHAEvents.GROUP_JOIN).switch(groupJoin$);
-    const groupLeave$ = fromEvent(this.whatsapp, Events.GROUP_LEAVE);
-    this.events2.get(WAHAEvents.GROUP_LEAVE).switch(groupLeave$);
+    const groupJoin$ = fromEvent<GroupNotification>(
+      this.whatsapp,
+      Events.GROUP_JOIN,
+    );
+    this.events2.get(WAHAEvents.GROUP_JOIN).switch(groupJoin$); // v1
+    const groupV2Join$ = groupJoin$.pipe(
+      mergeMap((evt) =>
+        ToGroupV2JoinEvent(this.whatsapp, this.getSessionMeInfo().id, evt),
+      ),
+      filter(Boolean),
+    );
+    this.events2.get(WAHAEvents.GROUP_V2_JOIN).switch(groupV2Join$);
+
+    const groupLeave$ = fromEvent<GroupNotification>(
+      this.whatsapp,
+      Events.GROUP_LEAVE,
+    );
+    this.events2.get(WAHAEvents.GROUP_LEAVE).switch(groupLeave$); // v1
+    const groupV2Leave$ = groupLeave$.pipe(
+      map((evt) => ToGroupV2LeaveEvent(this.getSessionMeInfo().id, evt)),
+      filter(Boolean),
+    );
+    this.events2.get(WAHAEvents.GROUP_V2_LEAVE).switch(groupV2Leave$);
+
+    const groupAdminChanged$ = fromEvent(
+      this.whatsapp,
+      Events.GROUP_ADMIN_CHANGED,
+    );
+    const groupV2Participants = merge(
+      groupJoin$,
+      groupLeave$,
+      groupAdminChanged$,
+    ).pipe(map(ToGroupV2ParticipantsEvent), filter(Boolean));
+    this.events2
+      .get(WAHAEvents.GROUP_V2_PARTICIPANTS)
+      .switch(groupV2Participants);
+
+    const groupUpdate$ = fromEvent<GroupNotification>(
+      this.whatsapp,
+      Events.GROUP_UPDATE,
+    );
+    const groupV2Update$ = groupUpdate$.pipe(
+      mergeMap((evt) => ToGroupV2UpdateEvent(this.whatsapp, evt)),
+      filter(Boolean),
+    );
+    this.events2.get(WAHAEvents.GROUP_V2_UPDATE).switch(groupV2Update$);
 
     //
     // Chats

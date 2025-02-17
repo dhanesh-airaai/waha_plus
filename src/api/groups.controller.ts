@@ -18,7 +18,7 @@ import {
 } from '@waha/nestjs/params/SessionApiParam';
 
 import { SessionManager } from '../core/abc/manager.abc';
-import { WhatsappSession } from '../core/abc/session.abc';
+import { parseGroupInviteLink, WhatsappSession } from '../core/abc/session.abc';
 import {
   CreateGroupRequest,
   DescriptionRequest,
@@ -53,8 +53,7 @@ export class GroupsController {
     @WorkingSessionParam session: WhatsappSession,
     @Query() query: JoinGroupRequest,
   ): Promise<any> {
-    // https://chat.whatsapp.com/123 => 123
-    const code = query.code.split('/').pop();
+    const code = parseGroupInviteLink(query.code);
     return session.joinInfoGroup(code);
   }
 
@@ -65,8 +64,7 @@ export class GroupsController {
     @WorkingSessionParam session: WhatsappSession,
     @Body() request: JoinGroupRequest,
   ): Promise<JoinGroupResponse> {
-    // https://chat.whatsapp.com/123 => 123
-    const code = request.code.split('/').pop();
+    const code = parseGroupInviteLink(request.code);
     const id = await session.joinGroup(code);
     return { id: id };
   }

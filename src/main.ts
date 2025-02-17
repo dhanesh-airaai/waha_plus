@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
+import { WAHA_WEBHOOKS } from '@waha/structures/webhooks';
 import {
   getNestJSLogLevels,
   getPinoLogLevel,
@@ -15,7 +16,6 @@ import { WhatsappConfigService } from './config.service';
 import { AppModuleCore } from './core/app.module.core';
 import { SwaggerConfiguratorCore } from './core/SwaggerConfiguratorCore';
 import { AllExceptionsFilter } from './nestjs/AllExceptionsFilter';
-import { WAHA_WEBHOOKS } from './structures/webhooks.dto';
 import { getWAHAVersion, VERSION, WAHAVersion } from './version';
 
 const logger: Logger = pino({
@@ -23,12 +23,22 @@ const logger: Logger = pino({
   transport: getPinoTransport(),
 }).child({ name: 'Bootstrap' });
 
-logger.info('NODE - Catching unhandled rejection enabled');
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // @ts-ignore
-  logger.error(reason.stack);
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught Exception:', err);
+  if (err instanceof Error) {
+    logger.error(err.stack);
+  }
 });
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise);
+  if (reason instanceof Error) {
+    logger.error(reason.stack);
+  } else {
+    logger.error('Unhandled rejection reason:', reason);
+  }
+});
+logger.info('NODE - Catching unhandled rejections and exceptions enabled');
+
 process.on('SIGINT', () => {
   logger.info('SIGINT received');
 });

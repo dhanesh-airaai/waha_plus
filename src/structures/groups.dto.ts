@@ -88,3 +88,69 @@ export class GroupsPaginationParams extends PaginationParams {
   @IsEnum(GroupSortField)
   sortBy?: string;
 }
+
+export enum GroupParticipantRole {
+  LEFT = 'left',
+  PARTICIPANT = 'participant',
+  ADMIN = 'admin',
+  SUPERADMIN = 'superadmin',
+}
+
+export class GroupParticipant {
+  @ApiProperty({
+    example: '123456789@c.us',
+  })
+  id: string;
+
+  @ApiProperty({
+    example: GroupParticipantRole.PARTICIPANT,
+  })
+  role: GroupParticipantRole;
+}
+
+export class GroupId {
+  @ApiProperty({
+    example: '123456789@g.us',
+  })
+  id: string;
+}
+
+export class GroupInfo {
+  @ApiProperty({
+    example: '123456789@g.us',
+  })
+  id: string;
+
+  @ApiProperty({
+    example: 'Group Name',
+  })
+  subject: string;
+
+  @ApiProperty({
+    example: 'Group Description',
+  })
+  description: string;
+
+  participants: GroupParticipant[];
+
+  @ApiProperty({
+    description: 'Invite URL',
+    example: 'https://chat.whatsapp.com/1234567890abcdef',
+  })
+  invite?: string;
+
+  @ApiProperty({
+    description: 'Members can add new members',
+  })
+  membersCanAddNewMember: boolean;
+
+  @ApiProperty({
+    description: 'Members can send messages to the group',
+  })
+  membersCanSendMessages: boolean;
+
+  @ApiProperty({
+    description: 'Admin approval required for new members',
+  })
+  newMembersApprovalRequired: boolean;
+}

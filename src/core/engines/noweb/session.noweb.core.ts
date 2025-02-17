@@ -40,6 +40,12 @@ import { MessageUserReceiptUpdate } from '@adiwajshing/baileys/lib/Types/Message
 import { isLidUser } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
+import {
+  ToGroupV2JoinEvent,
+  ToGroupV2LeaveEvent,
+  ToGroupV2Participants,
+  ToGroupV2UpdateEvent,
+} from '@waha/core/engines/noweb/groups.noweb';
 import { sendButtonMessage } from '@waha/core/engines/noweb/noweb.buttons';
 import { NowebInMemoryStore } from '@waha/core/engines/noweb/store/NowebInMemoryStore';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
@@ -1512,12 +1518,51 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.events2
       .get(WAHAEvents.STATE_CHANGE)
       .switch(fromEvent(this.sock.ev, 'connection.update'));
-    this.events2.get(WAHAEvents.GROUP_JOIN).switch(
+
+    const groupsUpsert$: Observable<GroupMetadata> = fromEvent(
+      this.sock.ev,
+      'groups.upsert',
+    ).pipe(
       // @ts-ignore
-      fromEvent<GroupMetadata[]>(this.sock.ev, 'groups.upsert').pipe(
-        mergeAll(),
-      ),
+      mergeAll(),
     );
+    const groupsUpdate$: Observable<Partial<GroupMetadata>> = fromEvent(
+      this.sock.ev,
+      'groups.update',
+    ).pipe(
+      // @ts-ignore
+      mergeAll(),
+    );
+    const groupsParticipantsUpdate$: Observable<any> = fromEvent(
+      this.sock.ev,
+      'group-participants.update',
+    );
+
+    this.events2.get(WAHAEvents.GROUP_JOIN).switch(groupsUpsert$);
+
+    const groupV2Join$ = groupsUpsert$.pipe(
+      map((group) => ToGroupV2JoinEvent(group)),
+    );
+    this.events2.get(WAHAEvents.GROUP_V2_JOIN).switch(groupV2Join$);
+
+    const groupV2Update$ = merge(groupsUpdate$).pipe(map(ToGroupV2UpdateEvent));
+    this.events2.get(WAHAEvents.GROUP_V2_UPDATE).switch(groupV2Update$);
+
+    const groupV2Participants$ = groupsParticipantsUpdate$.pipe(
+      map(ToGroupV2Participants),
+    );
+    this.events2
+      .get(WAHAEvents.GROUP_V2_PARTICIPANTS)
+      .switch(groupV2Participants$);
+
+    const groupV2Leave$ = groupsParticipantsUpdate$.pipe(
+      map((group) =>
+        ToGroupV2LeaveEvent(this.sock?.authState?.creds?.me, group),
+      ),
+      filter(Boolean),
+    );
+    this.events2.get(WAHAEvents.GROUP_V2_LEAVE).switch(groupV2Leave$);
+
     this.events2
       .get(WAHAEvents.PRESENCE_UPDATE)
       .switch(

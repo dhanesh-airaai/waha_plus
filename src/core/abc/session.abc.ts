@@ -839,6 +839,18 @@ export function isNewsletter(jid: string) {
   return jid.endsWith('@newsletter');
 }
 
+export function getGroupInviteLink(code: string) {
+  if (code.startsWith('https://')) {
+    return code;
+  }
+  return `https://chat.whatsapp.com/${code}`;
+}
+
+export function parseGroupInviteLink(link: string) {
+  // https://chat.whatsapp.com/123 => 123
+  return link.split('/').pop();
+}
+
 export function getChannelInviteLink(code: string) {
   return `https://whatsapp.com/channel/${code}`;
 }

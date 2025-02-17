@@ -138,6 +138,7 @@ export class SwaggerConfiguratorCore {
       webhooks[event] = {
         post: {
           summary: eventMetadata.description,
+          deprecated: eventMetadata.deprecated || false,
           requestBody: {
             content: {
               'application/json': {

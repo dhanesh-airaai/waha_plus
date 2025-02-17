@@ -21,10 +21,7 @@ import {
   toCusFormat,
   toJID,
 } from '@waha/core/engines/noweb/session.noweb.core';
-import {
-  AvailableInPlusVersion,
-  NotImplementedByEngineError,
-} from '@waha/core/exceptions';
+import { AvailableInPlusVersion } from '@waha/core/exceptions';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
 import {
@@ -87,6 +84,12 @@ import { promisify } from 'util';
 import * as gows from './types';
 import MessageServiceClient = messages.MessageServiceClient;
 import {
+  ToGroupV2JoinEvent,
+  ToGroupV2LeaveEvent,
+  ToGroupV2ParticipantsEvents,
+  ToGroupV2UpdateEvent,
+} from '@waha/core/engines/gows/groups.gows';
+import {
   optional,
   parseJson,
   parseJsonList,
@@ -116,6 +119,9 @@ enum WhatsMeowEvent {
   CHAT_PRESENCE = 'events.ChatPresence',
   PUSH_NAME_SETTING = 'events.PushNameSetting',
   LOGGED_OUT = 'events.LoggedOut',
+  // Groups
+  GROUP_INFO = 'events.GroupInfo',
+  JOINED_GROUP = 'events.JoinedGroup',
 }
 
 const gRPCClientConfig = {
@@ -354,6 +360,34 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       map((event) => this.toWahaPresences(event.From || event.Chat, [event])),
     );
     this.events2.get(WAHAEvents.PRESENCE_UPDATE).switch(presenceUpdates$);
+    //
+    // Group Events
+    //
+    const joinedGroup$ = all$.pipe(onlyEvent(WhatsMeowEvent.JOINED_GROUP));
+    const groupV2Join$ = joinedGroup$.pipe(map(ToGroupV2JoinEvent));
+    this.events2.get(WAHAEvents.GROUP_V2_JOIN).switch(groupV2Join$);
+
+    const groupInfo$ = all$.pipe(onlyEvent(WhatsMeowEvent.GROUP_INFO));
+
+    const groupV2Leave$ = groupInfo$.pipe(
+      map((event) => ToGroupV2LeaveEvent(this.me, event)),
+      filter(Boolean),
+    );
+    this.events2.get(WAHAEvents.GROUP_V2_LEAVE).switch(groupV2Leave$);
+
+    const groupV2Participants$ = groupInfo$.pipe(
+      map(ToGroupV2ParticipantsEvents),
+      mergeMap((events) => events),
+    );
+    this.events2
+      .get(WAHAEvents.GROUP_V2_PARTICIPANTS)
+      .switch(groupV2Participants$);
+
+    const groupV2Update$ = groupInfo$.pipe(
+      map(ToGroupV2UpdateEvent),
+      filter(Boolean),
+    );
+    this.events2.get(WAHAEvents.GROUP_V2_UPDATE).switch(groupV2Update$);
   }
 
   async fetchContactProfilePicture(id: string): Promise<string> {
