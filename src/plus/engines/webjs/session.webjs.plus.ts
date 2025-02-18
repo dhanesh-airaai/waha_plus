@@ -27,7 +27,7 @@ import {
   VideoStatus,
   VoiceStatus,
 } from '@waha/structures/status.dto';
-import { MessageMedia } from 'whatsapp-web.js';
+import { GroupChat, MessageMedia } from 'whatsapp-web.js';
 
 import { WebJSAuthFactory } from './WebJSAuthFactory';
 
@@ -74,6 +74,23 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
 
   protected async deleteProfilePicture(): Promise<boolean> {
     return await this.whatsapp.deleteProfilePicture();
+  }
+
+  /**
+   * Groups methods
+   */
+  protected async setGroupPicture(
+    id: string,
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    const media = await this.fileToMedia(file);
+    const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
+    return await groupChat.setPicture(media);
+  }
+
+  protected async deleteGroupPicture(id: string): Promise<boolean> {
+    const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
+    return await groupChat.deletePicture();
   }
 
   /**

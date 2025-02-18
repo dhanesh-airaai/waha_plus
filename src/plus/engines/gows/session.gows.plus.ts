@@ -1,4 +1,5 @@
 import { getAudioDuration, getAudioWaveform } from '@adiwajshing/baileys';
+import { UnprocessableEntityException } from '@nestjs/common';
 import { Jid } from '@waha/core/engines/const';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
 import { parseJson } from '@waha/core/engines/gows/helpers';
@@ -82,6 +83,34 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
       session: this.session,
     });
     const response = await promisify(this.client.SetProfilePicture)(request);
+    response.toObject();
+    return true;
+  }
+
+  /**
+   * Groups methods
+   */
+  protected async setGroupPicture(
+    id: string,
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    const media = await this.fileToMedia(file);
+    const request = new messages.SetPictureRequest({
+      session: this.session,
+      jid: id,
+      picture: media.content,
+    });
+    const response = await promisify(this.client.SetGroupPicture)(request);
+    response.toObject();
+    return true;
+  }
+
+  protected async deleteGroupPicture(id: string): Promise<boolean> {
+    const request = new messages.SetPictureRequest({
+      session: this.session,
+      jid: id,
+    });
+    const response = await promisify(this.client.SetGroupPicture)(request);
     response.toObject();
     return true;
   }

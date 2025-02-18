@@ -35,10 +35,10 @@ import {
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
-axiosRetry(axios, { retries: 3 });
-
 import { NowebClient } from './NowebClient';
 import { NowebAuthFactoryPlus } from './store/NowebAuthFactoryPlus';
+
+axiosRetry(axios, { retries: 3 });
 
 export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   authFactory = new NowebAuthFactoryPlus();
@@ -100,12 +100,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     }
   }
 
-  /**
-   * Profile methods
-   */
-  protected async setProfilePicture(
-    file: BinaryFile | RemoteFile,
-  ): Promise<boolean> {
+  private async fileToBuffer(file: BinaryFile | RemoteFile): Promise<Buffer> {
     let content: Buffer;
     if ('data' in file) {
       content = Buffer.from(file.data, 'base64');
@@ -116,7 +111,16 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
         'Either file.url or file.data must be specified.',
       );
     }
+    return content;
+  }
 
+  /**
+   * Profile methods
+   */
+  protected async setProfilePicture(
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    const content: Buffer = await this.fileToBuffer(file);
     const me = this.getSessionMeInfo();
     await this.sock.updateProfilePicture(me.id, content);
     return true;
@@ -125,6 +129,23 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   protected async deleteProfilePicture(): Promise<boolean> {
     const me = this.getSessionMeInfo();
     await this.sock.removeProfilePicture(me.id);
+    return true;
+  }
+
+  /**
+   * Groups methods
+   */
+  protected async setGroupPicture(
+    id: string,
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    const content: Buffer = await this.fileToBuffer(file);
+    await this.sock.updateProfilePicture(id, content);
+    return true;
+  }
+
+  protected async deleteGroupPicture(id: string): Promise<boolean> {
+    await this.sock.removeProfilePicture(id);
     return true;
   }
 
