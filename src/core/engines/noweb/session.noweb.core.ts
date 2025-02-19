@@ -86,6 +86,7 @@ import {
   PollVote,
   PollVotePayload,
   WAMessageAckBody,
+  WAMessageRevokedBody,
 } from '@waha/structures/webhooks.dto';
 import { LoggerBuilder } from '@waha/utils/logging';
 import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
@@ -1475,6 +1476,24 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.events2.get(WAHAEvents.MESSAGE).switch(messagesFromOthers$);
     this.events2.get(WAHAEvents.MESSAGE_ANY).switch(messagesFromAll$);
 
+    const messagesRevoked$ = messagesUpsert$.pipe(
+      // @ts-ignore
+      filter(
+        (message) =>
+          message.message.protocolMessage?.type ===
+          proto.Message.ProtocolMessage.Type.REVOKE,
+      ),
+      mergeMap(async (message): Promise<WAMessageRevokedBody> => {
+        const afterMessage = await this.toWAMessage(message);
+        return {
+          after: afterMessage,
+          before: null,
+          _data: message,
+        };
+      }),
+    );
+    this.events2.get(WAHAEvents.MESSAGE_REVOKED).switch(messagesRevoked$);
+
     //
     // Message Reactions
     //
@@ -1732,6 +1751,12 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     if (message.message.reactionMessage) return;
     // Ignore poll votes, we have dedicated handler for that
     if (message.message.pollUpdateMessage) return;
+    // Ignore revoke, we have a dedicated handler for that
+    if (
+      message.message.protocolMessage?.type ===
+      proto.Message.ProtocolMessage.Type.REVOKE
+    )
+      return;
 
     if (downloadMedia) {
       try {
@@ -1764,7 +1789,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       timestamp: ensureNumber(message.messageTimestamp),
       from: toCusFormat(fromToParticipant.from),
       fromMe: message.key.fromMe,
-      body: body,
+      body: body || null,
       to: toCusFormat(fromToParticipant.to),
       participant: toCusFormat(fromToParticipant.participant),
       // Media
@@ -1786,21 +1811,28 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     if (!message) {
       return null;
     }
-    let body = message.conversation;
+    const content = extractMessageContent(message);
+    if (!content) {
+      return null;
+    }
+    let body = content.conversation || null;
     if (!body) {
       // Some of the messages have no conversation, but instead have text in extendedTextMessage
       // https://github.com/devlikeapro/waha/issues/90
-      body = message.extendedTextMessage?.text;
+      body = content.extendedTextMessage?.text;
     }
     if (!body) {
       // Populate from caption
-      const mediaContent = extractMediaContent(message);
+      const mediaContent = extractMediaContent(content);
       // @ts-ignore - AudioMessage doesn't have caption field
       body = mediaContent?.caption;
     }
     // Response for buttons
     if (!body) {
-      body = message.templateButtonReplyMessage?.selectedDisplayText;
+      body = content.templateButtonReplyMessage?.selectedDisplayText;
+    }
+    if (!body) {
+      body = content.buttonsResponseMessage?.selectedDisplayText;
     }
     return body;
   }

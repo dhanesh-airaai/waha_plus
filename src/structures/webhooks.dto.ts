@@ -91,6 +91,7 @@ export class PollVotePayload {
 export class WAMessageRevokedBody {
   after?: WAMessage;
   before?: WAMessage;
+  _data?: any;
 }
 
 export class WASessionStatusBody {
