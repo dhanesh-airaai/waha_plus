@@ -5,13 +5,22 @@ import {
 } from '@waha/core/engines/noweb/utils';
 import { PsqlKVRepository } from '@waha/plus/storage/psql/PsqlKVRepository';
 
+// PostgreSQL TEXT or JSONB columns do not allow null bytes (c-style strings)
+const invalidCharsRegex = /\u0000/g;
+
+export function sanitizeJsonUnicode(str: string): string {
+  return str.replace(invalidCharsRegex, '');
+}
+
 /**
  * Key value repository with extra metadata
  * Add support for converting protobuf to plain object
  */
 export class NOWEBPsqlKVRepository<Entity> extends PsqlKVRepository<Entity> {
   protected stringify(data: any): string {
-    return JSON.stringify(data, BufferJSON.replacer);
+    let value = JSON.stringify(data, BufferJSON.replacer);
+    value = sanitizeJsonUnicode(value);
+    return value;
   }
 
   protected parse(row: any): any {
