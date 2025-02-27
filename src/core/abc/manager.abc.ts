@@ -46,8 +46,10 @@ export abstract class SessionManager
   protected sessionWorkerRepository: ISessionWorkerRepository;
   private lock: any;
 
+  WAIT_SESSION_RUNNING_INTERVAL = 500;
+  WAIT_SESSION_RUNNING_TIMEOUT = 5_000;
   WAIT_STATUS_INTERVAL = 500;
-  WAIT_STATUS_TIMEOUT = 5_000;
+  WAIT_STATUS_TIMEOUT = 10_000;
   LOCK_TIMEOUT = 10_000;
 
   protected constructor(
@@ -148,6 +150,31 @@ export abstract class SessionManager
     sessionName: string,
     expected: WAHASessionStatus[],
   ): Promise<WhatsappSession> {
+    const running = await waitUntil(
+      async () => this.isRunning(sessionName),
+      this.WAIT_SESSION_RUNNING_INTERVAL,
+      this.WAIT_SESSION_RUNNING_TIMEOUT,
+    );
+
+    if (!running) {
+      const exists = await this.exists(sessionName);
+      if (!exists) {
+        throw new UnprocessableEntityException({
+          error: `Session "${sessionName}" does not exist`,
+          session: sessionName,
+        });
+      }
+
+      const msg = {
+        error:
+          'Session status is not as expected. Try again later or restart the session',
+        session: sessionName,
+        status: 'STOPPED',
+        expected: expected,
+      };
+      throw new UnprocessableEntityException(msg);
+    }
+
     const session = this.getSession(sessionName);
     const valid = await waitUntil(
       async () => expected.includes(session.status),

@@ -894,6 +894,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return paginator.apply(groups);
   }
 
+  protected removeGroupsFieldParticipant(group: any) {
+    delete group.groupMetadata?.participants;
+    delete group.groupMetadata?.pendingParticipants;
+    delete group.groupMetadata?.pastParticipants;
+    delete group.groupMetadata?.membershipApprovalRequests;
+  }
+
   public async refreshGroups(): Promise<boolean> {
     return true;
   }

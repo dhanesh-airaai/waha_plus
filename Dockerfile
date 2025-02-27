@@ -66,7 +66,7 @@ RUN \
     elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; \
     else echo "Unsupported architecture: $ARCH" && exit 1; fi && \
     mkdir -p /go/gows/bin && \
-    wget -O /go/gows/bin/gows https://github.com/${GOWS_GITHUB_REPO}/releases/download/v.${GOWS_SHA}/gows-${ARCH} && \
+    wget -O /go/gows/bin/gows https://github.com/${GOWS_GITHUB_REPO}/releases/download/${GOWS_SHA}/gows-${ARCH} && \
     chmod +x /go/gows/bin/gows
 
 

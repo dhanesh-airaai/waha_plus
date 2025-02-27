@@ -53,7 +53,7 @@ function cleanDirectory(directory, suffix) {
 // Helper function to download files
 async function downloadFiles(repo, ref, directory) {
   for (const file of PROTO_FILES) {
-    const url = `https://github.com/${repo}/releases/download/v.${ref}/${file}`;
+    const url = `https://github.com/${repo}/releases/download/${ref}/${file}`;
     const filePath = path.join(directory, file);
     try {
       const response = await axios.get(url, { responseType: 'arraybuffer' });

@@ -49,84 +49,6 @@ export class ChannelsController {
     private channelsInfoService: ChannelsInfoServiceCore,
   ) {}
 
-  @Post('/search/by-view')
-  @HttpCode(HttpStatus.OK)
-  @SessionApiParam
-  @UsePipes(new WAHAValidationPipe())
-  @ApiOperation({ summary: 'Search for channels (by view)' })
-  async searchByView(
-    @WorkingSessionParam session: WhatsappSession,
-    @Body() request: ChannelSearchByView,
-  ): Promise<ChannelListResult> {
-    return session.searchChannelsByView(request);
-  }
-
-  @Post('/search/by-text')
-  @HttpCode(HttpStatus.OK)
-  @SessionApiParam
-  @UsePipes(new WAHAValidationPipe())
-  @ApiOperation({ summary: 'Search for channels (by text)' })
-  async searchByText(
-    @WorkingSessionParam session: WhatsappSession,
-    @Body() request: ChannelSearchByText,
-  ): Promise<ChannelListResult> {
-    return session.searchChannelsByText(request);
-  }
-
-  @Get('/search/views')
-  @SessionApiParam
-  @ApiOperation({ summary: 'Get list of views for channel search' })
-  getSearchViews(): Promise<ChannelView[]> {
-    return this.channelsInfoService.getViews();
-  }
-
-  @Get('/search/countries')
-  @SessionApiParam
-  @ApiOperation({ summary: 'Get list of countries for channel search' })
-  getSearchCountries(): Promise<ChannelCountry[]> {
-    return this.channelsInfoService.getCountries();
-  }
-
-  @Get('/search/categories')
-  @SessionApiParam
-  @ApiOperation({ summary: 'Get list of categories for channel search' })
-  getSearchCategories(): Promise<ChannelCategory[]> {
-    return this.channelsInfoService.getCategories();
-  }
-
-  @Get(':id/messages/preview')
-  @SessionApiParam
-  @UsePipes(new WAHAValidationPipe())
-  @ApiParam({
-    name: 'id',
-    description: 'Channel id or invite code',
-    required: true,
-    type: 'string',
-    schema: {
-      default: '0029Va4K0PZ5a245NkngBA2M',
-    },
-  })
-  @ApiOperation({
-    summary: 'Preview channel messages',
-    description:
-      'You can use either ' +
-      'invite code (https://www.whatsapp.com/channel/123) or (123)' +
-      'OR' +
-      'Channel ID (123@newsletter).',
-  })
-  async previewChannelMessages(
-    @WorkingSessionParam session: WhatsappSession,
-    @Param('id') code: string,
-    @Query() query: PreviewChannelMessages,
-  ): Promise<ChannelMessage[]> {
-    if (isNewsletter(code)) {
-      const channel = await session.channelsGetChannel(code);
-      code = parseChannelInviteLink(channel.invite);
-    }
-    const inviteCode = parseChannelInviteLink(code);
-    return session.previewChannelMessages(inviteCode, query);
-  }
-
   @Get('')
   @SessionApiParam
   @ApiOperation({ summary: 'Get list of know channels' })
@@ -179,6 +101,39 @@ export class ChannelsController {
     }
   }
 
+  @Get(':id/messages/preview')
+  @SessionApiParam
+  @UsePipes(new WAHAValidationPipe())
+  @ApiParam({
+    name: 'id',
+    description: 'Channel id or invite code',
+    required: true,
+    type: 'string',
+    schema: {
+      default: '0029Va4K0PZ5a245NkngBA2M',
+    },
+  })
+  @ApiOperation({
+    summary: 'Preview channel messages',
+    description:
+      'You can use either ' +
+      'invite code (https://www.whatsapp.com/channel/123) or (123)' +
+      'OR' +
+      'Channel ID (123@newsletter).',
+  })
+  async previewChannelMessages(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') code: string,
+    @Query() query: PreviewChannelMessages,
+  ): Promise<ChannelMessage[]> {
+    if (isNewsletter(code)) {
+      const channel = await session.channelsGetChannel(code);
+      code = parseChannelInviteLink(channel.invite);
+    }
+    const inviteCode = parseChannelInviteLink(code);
+    return session.previewChannelMessages(inviteCode, query);
+  }
+
   @Post(':id/follow')
   @SessionApiParam
   @NewsletterIdApiParam
@@ -221,5 +176,50 @@ export class ChannelsController {
     @Param('id') id: string,
   ): Promise<void> {
     return session.channelsUnmuteChannel(id);
+  }
+
+  @Post('/search/by-view')
+  @HttpCode(HttpStatus.OK)
+  @SessionApiParam
+  @UsePipes(new WAHAValidationPipe())
+  @ApiOperation({ summary: 'Search for channels (by view)' })
+  async searchByView(
+    @WorkingSessionParam session: WhatsappSession,
+    @Body() request: ChannelSearchByView,
+  ): Promise<ChannelListResult> {
+    return session.searchChannelsByView(request);
+  }
+
+  @Post('/search/by-text')
+  @HttpCode(HttpStatus.OK)
+  @SessionApiParam
+  @UsePipes(new WAHAValidationPipe())
+  @ApiOperation({ summary: 'Search for channels (by text)' })
+  async searchByText(
+    @WorkingSessionParam session: WhatsappSession,
+    @Body() request: ChannelSearchByText,
+  ): Promise<ChannelListResult> {
+    return session.searchChannelsByText(request);
+  }
+
+  @Get('/search/views')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get list of views for channel search' })
+  getSearchViews(): Promise<ChannelView[]> {
+    return this.channelsInfoService.getViews();
+  }
+
+  @Get('/search/countries')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get list of countries for channel search' })
+  getSearchCountries(): Promise<ChannelCountry[]> {
+    return this.channelsInfoService.getCountries();
+  }
+
+  @Get('/search/categories')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get list of categories for channel search' })
+  getSearchCategories(): Promise<ChannelCategory[]> {
+    return this.channelsInfoService.getCategories();
   }
 }

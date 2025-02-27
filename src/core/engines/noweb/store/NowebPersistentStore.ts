@@ -269,6 +269,9 @@ export class NowebPersistentStore implements INowebStore {
     if (!group) {
       group = { id: id, participants: [] } as GroupMetadata;
     }
+    if (!group.participants) {
+      group.participants = [];
+    }
 
     const participantsById = new DefaultMap<string, GroupParticipant>((key) => {
       return { id: key, admin: null } as GroupParticipant;

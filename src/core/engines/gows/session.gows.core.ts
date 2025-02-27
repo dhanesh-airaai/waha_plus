@@ -21,7 +21,10 @@ import {
   toCusFormat,
   toJID,
 } from '@waha/core/engines/noweb/session.noweb.core';
-import { AvailableInPlusVersion } from '@waha/core/exceptions';
+import {
+  AvailableInPlusVersion,
+  NotImplementedByEngineError,
+} from '@waha/core/exceptions';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
 import {
@@ -105,7 +108,15 @@ import {
 } from '@waha/structures/chats.dto';
 import { ContactQuery } from '@waha/structures/contacts.dto';
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
+import {
+  CreateGroupRequest,
+  GroupSortField,
+  Participant,
+  ParticipantsRequest,
+  SettingsSecurityChangeInfo,
+} from '@waha/structures/groups.dto';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
+import { PaginatorInMemory } from '@waha/utils/Paginator';
 
 enum WhatsMeowEvent {
   CONNECTED = 'gows.ConnectedEventData',
@@ -620,11 +631,207 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   startTyping(chat: ChatRequest) {
-    throw new Error('Method not implemented.');
+    return this.setPresence(WAHAPresenceStatus.TYPING, chat.chatId);
   }
 
   stopTyping(chat: ChatRequest) {
-    throw new Error('Method not implemented.');
+    return this.setPresence(WAHAPresenceStatus.PAUSED, chat.chatId);
+  }
+
+  /**
+   * Group methods
+   */
+  public async createGroup(request: CreateGroupRequest) {
+    const req = new messages.CreateGroupRequest({
+      session: this.session,
+      name: request.name,
+      participants: request.participants.map((p) => toJID(p.id)),
+    });
+    const response = await promisify(this.client.CreateGroup)(req);
+    const data = parseJson(response);
+    return data;
+  }
+
+  public async joinInfoGroup(code: string): Promise<any> {
+    const req = new messages.GroupCodeRequest({
+      session: this.session,
+      code: code,
+    });
+    const response = await promisify(this.client.GetGroupInfoFromLink)(req);
+    const data = parseJson(response);
+    return data;
+  }
+
+  public async joinGroup(code: string): Promise<string> {
+    const req = new messages.GroupCodeRequest({
+      session: this.session,
+      code: code,
+    });
+    const response = await promisify(this.client.JoinGroupWithLink)(req);
+    const data = parseJson(response);
+    return data.jid;
+  }
+
+  public async getGroups(pagination: PaginationParams) {
+    const req = this.session;
+    const response = await promisify(this.client.GetGroups)(req);
+    const data = parseJsonList(response);
+    switch (pagination.sortBy) {
+      case GroupSortField.ID:
+        pagination.sortBy = 'JID';
+        break;
+      case GroupSortField.SUBJECT:
+        pagination.sortBy = 'Name';
+        break;
+    }
+    const paginator = new PaginatorInMemory(pagination);
+    return paginator.apply(data);
+  }
+
+  protected removeGroupsFieldParticipant(group: any) {
+    delete group.Participants;
+  }
+
+  public async refreshGroups(): Promise<boolean> {
+    const req = this.session;
+    await promisify(this.client.FetchGroups)(req);
+    return true;
+  }
+
+  public async getGroup(id) {
+    const req = new messages.JidRequest({
+      session: this.session,
+      jid: id,
+    });
+    const response = await promisify(this.client.GetGroupInfo)(req);
+    const data = parseJson(response);
+    return data;
+  }
+
+  public async getInfoAdminsOnly(id): Promise<SettingsSecurityChangeInfo> {
+    const group = await this.getGroup(id);
+    return {
+      adminsOnly: group.IsLocked,
+    };
+  }
+
+  public async setInfoAdminsOnly(id, value) {
+    const req = new messages.JidBoolRequest({
+      session: this.session,
+      jid: id,
+      value: value,
+    });
+    await promisify(this.client.SetGroupLocked)(req);
+    return;
+  }
+
+  public async getMessagesAdminsOnly(id): Promise<SettingsSecurityChangeInfo> {
+    const group = await this.getGroup(id);
+    return {
+      adminsOnly: group.IsAnnounce,
+    };
+  }
+
+  public async setMessagesAdminsOnly(id, value) {
+    const req = new messages.JidBoolRequest({
+      session: this.session,
+      jid: id,
+      value: value,
+    });
+    await promisify(this.client.SetGroupAnnounce)(req);
+    return;
+  }
+
+  public deleteGroup(id) {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async leaveGroup(id) {
+    const req = new messages.JidRequest({
+      session: this.session,
+      jid: id,
+    });
+    await promisify(this.client.LeaveGroup)(req);
+  }
+
+  public async setDescription(id, description) {
+    const req = new messages.JidStringRequest({
+      session: this.session,
+      jid: id,
+      value: description,
+    });
+    await promisify(this.client.SetGroupDescription)(req);
+  }
+
+  public async setSubject(id, description) {
+    const req = new messages.JidStringRequest({
+      session: this.session,
+      jid: id,
+      value: description,
+    });
+    await promisify(this.client.SetGroupName)(req);
+  }
+
+  public async getInviteCode(id): Promise<string> {
+    const req = new messages.JidRequest({
+      session: this.session,
+      jid: id,
+    });
+    const response = await promisify(this.client.GetGroupInviteLink)(req);
+    const data = response.toObject();
+    return data.value;
+  }
+
+  public async revokeInviteCode(id): Promise<string> {
+    const req = new messages.JidRequest({
+      session: this.session,
+      jid: id,
+    });
+    const response = await promisify(this.client.RevokeGroupInviteLink)(req);
+    const data = response.toObject();
+    return data.value;
+  }
+
+  public async getParticipants(id) {
+    const group = await this.getGroup(id);
+    return group.Participants;
+  }
+
+  private async updateParticipants(
+    id: string,
+    participants: Array<Participant>,
+    action: messages.ParticipantAction,
+  ): Promise<any> {
+    const jids = participants.map((p) => toJID(p.id));
+    const req = new messages.UpdateParticipantsRequest({
+      session: this.session,
+      jid: id,
+      participants: jids,
+      action: action,
+    });
+    const response = await promisify(this.client.UpdateGroupParticipants)(req);
+    const data = parseJsonList(response);
+    return data;
+  }
+
+  public addParticipants(id: string, request: ParticipantsRequest) {
+    const action = messages.ParticipantAction.ADD;
+    return this.updateParticipants(id, request.participants, action);
+  }
+
+  public removeParticipants(id, request: ParticipantsRequest) {
+    const action = messages.ParticipantAction.REMOVE;
+    return this.updateParticipants(id, request.participants, action);
+  }
+
+  public promoteParticipantsToAdmin(id, request: ParticipantsRequest) {
+    const action = messages.ParticipantAction.PROMOTE;
+    return this.updateParticipants(id, request.participants, action);
+  }
+
+  public demoteParticipantsToUser(id, request: ParticipantsRequest) {
+    const action = messages.ParticipantAction.DEMOTE;
+    return this.updateParticipants(id, request.participants, action);
   }
 
   async setReaction(request: MessageReactionRequest) {

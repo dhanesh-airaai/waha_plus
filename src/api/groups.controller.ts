@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -16,12 +18,20 @@ import {
   SessionApiParam,
   WorkingSessionParam,
 } from '@waha/nestjs/params/SessionApiParam';
+import { Result } from '@waha/structures/base.dto';
+import {
+  ChatPictureQuery,
+  ChatPictureResponse,
+} from '@waha/structures/chats.dto';
+import { ProfilePictureRequest } from '@waha/structures/profile.dto';
 
 import { SessionManager } from '../core/abc/manager.abc';
 import { parseGroupInviteLink, WhatsappSession } from '../core/abc/session.abc';
 import {
   CreateGroupRequest,
   DescriptionRequest,
+  GroupField,
+  GroupsListFields,
   GroupsPaginationParams,
   JoinGroupRequest,
   JoinGroupResponse,
@@ -58,6 +68,7 @@ export class GroupsController {
   }
 
   @Post('join')
+  @HttpCode(HttpStatus.OK)
   @SessionApiParam
   @ApiOperation({ summary: 'Join group via code' })
   async joinGroup(
@@ -73,14 +84,18 @@ export class GroupsController {
   @SessionApiParam
   @ApiOperation({ summary: 'Get all groups.' })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  getGroups(
+  async getGroups(
     @WorkingSessionParam session: WhatsappSession,
     @Query() pagination: GroupsPaginationParams,
+    @Query() fields: GroupsListFields,
   ) {
-    return session.getGroups(pagination);
+    let groups: any = await session.getGroups(pagination);
+    groups = session.filterGroupsFields(groups, fields);
+    return groups;
   }
 
   @Post('refresh')
+  @HttpCode(HttpStatus.OK)
   @SessionApiParam
   @ApiOperation({ summary: 'Refresh groups from the server.' })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -97,6 +112,100 @@ export class GroupsController {
     @Param('id') id: string,
   ) {
     return session.getGroup(id);
+  }
+
+  @Delete(':id')
+  @SessionApiParam
+  @GroupIdApiParam
+  @ApiOperation({ summary: 'Delete the group.' })
+  deleteGroup(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') id: string,
+  ) {
+    return session.deleteGroup(id);
+  }
+
+  @Post(':id/leave')
+  @HttpCode(HttpStatus.OK)
+  @SessionApiParam
+  @GroupIdApiParam
+  @ApiOperation({ summary: 'Leave the group.' })
+  leaveGroup(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') id: string,
+  ) {
+    return session.leaveGroup(id);
+  }
+
+  @Get(':id/picture')
+  @SessionApiParam
+  @GroupIdApiParam
+  @ApiOperation({ summary: 'Get group picture' })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async getChatPicture(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') id: string,
+    @Query() query: ChatPictureQuery,
+  ): Promise<ChatPictureResponse> {
+    const url = await session.getContactProfilePicture(id, query.refresh);
+    return { url: url };
+  }
+
+  @Put(':id/picture')
+  @SessionApiParam
+  @GroupIdApiParam
+  @ApiOperation({ summary: 'Set group picture' })
+  async setPicture(
+    @Param('id') id: string,
+    @WorkingSessionParam session: WhatsappSession,
+    @Body() request: ProfilePictureRequest,
+  ): Promise<Result> {
+    const success = await session.updateGroupPicture(id, request.file);
+    return { success: success ?? true };
+  }
+
+  @Delete(':id/picture')
+  @SessionApiParam
+  @GroupIdApiParam
+  @ApiOperation({ summary: 'Delete group picture' })
+  async deletePicture(
+    @Param('id') id: string,
+    @WorkingSessionParam session: WhatsappSession,
+  ): Promise<Result> {
+    const success = await session.updateGroupPicture(id, null);
+    return { success: success || true };
+  }
+
+  @Put(':id/description')
+  @ApiOperation({
+    summary: 'Updates the group description.',
+    description:
+      'Returns "true" if the subject was properly updated. This can return "false" if the user does not have the necessary permissions.',
+  })
+  @SessionApiParam
+  @GroupIdApiParam
+  setDescription(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') id: string,
+    @Body() request: DescriptionRequest,
+  ) {
+    return session.setDescription(id, request.description);
+  }
+
+  @Put(':id/subject')
+  @SessionApiParam
+  @GroupIdApiParam
+  @ApiOperation({
+    summary: 'Updates the group subject',
+    description:
+      'Returns "true" if the subject was properly updated. This can return "false" if the user does not have the necessary permissions.',
+  })
+  setSubject(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') id: string,
+    @Body() request: SubjectRequest,
+  ) {
+    return session.setSubject(id, request.subject);
   }
 
   @Put(':id/settings/security/info-admin-only')
@@ -160,60 +269,6 @@ export class GroupsController {
     return session.getMessagesAdminsOnly(id);
   }
 
-  @Delete(':id')
-  @SessionApiParam
-  @GroupIdApiParam
-  @ApiOperation({ summary: 'Delete the group.' })
-  deleteGroup(
-    @WorkingSessionParam session: WhatsappSession,
-    @Param('id') id: string,
-  ) {
-    return session.deleteGroup(id);
-  }
-
-  @Post(':id/leave')
-  @SessionApiParam
-  @GroupIdApiParam
-  @ApiOperation({ summary: 'Leave the group.' })
-  leaveGroup(
-    @WorkingSessionParam session: WhatsappSession,
-    @Param('id') id: string,
-  ) {
-    return session.leaveGroup(id);
-  }
-
-  @Put(':id/description')
-  @ApiOperation({
-    summary: 'Updates the group description.',
-    description:
-      'Returns "true" if the subject was properly updated. This can return "false" if the user does not have the necessary permissions.',
-  })
-  @SessionApiParam
-  @GroupIdApiParam
-  setDescription(
-    @WorkingSessionParam session: WhatsappSession,
-    @Param('id') id: string,
-    @Body() request: DescriptionRequest,
-  ) {
-    return session.setDescription(id, request.description);
-  }
-
-  @Put(':id/subject')
-  @SessionApiParam
-  @GroupIdApiParam
-  @ApiOperation({
-    summary: 'Updates the group subject',
-    description:
-      'Returns "true" if the subject was properly updated. This can return "false" if the user does not have the necessary permissions.',
-  })
-  setSubject(
-    @WorkingSessionParam session: WhatsappSession,
-    @Param('id') id: string,
-    @Body() request: SubjectRequest,
-  ) {
-    return session.setSubject(id, request.subject);
-  }
-
   @Get(':id/invite-code')
   @SessionApiParam
   @GroupIdApiParam
@@ -226,6 +281,7 @@ export class GroupsController {
   }
 
   @Post(':id/invite-code/revoke')
+  @HttpCode(HttpStatus.OK)
   @SessionApiParam
   @GroupIdApiParam
   @ApiOperation({
@@ -251,6 +307,7 @@ export class GroupsController {
   }
 
   @Post(':id/participants/add')
+  @HttpCode(HttpStatus.OK)
   @SessionApiParam
   @GroupIdApiParam
   @ApiOperation({ summary: 'Add participants' })
@@ -263,6 +320,7 @@ export class GroupsController {
   }
 
   @Post(':id/participants/remove')
+  @HttpCode(HttpStatus.OK)
   @SessionApiParam
   @GroupIdApiParam
   @ApiOperation({
@@ -277,6 +335,7 @@ export class GroupsController {
   }
 
   @Post(':id/admin/promote')
+  @HttpCode(HttpStatus.OK)
   @SessionApiParam
   @GroupIdApiParam
   @ApiOperation({ summary: 'Promote participants to admin users.' })
@@ -289,6 +348,7 @@ export class GroupsController {
   }
 
   @Post(':id/admin/demote')
+  @HttpCode(HttpStatus.OK)
   @SessionApiParam
   @GroupIdApiParam
   @ApiOperation({ summary: 'Demotes participants to regular users.' })

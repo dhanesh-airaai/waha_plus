@@ -37,6 +37,17 @@ function deserialize_messages_CheckPhonesResponse(buffer_arg) {
   return gows_pb.CheckPhonesResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_messages_CreateGroupRequest(arg) {
+  if (!(arg instanceof gows_pb.CreateGroupRequest)) {
+    throw new Error('Expected argument of type messages.CreateGroupRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_CreateGroupRequest(buffer_arg) {
+  return gows_pb.CreateGroupRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_messages_CreateNewsletterRequest(arg) {
   if (!(arg instanceof gows_pb.CreateNewsletterRequest)) {
     throw new Error('Expected argument of type messages.CreateNewsletterRequest');
@@ -145,6 +156,50 @@ function serialize_messages_GetNewsletterMessagesByInviteRequest(arg) {
 
 function deserialize_messages_GetNewsletterMessagesByInviteRequest(buffer_arg) {
   return gows_pb.GetNewsletterMessagesByInviteRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_GroupCodeRequest(arg) {
+  if (!(arg instanceof gows_pb.GroupCodeRequest)) {
+    throw new Error('Expected argument of type messages.GroupCodeRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_GroupCodeRequest(buffer_arg) {
+  return gows_pb.GroupCodeRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_JidBoolRequest(arg) {
+  if (!(arg instanceof gows_pb.JidBoolRequest)) {
+    throw new Error('Expected argument of type messages.JidBoolRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_JidBoolRequest(buffer_arg) {
+  return gows_pb.JidBoolRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_JidRequest(arg) {
+  if (!(arg instanceof gows_pb.JidRequest)) {
+    throw new Error('Expected argument of type messages.JidRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_JidRequest(buffer_arg) {
+  return gows_pb.JidRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_JidStringRequest(arg) {
+  if (!(arg instanceof gows_pb.JidStringRequest)) {
+    throw new Error('Expected argument of type messages.JidStringRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_JidStringRequest(buffer_arg) {
+  return gows_pb.JidStringRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_messages_Json(arg) {
@@ -290,6 +345,17 @@ function deserialize_messages_NewsletterToggleMuteRequest(buffer_arg) {
   return gows_pb.NewsletterToggleMuteRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_messages_OptionalString(arg) {
+  if (!(arg instanceof gows_pb.OptionalString)) {
+    throw new Error('Expected argument of type messages.OptionalString');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_OptionalString(buffer_arg) {
+  return gows_pb.OptionalString.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_messages_PairCodeRequest(arg) {
   if (!(arg instanceof gows_pb.PairCodeRequest)) {
     throw new Error('Expected argument of type messages.PairCodeRequest');
@@ -411,6 +477,17 @@ function deserialize_messages_SessionStateResponse(buffer_arg) {
   return gows_pb.SessionStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_messages_SetPictureRequest(arg) {
+  if (!(arg instanceof gows_pb.SetPictureRequest)) {
+    throw new Error('Expected argument of type messages.SetPictureRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_SetPictureRequest(buffer_arg) {
+  return gows_pb.SetPictureRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_messages_SetProfilePictureRequest(arg) {
   if (!(arg instanceof gows_pb.SetProfilePictureRequest)) {
     throw new Error('Expected argument of type messages.SetProfilePictureRequest');
@@ -442,6 +519,17 @@ function serialize_messages_SubscribePresenceRequest(arg) {
 
 function deserialize_messages_SubscribePresenceRequest(buffer_arg) {
   return gows_pb.SubscribePresenceRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_UpdateParticipantsRequest(arg) {
+  if (!(arg instanceof gows_pb.UpdateParticipantsRequest)) {
+    throw new Error('Expected argument of type messages.UpdateParticipantsRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_UpdateParticipantsRequest(buffer_arg) {
+  return gows_pb.UpdateParticipantsRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 
@@ -557,6 +645,176 @@ setProfileName: {
     requestDeserialize: deserialize_messages_SetProfilePictureRequest,
     responseSerialize: serialize_messages_Empty,
     responseDeserialize: deserialize_messages_Empty,
+  },
+  //
+// Groups
+//
+fetchGroups: {
+    path: '/messages.MessageService/FetchGroups',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.Session,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_Session,
+    requestDeserialize: deserialize_messages_Session,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  getGroups: {
+    path: '/messages.MessageService/GetGroups',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.Session,
+    responseType: gows_pb.JsonList,
+    requestSerialize: serialize_messages_Session,
+    requestDeserialize: deserialize_messages_Session,
+    responseSerialize: serialize_messages_JsonList,
+    responseDeserialize: deserialize_messages_JsonList,
+  },
+  getGroupInfo: {
+    path: '/messages.MessageService/GetGroupInfo',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidRequest,
+    responseType: gows_pb.Json,
+    requestSerialize: serialize_messages_JidRequest,
+    requestDeserialize: deserialize_messages_JidRequest,
+    responseSerialize: serialize_messages_Json,
+    responseDeserialize: deserialize_messages_Json,
+  },
+  createGroup: {
+    path: '/messages.MessageService/CreateGroup',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.CreateGroupRequest,
+    responseType: gows_pb.Json,
+    requestSerialize: serialize_messages_CreateGroupRequest,
+    requestDeserialize: deserialize_messages_CreateGroupRequest,
+    responseSerialize: serialize_messages_Json,
+    responseDeserialize: deserialize_messages_Json,
+  },
+  leaveGroup: {
+    path: '/messages.MessageService/LeaveGroup',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_JidRequest,
+    requestDeserialize: deserialize_messages_JidRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  getGroupInviteLink: {
+    path: '/messages.MessageService/GetGroupInviteLink',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidRequest,
+    responseType: gows_pb.OptionalString,
+    requestSerialize: serialize_messages_JidRequest,
+    requestDeserialize: deserialize_messages_JidRequest,
+    responseSerialize: serialize_messages_OptionalString,
+    responseDeserialize: deserialize_messages_OptionalString,
+  },
+  revokeGroupInviteLink: {
+    path: '/messages.MessageService/RevokeGroupInviteLink',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidRequest,
+    responseType: gows_pb.OptionalString,
+    requestSerialize: serialize_messages_JidRequest,
+    requestDeserialize: deserialize_messages_JidRequest,
+    responseSerialize: serialize_messages_OptionalString,
+    responseDeserialize: deserialize_messages_OptionalString,
+  },
+  getGroupInfoFromLink: {
+    path: '/messages.MessageService/GetGroupInfoFromLink',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.GroupCodeRequest,
+    responseType: gows_pb.Json,
+    requestSerialize: serialize_messages_GroupCodeRequest,
+    requestDeserialize: deserialize_messages_GroupCodeRequest,
+    responseSerialize: serialize_messages_Json,
+    responseDeserialize: deserialize_messages_Json,
+  },
+  joinGroupWithLink: {
+    path: '/messages.MessageService/JoinGroupWithLink',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.GroupCodeRequest,
+    responseType: gows_pb.Json,
+    requestSerialize: serialize_messages_GroupCodeRequest,
+    requestDeserialize: deserialize_messages_GroupCodeRequest,
+    responseSerialize: serialize_messages_Json,
+    responseDeserialize: deserialize_messages_Json,
+  },
+  setGroupName: {
+    path: '/messages.MessageService/SetGroupName',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidStringRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_JidStringRequest,
+    requestDeserialize: deserialize_messages_JidStringRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  setGroupDescription: {
+    path: '/messages.MessageService/SetGroupDescription',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidStringRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_JidStringRequest,
+    requestDeserialize: deserialize_messages_JidStringRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  setGroupPicture: {
+    path: '/messages.MessageService/SetGroupPicture',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.SetPictureRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_SetPictureRequest,
+    requestDeserialize: deserialize_messages_SetPictureRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  setGroupLocked: {
+    path: '/messages.MessageService/SetGroupLocked',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidBoolRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_JidBoolRequest,
+    requestDeserialize: deserialize_messages_JidBoolRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  // change info only by admins
+setGroupAnnounce: {
+    path: '/messages.MessageService/SetGroupAnnounce',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.JidBoolRequest,
+    responseType: gows_pb.Empty,
+    requestSerialize: serialize_messages_JidBoolRequest,
+    requestDeserialize: deserialize_messages_JidBoolRequest,
+    responseSerialize: serialize_messages_Empty,
+    responseDeserialize: deserialize_messages_Empty,
+  },
+  // send messages only by admins
+updateGroupParticipants: {
+    path: '/messages.MessageService/UpdateGroupParticipants',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.UpdateParticipantsRequest,
+    responseType: gows_pb.JsonList,
+    requestSerialize: serialize_messages_UpdateParticipantsRequest,
+    requestDeserialize: deserialize_messages_UpdateParticipantsRequest,
+    responseSerialize: serialize_messages_JsonList,
+    responseDeserialize: deserialize_messages_JsonList,
   },
   //
 // Actions

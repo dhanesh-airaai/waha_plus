@@ -71,6 +71,8 @@ import {
 } from '../../structures/enums.dto';
 import {
   CreateGroupRequest,
+  GroupField,
+  GroupsListFields,
   GroupsPaginationParams,
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
@@ -360,10 +362,10 @@ export abstract class WhatsappSession {
 
     // Refresh profile picture after update
     setTimeout(() => {
-      this.logger.info('Refreshing my profile picture after update...');
+      this.logger.debug('Refreshing my profile picture after update...');
       this.refreshMyProfilePicture()
         .then(() => {
-          this.logger.info('Refreshed my profile picture after update');
+          this.logger.debug('Refreshed my profile picture after update');
         })
         .catch((err) => {
           this.logger.error('Error refreshing my profile picture after update');
@@ -621,8 +623,20 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
-  public getGroups(pagination: PaginationParams) {
+  public getGroups(pagination: PaginationParams): Promise<any> {
     throw new NotImplementedByEngineError();
+  }
+
+  public filterGroupsFields(data: any, fields: GroupsListFields) {
+    const groups: any[] = Array.isArray(data) ? data : Object.values(data);
+    if (fields.exclude?.includes(GroupField.PARTICIPANTS)) {
+      groups.forEach((group) => this.removeGroupsFieldParticipant(group));
+    }
+    return data;
+  }
+
+  protected removeGroupsFieldParticipant(group: any) {
+    return;
   }
 
   public refreshGroups(): Promise<boolean> {
@@ -658,6 +672,43 @@ export abstract class WhatsappSession {
   }
 
   public setDescription(id, description) {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async updateGroupPicture(
+    id: string,
+    file: BinaryFile | RemoteFile | null,
+  ): Promise<boolean> {
+    if (file) {
+      await this.setGroupPicture(id, file);
+    } else {
+      await this.deleteGroupPicture(id);
+    }
+
+    // Refresh picture after update
+    setTimeout(() => {
+      this.logger.debug('Refreshing group profile picture after update...');
+      this.refreshProfilePicture(id)
+        .then(() => {
+          this.logger.debug('Refreshed group profile picture after update');
+        })
+        .catch((err) => {
+          this.logger.error('Error refreshing my profile picture after update');
+          this.logger.error(err, err.stack);
+        });
+    }, 3_000);
+
+    return true;
+  }
+
+  protected setGroupPicture(
+    id: string,
+    file: BinaryFile | RemoteFile,
+  ): Promise<boolean> {
+    throw new NotImplementedByEngineError();
+  }
+
+  protected deleteGroupPicture(id: string): Promise<boolean> {
     throw new NotImplementedByEngineError();
   }
 
