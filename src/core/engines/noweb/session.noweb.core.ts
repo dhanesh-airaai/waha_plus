@@ -722,6 +722,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       text: request.text,
       mentions: request.mentions?.map(toJID),
       edit: key,
+      linkPreview: this.getLinkPreview(request),
     };
     return this.sock.sendMessage(jid, message);
   }

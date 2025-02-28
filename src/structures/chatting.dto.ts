@@ -165,6 +165,8 @@ export class EditMessageRequest {
 
   @ApiHideProperty()
   mentions?: string[];
+
+  linkPreview?: boolean = true;
 }
 
 export class MessageReplyRequest extends MessageTextRequest {
