@@ -1,9 +1,11 @@
 import { getAudioDuration, getAudioWaveform } from '@adiwajshing/baileys';
-import { UnprocessableEntityException } from '@nestjs/common';
 import { Jid } from '@waha/core/engines/const';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
 import { parseJson } from '@waha/core/engines/gows/helpers';
-import { WhatsappSessionGoWSCore } from '@waha/core/engines/gows/session.gows.core';
+import {
+  getMessageIdFromSerialized,
+  WhatsappSessionGoWSCore,
+} from '@waha/core/engines/gows/session.gows.core';
 import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
 import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
@@ -151,6 +153,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
       });
     }
 
+    message.replyTo = getMessageIdFromSerialized(request.reply_to);
     const response = await promisify(this.client.SendMessage)(message);
     const data = response.toObject();
     return this.messageResponse(jid, data);
