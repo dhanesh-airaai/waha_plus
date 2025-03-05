@@ -59,6 +59,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return new messages.Media({
       content: content,
       mimetype: file.mimetype,
+      filename: file.filename,
     });
   }
 
