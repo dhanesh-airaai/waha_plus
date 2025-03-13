@@ -573,9 +573,9 @@ export class SessionManagerPlus
     try {
       engineInfo = await promiseTimeout(3_000, session.getEngineInfo());
     } catch (error) {
-      this.log.warn(
+      this.log.debug(
         { session: session.name, error: `${error}` },
-        'Error while getting engine info',
+        'Can not get engine info',
       );
     }
 
