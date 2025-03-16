@@ -8,6 +8,8 @@ export interface IMessagesRepository {
 
   upsertOne(message: any): Promise<void>;
 
+  getById(id: string): Promise<any | null>;
+
   getAllByJid(
     jid: string,
     filter: GetChatMessagesFilter,

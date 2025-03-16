@@ -66,7 +66,7 @@ export class WebhookSender {
     const headers = {
       'content-type': 'application/json',
     };
-    Object.assign(headers, this.getWebhookHeader());
+    Object.assign(headers, this.getWebhookHeader(json));
     Object.assign(headers, this.getHMACHeaders(body));
     const ctx = {
       id: headers['X-Webhook-Request-Id'],
@@ -153,12 +153,13 @@ export class WebhookSender {
     };
   }
 
-  protected getWebhookHeader() {
+  protected getWebhookHeader(json: any) {
+    const timestamp = json.timestamp?.toString() || Date.now().toString();
     return {
       // UUID, no '-' in it
       'X-Webhook-Request-Id': ulid(),
       // unix timestamp with ms
-      'X-Webhook-Timestamp': Date.now().toString(),
+      'X-Webhook-Timestamp': timestamp,
     };
   }
 

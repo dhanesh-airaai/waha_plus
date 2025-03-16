@@ -73,7 +73,11 @@ import {
 import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { ReplyToMessage } from '@waha/structures/message.dto';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
-import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
+import {
+  MessageSource,
+  WAMessage,
+  WAMessageReaction,
+} from '@waha/structures/responses.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { StatusRequest, TextStatus } from '@waha/structures/status.dto';
 import {
@@ -1154,6 +1158,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
    * END - Methods for API
    */
   subscribeEngineEvents2() {
+    // Save sent message in cache
+    this.whatsapp.events.on('message.id', (data) => {
+      this.saveSentMessageId(data.id);
+    });
+
     //
     // All
     //
@@ -1353,10 +1362,12 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   private processMessageReaction(reaction: Reaction): WAMessageReaction {
+    const source = this.getMessageSource(reaction.id.id);
     return {
       id: reaction.id._serialized,
       from: reaction.senderId,
       fromMe: reaction.id.fromMe,
+      source: source,
       participant: reaction.senderId,
       to: reaction.id.remote,
       timestamp: reaction.timestamp,
@@ -1369,12 +1380,14 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
   protected toWAMessage(message: Message): WAMessage {
     const replyTo = this.extractReplyTo(message);
+    const source = this.getMessageSource(message.id.id);
     // @ts-ignore
     return {
       id: message.id._serialized,
       timestamp: message.timestamp,
       from: message.from,
       fromMe: message.fromMe,
+      source: source,
       to: message.to,
       body: message.body,
       // Media

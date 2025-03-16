@@ -158,6 +158,7 @@ export class MessageTextRequest extends ChatRequest {
   reply_to?: string;
 
   linkPreview?: boolean = true;
+  linkPreviewHighQuality?: boolean = false;
 }
 
 export class EditMessageRequest {
@@ -167,6 +168,7 @@ export class EditMessageRequest {
   mentions?: string[];
 
   linkPreview?: boolean = true;
+  linkPreviewHighQuality?: boolean = false;
 }
 
 export class MessageReplyRequest extends MessageTextRequest {

@@ -7,7 +7,7 @@ __metadata:
 
 "@adiwajshing/baileys@github:devlikeapro/Baileys#fork-master-channels-6712":
   version: 6.7.12
-  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=dcc5d0ea0827c0d57ceda4f94b9cdb260760b77e"
+  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=c1b8ab22ad5e6bf5fa52026657ad1e0fd626e860"
   dependencies:
     "@adiwajshing/keyed-db": ^0.2.4
     "@hapi/boom": ^9.1.3
@@ -40,7 +40,7 @@ __metadata:
       optional: true
     sharp:
       optional: true
-  checksum: 24e16d0b11dbb83a562e333fcc11f9489d4f3c6735c12f726eead983dd3bbc0f4dbce9c486d849b26ddcb0e2be68972d205d21837aabfcb42ebd8b115958f053
+  checksum: fc11e18ac05383cbbda0e6a5c9e605858da84b4d105d702e7560433bd3ca383ddead85ddc09d7918a73643854ec7703e9acd6dc11c322a4fc0c958924bba9e4b
   languageName: node
   linkType: hard
 
@@ -12931,7 +12931,7 @@ __metadata:
 
 "whatsapp-web.js@github:devlikeapro/whatsapp-web.js#fork-main-channels":
   version: 1.26.0
-  resolution: "whatsapp-web.js@https://github.com/devlikeapro/whatsapp-web.js.git#commit=bb4525a80667d83122108a03d936e41cefd179a4"
+  resolution: "whatsapp-web.js@https://github.com/devlikeapro/whatsapp-web.js.git#commit=c73f3cfb4e1290103ee946ca7f56d5638f1a66bd"
   dependencies:
     "@pedroslopez/moduleraid": ^5.0.2
     archiver: ^5.3.1
@@ -12949,7 +12949,7 @@ __metadata:
       optional: true
     unzipper:
       optional: true
-  checksum: a06d30c9f52a1ff0268e4e98e3c0d80112a5dc8a9445d0df460fac3cbe0168b6f1c5ad494518b1e9a98acb54da8c46a2f6644e9f41b1b2987771fac101747c55
+  checksum: 831a4a2819041f63c2a51a98e1ad7dd9ff8474b1005b11314b613c6dadac545f3c780e38081b7d260d32afa9ffd333a25f9c6407b630a0660bd08dadbc8ead89
   languageName: node
   linkType: hard
 

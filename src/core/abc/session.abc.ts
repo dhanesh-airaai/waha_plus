@@ -18,7 +18,7 @@ import { SendButtonsRequest } from '@waha/structures/chatting.buttons.dto';
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
-import { WAMessage } from '@waha/structures/responses.dto';
+import { MessageSource, WAMessage } from '@waha/structures/responses.dto';
 import { DefaultMap } from '@waha/utils/DefaultMap';
 import { generatePrefixedId } from '@waha/utils/ids';
 import { LoggerBuilder } from '@waha/utils/logging';
@@ -26,7 +26,6 @@ import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import * as fs from 'fs';
 import * as lodash from 'lodash';
-import { PinoLogger } from 'nestjs-pino';
 import * as NodeCache from 'node-cache';
 import { Logger } from 'pino';
 import {
@@ -73,7 +72,6 @@ import {
   CreateGroupRequest,
   GroupField,
   GroupsListFields,
-  GroupsPaginationParams,
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
 } from '../../structures/groups.dto';
@@ -148,6 +146,12 @@ export abstract class WhatsappSession {
     stdTTL: 24 * 60 * 60, // 1 day
   });
 
+  // Save sent messages ids in cache so we can determine if a message was sent
+  // via API or APP
+  private sentMessageIds: NodeCache = new NodeCache({
+    stdTTL: 10 * 60, // 10 minutes
+  });
+
   public constructor({
     name,
     printQR,
@@ -178,6 +182,7 @@ export abstract class WhatsappSession {
             filter(Boolean),
             map((data) => {
               data._eventId = generatePrefixedId('evt');
+              data._timestampMs = Date.now();
               return data;
             }),
             retry(),
@@ -884,6 +889,18 @@ export abstract class WhatsappSession {
     );
     qrcode.generate(qr.raw, { small: true });
   }
+
+  protected saveSentMessageId(id: string) {
+    this.sentMessageIds.set(id, true);
+  }
+
+  protected getMessageSource(id: string): MessageSource {
+    if (!id) {
+      return MessageSource.APP;
+    }
+    const api = this.sentMessageIds.has(id);
+    return api ? MessageSource.API : MessageSource.APP;
+  }
 }
 
 export function isNewsletter(jid: string) {
@@ -914,4 +931,20 @@ export function parseChannelInviteLink(link: string): string {
 
 export function getPublicUrlFromDirectPath(directPath: string) {
   return `https://pps.whatsapp.net${directPath}`;
+}
+
+const deviceRegexp = /^.*:(\d+)@.*$/;
+
+/**
+ * Extracts the device ID from a JID string.
+ *
+ * @param jid - The JID string (e.g., "123123:12@c.us")
+ * @return The extracted device ID (e.g., "12") or null if the format is invalid.
+ */
+export function extractDeviceId(jid: string): string | null {
+  if (!jid) {
+    return null;
+  }
+  const match = jid.match(deviceRegexp);
+  return match ? match[1] : null;
 }

@@ -11,6 +11,11 @@ export class WALocation {
   longitude: string;
 }
 
+export enum MessageSource {
+  API = 'api',
+  APP = 'app',
+}
+
 class WAMessageBase {
   @MessageIdProperty()
   id: string;
@@ -32,6 +37,13 @@ class WAMessageBase {
     description: 'Indicates if the message was sent by the current user',
   })
   fromMe: boolean;
+
+  @ApiProperty({
+    description:
+      'The device that sent the message - either API or APP. Available in events (webhooks/websockets) only and only "fromMe: true" messages.',
+    example: MessageSource.API,
+  })
+  source: MessageSource;
 
   @ChatIdProperty({
     description: `

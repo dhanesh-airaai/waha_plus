@@ -218,11 +218,14 @@ export function populateSessionInfo(
 ) {
   return (payload: any): WAHAWebhook => {
     const id = payload._eventId;
+    const timestampMs = payload._timestampMs;
     const data = { ...payload };
     delete data._eventId;
+    delete data._timestampMs;
     const me = session.getSessionMeInfo();
     return {
       id: id,
+      timestamp: timestampMs,
       event: event,
       session: session.name,
       metadata: session.sessionConfig?.metadata,

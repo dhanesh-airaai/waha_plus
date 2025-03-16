@@ -105,9 +105,17 @@ export class WASessionStatusBody {
 
 export class WAHAWebhook {
   @ApiProperty({
-    example: 'evt_01jcn4pjwwg47bwy2gsey6q5sx',
+    example: 'evt_01aaaaaaaaaaaaaaaaaaaaaaaa',
+    description:
+      'Unique identifier for the event - lower case ULID format. https://github.com/ulid/spec',
   })
   id: string;
+
+  @ApiProperty({
+    example: 1634567890123,
+    description: 'Unix timestamp (ms) for when the event was created.',
+  })
+  timestamp: number;
 
   @ApiProperty({
     example: 'default',

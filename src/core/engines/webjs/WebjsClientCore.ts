@@ -2,9 +2,11 @@ import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
 import { Label } from '@waha/structures/labels.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { TextStatus } from '@waha/structures/status.dto';
+import { EventEmitter } from 'events';
 import * as lodash from 'lodash';
 import { Client, Events } from 'whatsapp-web.js';
 import { Message } from 'whatsapp-web.js/src/structures';
+import { exposeFunctionIfAbsent } from 'whatsapp-web.js/src/util/Puppeter';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { LoadWAHA } = require('./_WAHA.js');
@@ -19,10 +21,13 @@ const { LoadPaginator } = require('./_Paginator.js');
 const ChatFactory = require('whatsapp-web.js/src/factories/ChatFactory');
 
 export class WebjsClientCore extends Client {
+  public events = new EventEmitter();
+
   constructor(options) {
     super(options);
     // Wait until it's READY and inject more utils
     this.on(Events.READY, async () => {
+      await this.attachCustomEventListeners();
       await this.injectWaha();
     });
   }
@@ -31,6 +36,22 @@ export class WebjsClientCore extends Client {
     await this.pupPage.evaluate(LoadLodash);
     await this.pupPage.evaluate(LoadPaginator);
     await this.pupPage.evaluate(LoadWAHA);
+  }
+
+  async attachCustomEventListeners() {
+    await exposeFunctionIfAbsent(
+      this.pupPage,
+      'onNewMessageId',
+      (messageId: string) => {
+        this.events.emit('message.id', { id: messageId });
+        return;
+      },
+    );
+  }
+
+  async destroy() {
+    this.events.removeAllListeners();
+    await super.destroy();
   }
 
   async setPushName(name: string) {

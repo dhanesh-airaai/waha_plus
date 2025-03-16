@@ -430,7 +430,12 @@ export class NowebPersistentStore implements INowebStore {
   }
 
   async loadMessage(jid: string, id: string) {
-    const data = await this.messagesRepo.getByJidById(jid, id);
+    let data;
+    if (!jid) {
+      data = await this.messagesRepo.getById(id);
+    } else {
+      data = await this.messagesRepo.getByJidById(jid, id);
+    }
     if (!data) {
       return null;
     }
@@ -455,6 +460,10 @@ export class NowebPersistentStore implements INowebStore {
     pagination.sortBy ||= 'conversationTimestamp';
     pagination.sortOrder ||= SortOrder.DESC;
     return this.chatRepo.getAllWithMessages(pagination, broadcast);
+  }
+
+  async getChat(jid: string): Promise<Chat | null> {
+    return await this.chatRepo.getById(jid);
   }
 
   private shouldFetchGroup(): boolean {

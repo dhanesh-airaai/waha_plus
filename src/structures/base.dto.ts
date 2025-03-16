@@ -22,3 +22,10 @@ export class SessionBaseRequest {
 export class Result {
   success: boolean = true;
 }
+
+/**
+ * Responses
+ */
+export class CountResponse {
+  count: number = 0;
+}

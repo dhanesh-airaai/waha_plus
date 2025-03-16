@@ -28,6 +28,9 @@ export class TextStatus {
 
   @ContactsProperty
   contacts?: string[];
+
+  linkPreview?: boolean = true;
+  linkPreviewHighQuality?: boolean = false;
 }
 
 @ApiExtraModels(RemoteFile, BinaryFile)

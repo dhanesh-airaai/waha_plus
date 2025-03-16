@@ -18,7 +18,7 @@ import {
   SessionApiParam,
   WorkingSessionParam,
 } from '@waha/nestjs/params/SessionApiParam';
-import { Result } from '@waha/structures/base.dto';
+import { CountResponse, Result } from '@waha/structures/base.dto';
 import {
   ChatPictureQuery,
   ChatPictureResponse,
@@ -92,6 +92,20 @@ export class GroupsController {
     let groups: any = await session.getGroups(pagination);
     groups = session.filterGroupsFields(groups, fields);
     return groups;
+  }
+
+  @Get('/count')
+  @SessionApiParam
+  @ApiOperation({ summary: 'Get the number of groups.' })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async getGroupsCount(
+    @WorkingSessionParam session: WhatsappSession,
+  ): Promise<CountResponse> {
+    const data: any = await session.getGroups({});
+    const groups: any[] = Array.isArray(data) ? data : Object.values(data);
+    return {
+      count: groups.length,
+    };
   }
 
   @Post('refresh')

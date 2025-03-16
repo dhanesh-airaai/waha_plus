@@ -30,6 +30,8 @@ export interface INowebStore {
 
   getChats(pagination: PaginationParams, broadcast: boolean): Promise<Chat[]>;
 
+  getChat(jid: string): Promise<Chat | null>;
+
   getContacts(pagination: PaginationParams): Promise<Contact[]>;
 
   getContactById(jid: string): Promise<Contact>;
