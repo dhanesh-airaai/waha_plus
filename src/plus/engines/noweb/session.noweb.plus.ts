@@ -46,7 +46,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
 
   protected async uploadMedia(
     file: RemoteFile | BinaryFile,
-    type,
+    type: any,
   ): Promise<any> {
     if (!file) {
       return;
@@ -74,7 +74,11 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     });
   }
 
-  protected fileToMessage(file: RemoteFile | BinaryFile, type, caption = '') {
+  protected fileToMessage(
+    file: RemoteFile | BinaryFile,
+    type: any,
+    caption = '',
+  ) {
     if (!('url' in file || 'data' in file)) {
       throw new UnprocessableEntityException(
         'Either file.url or file.data must be specified.',
@@ -204,8 +208,10 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       status.caption,
     );
     const jids = await this.prepareJidsForStatus(status.contacts);
+    const messageId = this.generateMessageID();
     const options = {
       statusJidList: jids,
+      messageId: messageId,
     };
     return await this.sock.sendMessage(BROADCAST_ID, message, options);
   }
@@ -213,9 +219,11 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   public async sendVoiceStatus(status: VoiceStatus) {
     const message: any = this.fileToMessage(status.file, 'audio');
     const jids = await this.prepareJidsForStatus(status.contacts);
+    const messageId = this.generateMessageID();
     const options = {
       backgroundColor: status.backgroundColor,
       statusJidList: jids,
+      messageId: messageId,
     };
     return await this.sock.sendMessage(BROADCAST_ID, message, options);
   }
@@ -227,8 +235,10 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       status.caption,
     );
     const jids = await this.prepareJidsForStatus(status.contacts);
+    const messageId = this.generateMessageID();
     const options = {
       statusJidList: jids,
+      messageId: messageId,
     };
     return await this.sock.sendMessage(BROADCAST_ID, message, options);
   }
