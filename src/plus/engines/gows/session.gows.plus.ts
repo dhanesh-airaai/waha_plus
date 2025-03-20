@@ -7,6 +7,7 @@ import {
   WhatsappSessionGoWSCore,
 } from '@waha/core/engines/gows/session.gows.core';
 import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
+import { NotImplementedByEngineError } from '@waha/core/exceptions';
 import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
 import {
@@ -19,6 +20,7 @@ import {
   PreviewChannelMessages,
 } from '@waha/structures/channels.dto';
 import {
+  MessageButtonReply,
   MessageFileRequest,
   MessageImageRequest,
   MessageVideoRequest,
@@ -175,6 +177,26 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return await this.sendMedia(messages.MediaType.VIDEO, request);
   }
 
+  async sendButtonsReply(request: MessageButtonReply) {
+    throw new NotImplementedByEngineError();
+
+    // Doesn't work yet
+    const jid = toJID(this.ensureSuffix(request.chatId));
+    const message = new messages.ButtonReplyRequest({
+      jid: jid,
+      session: this.session,
+      replyTo: getMessageIdFromSerialized(request.replyTo),
+      selectedDisplayText: request.selectedDisplayText,
+      selectedButtonID: request.selectedButtonID,
+    });
+    const response = await promisify(this.client.SendButtonReply)(message);
+    const data = response.toObject();
+    return this.messageResponse(jid, data);
+  }
+
+  /**
+   * Status methods
+   */
   public async sendImageStatus(status: ImageStatus) {
     this.checkStatusRequest(status);
     const request: MessageImageRequest = {

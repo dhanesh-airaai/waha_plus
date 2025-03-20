@@ -16,6 +16,7 @@ import {
   PreviewChannelMessages,
 } from '@waha/structures/channels.dto';
 import {
+  MessageButtonReply,
   MessageFileRequest,
   MessageImageRequest,
   MessageVideoRequest,
@@ -149,6 +150,26 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return this.whatsapp.sendMessage(
       this.ensureSuffix(request.chatId),
       media,
+      options,
+    );
+  }
+
+  async sendButtonsReply(request: MessageButtonReply) {
+    const options = this.getMessageOptions(request);
+    const extra: any = {
+      type: 'buttons_response',
+      kind: 'buttonsResponse',
+      buttonsResponse: {
+        selectedButtonId: request.selectedButtonID,
+        selectedDisplayText: request.selectedDisplayText,
+        type: 1,
+      },
+      viewMode: 'VISIBLE',
+    };
+    options.extra = extra;
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      request.selectedDisplayText,
       options,
     );
   }
