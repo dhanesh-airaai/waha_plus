@@ -261,6 +261,9 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     );
     const resp = parseJson(response);
     const promises = [];
+    if (!resp.Messages) {
+      return [];
+    }
     for (const msg of resp.Messages) {
       promises.push(
         this.GowsChannelMessageToChannelMessage(
