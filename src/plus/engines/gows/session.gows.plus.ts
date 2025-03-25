@@ -135,13 +135,15 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
         value: request.backgroundColor,
       });
     }
-
+    const participants = await this.prepareJidsForStatus(request.contacts);
     const message = new messages.MessageRequest({
+      id: request.id,
       jid: jid,
       text: request.caption,
       session: this.session,
       media: media,
       backgroundColor: backgroundColor,
+      participants: participants,
     });
 
     if (media.type == messages.MediaType.AUDIO) {
@@ -198,7 +200,6 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
    * Status methods
    */
   public async sendImageStatus(status: ImageStatus) {
-    this.checkStatusRequest(status);
     const request: MessageImageRequest = {
       file: status.file,
       caption: status.caption,
@@ -209,7 +210,6 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   }
 
   public async sendVoiceStatus(status: VoiceStatus) {
-    this.checkStatusRequest(status);
     const request: MessageVoiceRequest = {
       file: status.file,
       chatId: Jid.BROADCAST,
@@ -221,7 +221,6 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   }
 
   public async sendVideoStatus(status: VideoStatus) {
-    this.checkStatusRequest(status);
     const request: MessageVideoRequest = {
       file: status.file,
       caption: status.caption,

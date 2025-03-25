@@ -208,24 +208,38 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       status.caption,
     );
     const jids = await this.prepareJidsForStatus(status.contacts);
-    const messageId = this.generateMessageID();
+    if (!status.id) {
+      this.upsertMeInJIDs(jids);
+    }
+    const messageId = this.prepareMessageIdForStatus(status);
     const options = {
-      statusJidList: jids,
       messageId: messageId,
     };
-    return await this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sendStatusMessage(
+      message,
+      options,
+      jids,
+      status.contacts?.length,
+    );
   }
 
   public async sendVoiceStatus(status: VoiceStatus) {
     const message: any = this.fileToMessage(status.file, 'audio');
     const jids = await this.prepareJidsForStatus(status.contacts);
-    const messageId = this.generateMessageID();
+    if (!status.id) {
+      this.upsertMeInJIDs(jids);
+    }
+    const messageId = this.prepareMessageIdForStatus(status);
     const options = {
       backgroundColor: status.backgroundColor,
-      statusJidList: jids,
       messageId: messageId,
     };
-    return await this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sendStatusMessage(
+      message,
+      options,
+      jids,
+      status.contacts?.length,
+    );
   }
 
   public async sendVideoStatus(status: VideoStatus) {
@@ -235,12 +249,20 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       status.caption,
     );
     const jids = await this.prepareJidsForStatus(status.contacts);
-    const messageId = this.generateMessageID();
+    if (!status.id) {
+      this.upsertMeInJIDs(jids);
+    }
+    const messageId = this.prepareMessageIdForStatus(status);
     const options = {
       statusJidList: jids,
       messageId: messageId,
     };
-    return await this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sendStatusMessage(
+      message,
+      options,
+      jids,
+      status.contacts?.length,
+    );
   }
 
   /**
