@@ -15,4 +15,9 @@ export class ReplyToMessage {
     example: 'Hello!',
   })
   body?: string;
+
+  @ApiProperty({
+    description: "Raw data from reply's message",
+  })
+  _data?: any;
 }

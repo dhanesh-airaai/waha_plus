@@ -1,9 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
   SessionApiParam,
   WorkingSessionParam,
 } from '@waha/nestjs/params/SessionApiParam';
+import { NewMessageIDResponse } from '@waha/structures/chatting.dto';
 
 import { SessionManager } from '../core/abc/manager.abc';
 import { WhatsappSession } from '../core/abc/session.abc';
@@ -69,6 +70,18 @@ class StatusController {
     @Body() status: DeleteStatusRequest,
   ) {
     return session.deleteStatus(status);
+  }
+
+  @Get('new-message-id')
+  @SessionApiParam
+  @ApiOperation({
+    summary: 'Generate message ID you can use to batch contacts',
+  })
+  async getNewMessageId(
+    @WorkingSessionParam session: WhatsappSession,
+  ): Promise<NewMessageIDResponse> {
+    const id = await session.generateNewMessageId();
+    return { id: id };
   }
 }
 

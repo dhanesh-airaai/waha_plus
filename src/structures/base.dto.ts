@@ -16,6 +16,7 @@ export class SessionQuery {
  */
 
 export class SessionBaseRequest {
+  @IsString()
   session: string = WHATSAPP_DEFAULT_SESSION_NAME;
 }
 

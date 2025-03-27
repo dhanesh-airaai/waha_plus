@@ -18,6 +18,7 @@ import {
   ChatRequest,
   CheckNumberStatusQuery,
   GetMessageQuery,
+  MessageButtonReply,
   MessageContactVcardRequest,
   MessageFileRequest,
   MessageForwardRequest,
@@ -175,6 +176,16 @@ export class ChattingController {
   async sendContactVcard(@Body() request: MessageContactVcardRequest) {
     const whatsapp = await this.manager.getWorkingSession(request.session);
     return whatsapp.sendContactVCard(request);
+  }
+
+  @Post('/send/buttons/reply')
+  @ApiOperation({
+    summary: 'Reply on a button message',
+  })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async sendButtonsReply(@Body() request: MessageButtonReply) {
+    const whatsapp = await this.manager.getWorkingSession(request.session);
+    return whatsapp.sendButtonsReply(request);
   }
 
   @Get('/sendText')

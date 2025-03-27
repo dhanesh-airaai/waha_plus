@@ -1,15 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { WAHAEvents } from '@waha/structures/enums.dto';
+import {
+  AllEvents,
+  AllEventType,
+  WAHAEvents,
+} from '@waha/structures/enums.dto';
 import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
   IsUrl,
   ValidateNested,
 } from 'class-validator';
+import { each } from 'lodash';
 
 export enum RetryPolicy {
   LINEAR = 'linear',
@@ -70,16 +76,20 @@ export class WebhookConfig {
     description:
       'You can use https://docs.webhook.site/ to test webhooks and see the payload',
   })
-  @IsUrl({ require_protocol: true, require_tld: false })
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true,
+    require_tld: false,
+  })
   url: string;
 
   @ApiProperty({
     example: ['message', 'session.status'],
     required: true,
   })
-  @IsEnum(WAHAEvents, { each: true })
+  @IsIn(AllEvents, { each: true })
   @IsArray()
-  events: WAHAEvents[];
+  events: AllEventType[];
 
   @ApiProperty({
     example: null,

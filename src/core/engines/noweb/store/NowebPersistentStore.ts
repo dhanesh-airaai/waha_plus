@@ -18,6 +18,7 @@ import {
   LabelAssociation,
   LabelAssociationType,
 } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
+import { PresenceProxy } from '@waha/core/engines/noweb/PresenceProxy';
 import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepository';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
@@ -71,7 +72,7 @@ export class NowebPersistentStore implements INowebStore {
     this.messagesRepo = storage.getMessagesRepository();
     this.labelsRepo = storage.getLabelsRepository();
     this.labelAssociationsRepo = storage.getLabelAssociationRepository();
-    this.presences = {};
+    this.presences = new PresenceProxy().proxy;
     this.lock = new AsyncLock({ maxPending: Infinity });
   }
 
@@ -363,7 +364,12 @@ export class NowebPersistentStore implements INowebStore {
 
       if (update.imgUrl === 'changed') {
         contact.imgUrl = this.socket
-          ? await this.socket?.profilePictureUrl(contact.id)
+          ? await this.socket?.profilePictureUrl(contact.id).catch((error) => {
+              this.logger.warn(
+                `failed to get profile picture for contact '${contact.id}': ${error}`,
+              );
+              return undefined;
+            })
           : undefined;
       } else if (update.imgUrl === 'removed') {
         delete contact.imgUrl;

@@ -31,6 +31,9 @@ function splitAt(str: string, index) {
 }
 
 export function sortObjectByValues(obj: any) {
+  if (!obj) {
+    return obj;
+  }
   return Object.fromEntries(
     // @ts-ignore
     Object.entries(obj).sort(([, v1], [, v2]) => v2 - v1),

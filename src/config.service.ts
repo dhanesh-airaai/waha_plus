@@ -1,13 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { WAHAEvents } from '@waha/structures/enums.dto';
+import { GlobalWebhookConfigConfig } from '@waha/core/config/GlobalWebhookConfig';
 
 import { parseBool } from './helpers';
 import { WebhookConfig } from './structures/webhooks.config.dto';
 
 @Injectable()
-export class WhatsappConfigService {
-  constructor(private configService: ConfigService) {}
+export class WhatsappConfigService implements OnApplicationBootstrap {
+  private logger: Logger;
+  private webhookConfig: GlobalWebhookConfigConfig;
+
+  constructor(private configService: ConfigService) {
+    this.logger = new Logger('WhatsappConfigService');
+    this.webhookConfig = new GlobalWebhookConfigConfig(configService);
+  }
 
   get schema() {
     return this.configService.get('WHATSAPP_API_SCHEMA', 'http');
@@ -113,21 +119,7 @@ export class WhatsappConfigService {
   }
 
   getWebhookConfig(): WebhookConfig | undefined {
-    const url = this.getWebhookUrl();
-    const events = this.getWebhookEvents();
-    if (!url || events.length === 0) {
-      return undefined;
-    }
-    return { url: url, events: events };
-  }
-
-  private getWebhookUrl(): string | undefined {
-    return this.get('WHATSAPP_HOOK_URL');
-  }
-
-  private getWebhookEvents(): WAHAEvents[] {
-    const value = this.get('WHATSAPP_HOOK_EVENTS', '');
-    return value ? value.split(',') : [];
+    return this.webhookConfig.config;
   }
 
   getSessionMongoUrl(): string | undefined {
@@ -181,5 +173,12 @@ export class WhatsappConfigService {
   get debugModeEnabled(): boolean {
     const value = this.configService.get('WAHA_DEBUG_MODE', 'false');
     return parseBool(value);
+  }
+
+  onApplicationBootstrap() {
+    const error = this.webhookConfig.validateConfig();
+    if (error) {
+      throw new Error(`Invalid global webhook config:\n${error}\n`);
+    }
   }
 }

@@ -46,6 +46,7 @@ import {
   ChatRequest,
   CheckNumberStatusQuery,
   EditMessageRequest,
+  MessageButtonReply,
   MessageContactVcardRequest,
   MessageFileRequest,
   MessageForwardRequest,
@@ -397,6 +398,10 @@ export abstract class WhatsappSession {
   /**
    * Other methods
    */
+  generateNewMessageId(): Promise<string> {
+    throw new NotImplementedByEngineError();
+  }
+
   abstract checkNumberStatus(request: CheckNumberStatusQuery);
 
   abstract sendText(request: MessageTextRequest);
@@ -428,6 +433,10 @@ export abstract class WhatsappSession {
   }
 
   sendButtons(request: SendButtonsRequest) {
+    throw new NotImplementedByEngineError();
+  }
+
+  sendButtonsReply(request: MessageButtonReply) {
     throw new NotImplementedByEngineError();
   }
 
@@ -848,6 +857,9 @@ export abstract class WhatsappSession {
     throw new NotImplementedByEngineError();
   }
 
+  /**
+   * Engine methods
+   */
   public async getEngineInfo(): Promise<any> {
     return {};
   }

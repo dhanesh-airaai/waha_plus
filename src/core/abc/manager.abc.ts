@@ -150,6 +150,12 @@ export abstract class SessionManager
     sessionName: string,
     expected: WAHASessionStatus[],
   ): Promise<WhatsappSession> {
+    if (!sessionName) {
+      throw new UnprocessableEntityException({
+        error: `Session name is required`,
+        session: sessionName,
+      });
+    }
     const running = await waitUntil(
       async () => this.isRunning(sessionName),
       this.WAIT_SESSION_RUNNING_INTERVAL,

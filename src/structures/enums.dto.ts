@@ -29,6 +29,9 @@ export enum WAHAEvents {
   ENGINE_EVENT = 'engine.event',
 }
 
+export type AllEventType = WAHAEvents | '*';
+export const AllEvents = [...Object.values(WAHAEvents), '*'];
+
 // All but no state.change, it's internal one
 export const WAHAEventsWild = Object.values(WAHAEvents).filter(
   (e) => e !== WAHAEvents.STATE_CHANGE && e !== WAHAEvents.ENGINE_EVENT,

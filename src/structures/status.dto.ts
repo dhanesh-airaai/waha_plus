@@ -17,24 +17,30 @@ const ContactsProperty = ApiProperty({
   required: false,
 });
 
-export interface StatusRequest {
-  contacts?: string[];
-}
-
-export class TextStatus {
-  text: string = 'Have a look! https://github.com/';
-  backgroundColor: string = '#38b42f';
-  font: number = 0;
+export class StatusRequest {
+  @ApiProperty({
+    description: 'Pre-generated status message id',
+    example: 'BBBBBBBBBBBBBBBBB',
+    default: null,
+    required: false,
+  })
+  id?: string;
 
   @ContactsProperty
   contacts?: string[];
+}
+
+export class TextStatus extends StatusRequest {
+  text: string = 'Have a look! https://github.com/';
+  backgroundColor: string = '#38b42f';
+  font: number = 0;
 
   linkPreview?: boolean = true;
   linkPreviewHighQuality?: boolean = false;
 }
 
 @ApiExtraModels(RemoteFile, BinaryFile)
-export class ImageStatus {
+export class ImageStatus extends StatusRequest {
   @ApiProperty({
     oneOf: [
       { $ref: getSchemaPath(RemoteFile) },
@@ -44,13 +50,10 @@ export class ImageStatus {
   file: RemoteFile | BinaryFile;
 
   caption?: string;
-
-  @ContactsProperty
-  contacts?: string[];
 }
 
 @ApiExtraModels(VoiceRemoteFile, VoiceBinaryFile)
-export class VoiceStatus {
+export class VoiceStatus extends StatusRequest {
   @ApiProperty({
     oneOf: [
       { $ref: getSchemaPath(VoiceRemoteFile) },
@@ -60,13 +63,10 @@ export class VoiceStatus {
   file: VoiceRemoteFile | VoiceBinaryFile;
 
   backgroundColor: string = '#38b42f';
-
-  @ContactsProperty
-  contacts?: string[];
 }
 
 @ApiExtraModels(VideoRemoteFile, VideoBinaryFile)
-export class VideoStatus {
+export class VideoStatus extends StatusRequest {
   @ApiProperty({
     oneOf: [
       { $ref: getSchemaPath(VideoRemoteFile) },
@@ -76,14 +76,11 @@ export class VideoStatus {
   file: VideoRemoteFile | VideoBinaryFile;
 
   caption?: string;
-
-  @ContactsProperty
-  contacts?: string[];
 }
 
-export class DeleteStatusRequest {
+export class DeleteStatusRequest extends StatusRequest {
   @ApiProperty({
-    description: 'status message id',
+    description: 'Status message id to delete',
     example: 'AAAAAAAAAAAAAAAAA',
   })
   id: string;

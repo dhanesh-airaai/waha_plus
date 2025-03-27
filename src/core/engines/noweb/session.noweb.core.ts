@@ -140,6 +140,7 @@ import { MeInfo } from '@waha/structures/sessions.dto';
 import {
   BROADCAST_ID,
   DeleteStatusRequest,
+  StatusRequest,
   TextStatus,
 } from '@waha/structures/status.dto';
 import {
@@ -154,6 +155,7 @@ import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { exclude } from '@waha/utils/reactive/ops/exclude';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import { SinglePeriodicJobRunner } from '@waha/utils/SinglePeriodicJobRunner';
+import { StatusTracker } from '@waha/utils/StatusTracker';
 import * as Buffer from 'buffer';
 import { Agent } from 'https';
 import * as lodash from 'lodash';
@@ -170,6 +172,8 @@ import {
   share,
 } from 'rxjs';
 import { map } from 'rxjs/operators';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const promiseRetry = require('promise-retry');
 
 import { INowebStore } from './store/INowebStore';
 import { NowebPersistentStore } from './store/NowebPersistentStore';
@@ -216,6 +220,8 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   store: INowebStore;
   private qr: QR;
 
+  private statusTracker = new StatusTracker();
+
   public constructor(config) {
     super(config);
     this.shouldRestart = true;
@@ -252,6 +258,15 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       this.logger,
     );
     this.authNOWEBStore = null;
+  }
+
+  protected set status(value: WAHASessionStatus) {
+    this.statusTracker.track(value);
+    super.status = value;
+  }
+
+  public get status() {
+    return super.status;
   }
 
   async start() {
@@ -419,6 +434,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       );
       return;
     }
+
     this.startDelayedJob.schedule(async () => {
       if (!this.shouldRestart) {
         this.logger.warn(
@@ -443,12 +459,36 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
         this.resubscribeToKnownPresences();
         return;
       } else if (connection === 'close') {
-        const shouldReconnect =
-          // @ts-ignore: Property output does not exist on type 'Error'
-          lastDisconnect.error?.output?.statusCode !==
-          DisconnectReason.loggedOut;
         this.qr.save('');
-        // reconnect if not logged out
+        const statusCode = lastDisconnect.error?.output?.statusCode;
+
+        // Restart required from the server
+        const restartRequired = statusCode === DisconnectReason.restartRequired;
+        if (restartRequired) {
+          this.restartClient();
+          return;
+        }
+
+        // Stuck in STARTING status
+        if (this.statusTracker.isStuckInStarting()) {
+          this.logger.error(
+            'Session stuck in STARTING status, force stopping the session.',
+          );
+          await this.failed();
+          return;
+        }
+
+        // Do not reconnect if the QR code has not been scanned yet
+        if (this.status == WAHASessionStatus.SCAN_QR_CODE) {
+          this.logger.warn(
+            'QR code has not been scanned yet, force stopping the session.',
+          );
+          await this.failed();
+          return;
+        }
+
+        // Reconnect if not logged out
+        const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
         if (shouldReconnect) {
           if (lastDisconnect.error) {
             this.logger.info(
@@ -456,12 +496,14 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
             );
           }
           this.restartClient();
-        } else {
-          this.logger.error(
-            `Connection closed due to '${lastDisconnect.error}', do not reconnect the session.`,
-          );
-          await this.failed();
+          return;
         }
+
+        // Unknown error or logged out
+        this.logger.error(
+          `Connection closed due to '${lastDisconnect.error}', do not reconnect the session.`,
+        );
+        await this.failed();
       }
 
       // Save QR
@@ -689,6 +731,10 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       numberExists: true,
       chatId: toCusFormat(result.jid),
     };
+  }
+
+  async generateNewMessageId(): Promise<string> {
+    return this.generateMessageID();
   }
 
   async sendText(request: MessageTextRequest) {
@@ -1314,7 +1360,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   public async getPresence(chatId: string): Promise<WAHAChatPresences> {
     const remoteJid = toJID(chatId);
     if (!(remoteJid in this.store.presences)) {
-      this.store.presences[remoteJid] = [];
+      this.store.presences[remoteJid] = {};
       await this.sock.presenceSubscribe(remoteJid);
       await sleep(1000);
     }
@@ -1330,21 +1376,101 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   /**
    * Status methods
    */
+  public async sendStatusMessage(
+    message: any,
+    options: any,
+    jids: string[],
+    batchSize?: number,
+  ) {
+    if (!batchSize || batchSize == 0) {
+      batchSize = 5_000;
+    }
+    const chunks = lodash.chunk(jids, batchSize);
+    if (chunks.length == 0) {
+      throw new UnprocessableEntityException('No participants to send status');
+    }
+
+    const logger = this.logger.child({
+      'message.id': options.messageId,
+      chunks: chunks.length,
+      size: batchSize,
+    });
+    logger.info(`Sending status message to ${jids.length} participants`);
+    let result = null;
+    for (const [index, participants] of chunks.entries()) {
+      const batchOptions = { ...options };
+      batchOptions.statusJidList = participants;
+      const r = await this.sendStatusMessageOneChunk(
+        message,
+        batchOptions,
+        logger,
+        index,
+      );
+      result = result || r;
+    }
+    logger.info(
+      `Sending status message to ${jids.length} participants - success`,
+    );
+    return result;
+  }
+
+  private async sendStatusMessageOneChunk(
+    message: any,
+    options: any,
+    logger: any,
+    index: number,
+  ) {
+    // https://github.com/IndigoUnited/node-promise-retry
+    const retryOptions = {
+      retries: 5,
+      minTimeout: 1000,
+      maxTimeout: 6000,
+    };
+    try {
+      const resp = await promiseRetry((retry, number) => {
+        return this.sock
+          .sendMessage(BROADCAST_ID, message, options)
+          .catch(retry);
+      }, retryOptions);
+      logger.info(`Sending status message (${index + 1} chunk) - success`);
+      return resp;
+    } catch (err) {
+      logger.error(`Sending status message (${index + 1} chunk - failed`);
+      logger.error(err, err.stack);
+      throw err;
+    }
+  }
+
   public async sendTextStatus(status: TextStatus) {
     const message = {
       text: status.text,
       linkPreview: this.getLinkPreview(status),
     };
     const jids = await this.prepareJidsForStatus(status.contacts);
-    const messageId = this.generateMessageID();
+    if (!status.id) {
+      this.upsertMeInJIDs(jids);
+    }
+    const messageId = this.prepareMessageIdForStatus(status);
     const options: MiscMessageGenerationOptions = {
       backgroundColor: status.backgroundColor,
       font: status.font,
-      statusJidList: jids,
       linkPreviewHighQuality: status.linkPreviewHighQuality,
       messageId: messageId,
     };
-    return await this.sock.sendMessage(BROADCAST_ID, message, options);
+    return await this.sendStatusMessage(
+      message,
+      options,
+      jids,
+      status.contacts?.length,
+    );
+  }
+
+  protected prepareMessageIdForStatus(status: StatusRequest) {
+    if (status.id) {
+      this.saveSentMessageId(status.id);
+      return status.id;
+    }
+    return this.generateMessageID();
   }
 
   protected async prepareJidsForStatus(contacts: string[]) {
@@ -1354,7 +1480,6 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     } else {
       jids = await this.fetchMyContactsJids();
     }
-    this.upsertMeInJIDs(jids);
     return jids;
   }
 
@@ -1370,12 +1495,18 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     key.fromMe = true;
     key.remoteJid = BROADCAST_ID;
     const jids = await this.prepareJidsForStatus(request.contacts);
+    this.upsertMeInJIDs(jids);
     const newMessageId = this.generateMessageID();
     const options = {
       statusJidList: jids,
       messageId: newMessageId,
     };
-    return await this.sock.sendMessage(BROADCAST_ID, { delete: key }, options);
+    return await this.sendStatusMessage(
+      { delete: key },
+      options,
+      jids,
+      request.contacts?.length,
+    );
   }
 
   protected upsertMeInJIDs(jids: string[]) {
@@ -1384,7 +1515,8 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     }
     const myJID = jidNormalizedUser(this.sock.authState.creds.me.id);
     if (!jids.includes(myJID)) {
-      jids.push(myJID);
+      // insert my jid first
+      jids.unshift(myJID);
     }
   }
 
@@ -1908,6 +2040,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       id: contextInfo.stanzaId,
       participant: toCusFormat(contextInfo.participant),
       body: body,
+      _data: quotedMessage,
     };
   }
 

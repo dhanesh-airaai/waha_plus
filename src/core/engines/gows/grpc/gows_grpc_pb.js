@@ -4,6 +4,17 @@
 var grpc = require('@grpc/grpc-js');
 var gows_pb = require('./gows_pb.js');
 
+function serialize_messages_ButtonReplyRequest(arg) {
+  if (!(arg instanceof gows_pb.ButtonReplyRequest)) {
+    throw new Error('Expected argument of type messages.ButtonReplyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_ButtonReplyRequest(buffer_arg) {
+  return gows_pb.ButtonReplyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_messages_ChatPresenceRequest(arg) {
   if (!(arg instanceof gows_pb.ChatPresenceRequest)) {
     throw new Error('Expected argument of type messages.ChatPresenceRequest');
@@ -277,6 +288,17 @@ function serialize_messages_MessageResponse(arg) {
 
 function deserialize_messages_MessageResponse(buffer_arg) {
   return gows_pb.MessageResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_messages_NewMessageIDResponse(arg) {
+  if (!(arg instanceof gows_pb.NewMessageIDResponse)) {
+    throw new Error('Expected argument of type messages.NewMessageIDResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_messages_NewMessageIDResponse(buffer_arg) {
+  return gows_pb.NewMessageIDResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_messages_Newsletter(arg) {
@@ -899,7 +921,18 @@ getProfilePicture: {
   //
 // Message
 //
-sendMessage: {
+generateNewMessageID: {
+    path: '/messages.MessageService/GenerateNewMessageID',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.Session,
+    responseType: gows_pb.NewMessageIDResponse,
+    requestSerialize: serialize_messages_Session,
+    requestDeserialize: deserialize_messages_Session,
+    responseSerialize: serialize_messages_NewMessageIDResponse,
+    responseDeserialize: deserialize_messages_NewMessageIDResponse,
+  },
+  sendMessage: {
     path: '/messages.MessageService/SendMessage',
     requestStream: false,
     responseStream: false,
@@ -951,6 +984,17 @@ sendMessage: {
     responseType: gows_pb.MessageResponse,
     requestSerialize: serialize_messages_RevokeMessageRequest,
     requestDeserialize: deserialize_messages_RevokeMessageRequest,
+    responseSerialize: serialize_messages_MessageResponse,
+    responseDeserialize: deserialize_messages_MessageResponse,
+  },
+  sendButtonReply: {
+    path: '/messages.MessageService/SendButtonReply',
+    requestStream: false,
+    responseStream: false,
+    requestType: gows_pb.ButtonReplyRequest,
+    responseType: gows_pb.MessageResponse,
+    requestSerialize: serialize_messages_ButtonReplyRequest,
+    requestDeserialize: deserialize_messages_ButtonReplyRequest,
     responseSerialize: serialize_messages_MessageResponse,
     responseDeserialize: deserialize_messages_MessageResponse,
   },

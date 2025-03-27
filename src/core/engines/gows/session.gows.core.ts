@@ -1,4 +1,5 @@
 import {
+  getContentType,
   getUrlFromDirectPath,
   isJidGroup,
   isJidStatusBroadcast,
@@ -63,6 +64,7 @@ import {
   ChatRequest,
   CheckNumberStatusQuery,
   EditMessageRequest,
+  MessageButtonReply,
   MessageFileRequest,
   MessageForwardRequest,
   MessageImageRequest,
@@ -128,6 +130,7 @@ import { promisify } from 'util';
 
 import * as gows from './types';
 import MessageServiceClient = messages.MessageServiceClient;
+import { ReplyToMessage } from '@waha/structures/message.dto';
 
 enum WhatsMeowEvent {
   CONNECTED = 'gows.ConnectedEventData',
@@ -537,6 +540,14 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   /**
    * Other methods
    */
+  async generateNewMessageId(): Promise<string> {
+    const response = await promisify(this.client.GenerateNewMessageID)(
+      this.session,
+    );
+    const data = response.toObject();
+    return data.id;
+  }
+
   async sendText(request: MessageTextRequest) {
     const jid = toJID(this.ensureSuffix(request.chatId));
     const message = new messages.MessageRequest({
@@ -586,19 +597,19 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     return this.messageResponse(jid, data);
   }
 
-  protected checkStatusRequest(request: StatusRequest) {
-    if (request.contacts && request.contacts?.length > 0) {
-      const msg =
-        "GOWS doesn't accept 'contacts'. Remove the field to send status to all contacts.";
-      throw new UnprocessableEntityException(msg);
+  protected async prepareJidsForStatus(contacts: string[]) {
+    if (!contacts || contacts.length == 0) {
+      return [];
     }
+    return contacts.map(toJID);
   }
 
   public async sendTextStatus(status: TextStatus) {
-    this.checkStatusRequest(status);
-
+    const participants = await this.prepareJidsForStatus(status.contacts);
     const message = new messages.MessageRequest({
+      id: status.id,
       jid: Jid.BROADCAST,
+      participants: participants,
       text: status.text,
       session: this.session,
       backgroundColor: new messages.OptionalString({
@@ -616,13 +627,14 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   public async deleteStatus(request: DeleteStatusRequest) {
-    this.checkStatusRequest(request);
+    const participants = await this.prepareJidsForStatus(request.contacts);
     const key = parseMessageIdSerialized(request.id, true);
     const message = new messages.RevokeMessageRequest({
       session: this.session,
       jid: BROADCAST_ID,
       sender: '',
       messageId: key.id,
+      participants: participants,
     });
     const response = await promisify(this.client.RevokeMessage)(message);
     const data = response.toObject();
@@ -1190,7 +1202,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       session: this.session,
       id: jid,
     });
-    const response = await promisify(this.client.GetContact)(request);
+    const response = await promisify(this.client.GetContactById)(request);
     const data = parseJson(response);
     return this.toWAContact(data);
   }
@@ -1386,7 +1398,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const fromToParticipant = getFromToParticipant(message);
     const id = buildMessageId(message);
     const body = this.extractBody(message.Message);
-    const replyTo = null; // TODO: this.extractReplyTo(message.message);
+    const replyTo = this.extractReplyTo(message.Message);
     let ack;
     if (message.Status) {
       ack = statusToAck(message.Status);
@@ -1442,6 +1454,25 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       body = media?.caption;
     }
     return body;
+  }
+
+  protected extractReplyTo(message): ReplyToMessage | null {
+    const msgType = getContentType(message);
+    const contextInfo = message[msgType]?.contextInfo;
+    if (!contextInfo) {
+      return null;
+    }
+    const quotedMessage = contextInfo.quotedMessage;
+    if (!quotedMessage) {
+      return null;
+    }
+    const body = this.extractBody(quotedMessage);
+    return {
+      id: contextInfo.stanzaID,
+      participant: toCusFormat(contextInfo.participant),
+      body: body,
+      _data: quotedMessage,
+    };
   }
 
   public async getEngineInfo() {
