@@ -1,3 +1,4 @@
+import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import {
   Channel,
   ChannelListResult,
@@ -597,7 +598,9 @@ export abstract class WhatsappSession {
 
   protected async refreshProfilePicture(id: string) {
     let fn: Promise<string>;
-    if (isNewsletter(id)) {
+    if (isJidBroadcast(id)) {
+      return null;
+    } else if (isNewsletter(id)) {
       fn = this.channelsGetChannel(id).then(
         (channel: Channel) => channel.picture || channel.preview,
       );

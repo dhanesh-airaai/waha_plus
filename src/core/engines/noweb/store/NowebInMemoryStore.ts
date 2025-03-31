@@ -7,7 +7,6 @@ import makeWASocket, {
 } from '@adiwajshing/baileys';
 import { Label } from '@adiwajshing/baileys/lib/Types/Label';
 import { BadRequestException } from '@nestjs/common';
-import { PresenceProxy } from '@waha/core/engines/noweb/PresenceProxy';
 import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { PaginatorInMemory } from '@waha/utils/Paginator';
@@ -27,7 +26,7 @@ export class NowebInMemoryStore implements INowebStore {
 
   constructor() {
     this.store = makeInMemoryStore({ logger: logger });
-    const presences = new PresenceProxy().proxy;
+    const presences = {};
     this.store.presences = presences;
     // Adjust inline even handler
     this.store.setPresences(presences);

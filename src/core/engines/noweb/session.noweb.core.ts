@@ -10,8 +10,6 @@ import makeWASocket, {
   getContentType,
   getKeyAuthor,
   isJidGroup,
-  isJidNewsletter,
-  isJidStatusBroadcast,
   isJidUser,
   isRealMessage,
   jidNormalizedUser,
@@ -38,7 +36,10 @@ import {
   LabelAssociationType,
 } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { MessageUserReceiptUpdate } from '@adiwajshing/baileys/lib/Types/Message';
-import { isLidUser } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
+import {
+  isJidBroadcast,
+  isLidUser,
+} from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
 import {
@@ -1196,12 +1197,6 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   public async fetchContactProfilePicture(id: string) {
     const contact = this.ensureSuffix(id);
-    if (isJidNewsletter(id)) {
-      return null;
-    }
-    if (isJidStatusBroadcast(id)) {
-      return null;
-    }
     try {
       const url = await this.sock.profilePictureUrl(contact, 'image');
       return url;
@@ -2335,7 +2330,7 @@ export function toCusFormat(remoteJid) {
   if (isJidGroup(remoteJid)) {
     return remoteJid;
   }
-  if (isJidStatusBroadcast(remoteJid)) {
+  if (isJidBroadcast(remoteJid)) {
     return remoteJid;
   }
   if (isLidUser(remoteJid)) {
@@ -2366,10 +2361,13 @@ export function toJID(chatId) {
   if (isJidGroup(chatId)) {
     return chatId;
   }
-  if (isJidStatusBroadcast(chatId)) {
+  if (isJidBroadcast(chatId)) {
     return chatId;
   }
   if (isNewsletter(chatId)) {
+    return chatId;
+  }
+  if (isLidUser(chatId)) {
     return chatId;
   }
   const number = chatId.split('@')[0];

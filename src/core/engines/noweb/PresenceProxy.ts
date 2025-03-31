@@ -7,7 +7,8 @@ export class PresenceProxy {
 
   constructor() {
     this.cache = new NodeCache({
-      stdTTL: 60 * 60, // 1 hour
+      stdTTL: 60, // 1 minute
+      checkperiod: 60, // 1 minute
       useClones: false,
     });
 

@@ -2,7 +2,6 @@ import {
   getContentType,
   getUrlFromDirectPath,
   isJidGroup,
-  isJidStatusBroadcast,
   jidNormalizedUser,
 } from '@adiwajshing/baileys';
 import * as grpc from '@grpc/grpc-js';
@@ -130,6 +129,7 @@ import { promisify } from 'util';
 
 import * as gows from './types';
 import MessageServiceClient = messages.MessageServiceClient;
+import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { ReplyToMessage } from '@waha/structures/message.dto';
 
 enum WhatsMeowEvent {
@@ -646,7 +646,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const id = buildMessageId({
       ID: data.id,
       IsFromMe: true,
-      IsGroup: isJidGroup(jid) || isJidStatusBroadcast(jid),
+      IsGroup: isJidGroup(jid) || isJidBroadcast(jid),
       Chat: jid,
       Sender: this.me.id,
     });
