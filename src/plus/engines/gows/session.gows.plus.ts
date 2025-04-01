@@ -285,6 +285,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     const msg = {
       Info: {
         ID: channelMessage.MessageID,
+        ServerID: channelMessage.MessageServerID,
         Chat: jid,
         Sender: jid,
         IsFromMe: false,
