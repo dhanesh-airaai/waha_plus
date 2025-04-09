@@ -23,6 +23,7 @@ import {
   MessageButtonReply,
   MessageFileRequest,
   MessageImageRequest,
+  MessageLinkCustomPreviewRequest,
   MessageVideoRequest,
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
@@ -177,6 +178,31 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
 
   async sendVideo(request: MessageVideoRequest) {
     return await this.sendMedia(messages.MediaType.VIDEO, request);
+  }
+
+  async sendLinkCustomPreview(
+    request: MessageLinkCustomPreviewRequest,
+  ): Promise<any> {
+    const jid = toJID(this.ensureSuffix(request.chatId));
+    const media = await this.fileToMedia(request.preview.image as RemoteFile);
+    const preview = new messages.LinkPreview({
+      url: request.preview.url,
+      title: request.preview.title,
+      description: request.preview.description,
+      image: media.content,
+    });
+    const message = new messages.MessageRequest({
+      jid: jid,
+      text: request.text,
+      session: this.session,
+      linkPreview: true,
+      linkPreviewHighQuality: request.linkPreviewHighQuality,
+      replyTo: getMessageIdFromSerialized(request.reply_to),
+      preview: preview,
+    });
+    const response = await promisify(this.client.SendMessage)(message);
+    const data = response.toObject();
+    return this.messageResponse(jid, data);
   }
 
   async sendButtonsReply(request: MessageButtonReply) {

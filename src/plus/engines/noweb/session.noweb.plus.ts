@@ -1,4 +1,8 @@
-import { getStream, prepareWAMessageMedia } from '@adiwajshing/baileys';
+import {
+  extractImageThumb,
+  getStream,
+  prepareWAMessageMedia,
+} from '@adiwajshing/baileys';
 import {
   MediaGenerationOptions,
   NewsletterFetchedUpdate,
@@ -22,12 +26,12 @@ import {
 import {
   MessageFileRequest,
   MessageImageRequest,
+  MessageLinkCustomPreviewRequest,
   MessageVideoRequest,
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
-import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
+import { BinaryFile, FileType, RemoteFile } from '@waha/structures/files.dto';
 import {
-  BROADCAST_ID,
   ImageStatus,
   VideoStatus,
   VoiceStatus,
@@ -104,7 +108,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     }
   }
 
-  private async fileToBuffer(file: BinaryFile | RemoteFile): Promise<Buffer> {
+  private async fileToBuffer(file: FileType): Promise<Buffer> {
     let content: Buffer;
     if ('data' in file) {
       content = Buffer.from(file.data, 'base64');
@@ -195,6 +199,50 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     const chatId = toJID(this.ensureSuffix(request.chatId));
     const options = await this.getMessageOptions(request);
     message.ptv = parseBool(request.asNote);
+    return this.sock.sendMessage(chatId, message, options);
+  }
+
+  async sendLinkCustomPreview(
+    request: MessageLinkCustomPreviewRequest,
+  ): Promise<any> {
+    const chatId = toJID(this.ensureSuffix(request.chatId));
+    const options = await this.getMessageOptions(request);
+    const preview = request.preview;
+    const urlInfo = {
+      'matched-text': preview.url,
+      title: preview.title,
+      description: preview.description,
+      jpegThumbnail: null,
+      highQualityThumbnail: null,
+    };
+
+    if (request.preview.image) {
+      const content: Buffer = await this.fileToBuffer(request.preview.image);
+      if (!request.linkPreviewHighQuality) {
+        // generate built-in thumbnail
+        const thumbnail = await extractImageThumb(content, 192);
+        urlInfo.jpegThumbnail = thumbnail.buffer;
+      } else {
+        // upload HQ thumbnail
+        const { imageMessage } = await prepareWAMessageMedia(
+          { image: content },
+          {
+            upload: this.sock.waUploadToServer,
+            mediaTypeOverride: 'thumbnail-link',
+            options: { timeout: 10_000 },
+          },
+        );
+        urlInfo.jpegThumbnail = imageMessage?.jpegThumbnail
+          ? Buffer.from(imageMessage.jpegThumbnail)
+          : undefined;
+        urlInfo.highQualityThumbnail = imageMessage;
+      }
+    }
+
+    const message = {
+      text: request.text,
+      linkPreview: urlInfo,
+    };
     return this.sock.sendMessage(chatId, message, options);
   }
 
