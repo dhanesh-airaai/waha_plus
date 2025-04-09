@@ -63,10 +63,10 @@ import {
   ChatRequest,
   CheckNumberStatusQuery,
   EditMessageRequest,
-  MessageButtonReply,
   MessageFileRequest,
   MessageForwardRequest,
   MessageImageRequest,
+  MessageLinkCustomPreviewRequest,
   MessageLocationRequest,
   MessageReactionRequest,
   MessageReplyRequest,
@@ -642,7 +642,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   protected messageResponse(jid, data) {
-    const message = parseJson(data.message);
+    const message = data.message ? parseJson(data.message) : null;
     const id = buildMessageId({
       ID: data.id,
       IsFromMe: true,
@@ -689,6 +689,12 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   sendVoice(request: MessageVoiceRequest) {
+    throw new AvailableInPlusVersion();
+  }
+
+  sendLinkCustomPreview(
+    request: MessageLinkCustomPreviewRequest,
+  ): Promise<any> {
     throw new AvailableInPlusVersion();
   }
 
@@ -920,7 +926,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       jid: key.remoteJid,
       messageId: key.id,
       reaction: request.reaction,
-      sender: key.fromMe ? this.me.id : key.participant,
+      sender: key.fromMe ? this.me.id : key.participant || key.remoteJid,
     });
     const response = await promisify(this.client.SendReaction)(message);
     const data = response.toObject();

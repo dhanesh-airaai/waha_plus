@@ -52,6 +52,7 @@ import {
   MessageFileRequest,
   MessageForwardRequest,
   MessageImageRequest,
+  MessageLinkCustomPreviewRequest,
   MessageLinkPreviewRequest,
   MessageLocationRequest,
   MessagePollRequest,
@@ -418,6 +419,12 @@ export abstract class WhatsappSession {
   abstract sendLocation(request: MessageLocationRequest);
 
   sendLinkPreview(request: MessageLinkPreviewRequest) {
+    throw new NotImplementedByEngineError();
+  }
+
+  sendLinkCustomPreview(
+    request: MessageLinkCustomPreviewRequest,
+  ): Promise<any> {
     throw new NotImplementedByEngineError();
   }
 

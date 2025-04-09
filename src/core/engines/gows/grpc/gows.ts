@@ -2535,6 +2535,142 @@ export namespace messages {
             return Media.deserialize(bytes);
         }
     }
+    export class LinkPreview extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            url?: string;
+            title?: string;
+            description?: string;
+            image?: Uint8Array;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("url" in data && data.url != undefined) {
+                    this.url = data.url;
+                }
+                if ("title" in data && data.title != undefined) {
+                    this.title = data.title;
+                }
+                if ("description" in data && data.description != undefined) {
+                    this.description = data.description;
+                }
+                if ("image" in data && data.image != undefined) {
+                    this.image = data.image;
+                }
+            }
+        }
+        get url() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set url(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get title() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set title(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get description() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set description(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get image() {
+            return pb_1.Message.getFieldWithDefault(this, 4, new Uint8Array(0)) as Uint8Array;
+        }
+        set image(value: Uint8Array) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        static fromObject(data: {
+            url?: string;
+            title?: string;
+            description?: string;
+            image?: Uint8Array;
+        }): LinkPreview {
+            const message = new LinkPreview({});
+            if (data.url != null) {
+                message.url = data.url;
+            }
+            if (data.title != null) {
+                message.title = data.title;
+            }
+            if (data.description != null) {
+                message.description = data.description;
+            }
+            if (data.image != null) {
+                message.image = data.image;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                url?: string;
+                title?: string;
+                description?: string;
+                image?: Uint8Array;
+            } = {};
+            if (this.url != null) {
+                data.url = this.url;
+            }
+            if (this.title != null) {
+                data.title = this.title;
+            }
+            if (this.description != null) {
+                data.description = this.description;
+            }
+            if (this.image != null) {
+                data.image = this.image;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.url.length)
+                writer.writeString(1, this.url);
+            if (this.title.length)
+                writer.writeString(2, this.title);
+            if (this.description.length)
+                writer.writeString(3, this.description);
+            if (this.image.length)
+                writer.writeBytes(4, this.image);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): LinkPreview {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new LinkPreview();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.url = reader.readString();
+                        break;
+                    case 2:
+                        message.title = reader.readString();
+                        break;
+                    case 3:
+                        message.description = reader.readString();
+                        break;
+                    case 4:
+                        message.image = reader.readBytes();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): LinkPreview {
+            return LinkPreview.deserialize(bytes);
+        }
+    }
     export class MessageRequest extends pb_1.Message {
         #one_of_decls: number[][] = [];
         constructor(data?: any[] | {
@@ -2549,6 +2685,7 @@ export namespace messages {
             replyTo?: string;
             id?: string;
             participants?: string[];
+            preview?: LinkPreview;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [11], this.#one_of_decls);
@@ -2585,6 +2722,9 @@ export namespace messages {
                 }
                 if ("participants" in data && data.participants != undefined) {
                     this.participants = data.participants;
+                }
+                if ("preview" in data && data.preview != undefined) {
+                    this.preview = data.preview;
                 }
             }
         }
@@ -2666,6 +2806,15 @@ export namespace messages {
         set participants(value: string[]) {
             pb_1.Message.setField(this, 11, value);
         }
+        get preview() {
+            return pb_1.Message.getWrapperField(this, LinkPreview, 12) as LinkPreview;
+        }
+        set preview(value: LinkPreview) {
+            pb_1.Message.setWrapperField(this, 12, value);
+        }
+        get has_preview() {
+            return pb_1.Message.getField(this, 12) != null;
+        }
         static fromObject(data: {
             session?: ReturnType<typeof Session.prototype.toObject>;
             jid?: string;
@@ -2678,6 +2827,7 @@ export namespace messages {
             replyTo?: string;
             id?: string;
             participants?: string[];
+            preview?: ReturnType<typeof LinkPreview.prototype.toObject>;
         }): MessageRequest {
             const message = new MessageRequest({});
             if (data.session != null) {
@@ -2713,6 +2863,9 @@ export namespace messages {
             if (data.participants != null) {
                 message.participants = data.participants;
             }
+            if (data.preview != null) {
+                message.preview = LinkPreview.fromObject(data.preview);
+            }
             return message;
         }
         toObject() {
@@ -2728,6 +2881,7 @@ export namespace messages {
                 replyTo?: string;
                 id?: string;
                 participants?: string[];
+                preview?: ReturnType<typeof LinkPreview.prototype.toObject>;
             } = {};
             if (this.session != null) {
                 data.session = this.session.toObject();
@@ -2762,6 +2916,9 @@ export namespace messages {
             if (this.participants != null) {
                 data.participants = this.participants;
             }
+            if (this.preview != null) {
+                data.preview = this.preview.toObject();
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -2790,6 +2947,8 @@ export namespace messages {
                 writer.writeString(10, this.id);
             if (this.participants.length)
                 writer.writeRepeatedString(11, this.participants);
+            if (this.has_preview)
+                writer.writeMessage(12, this.preview, () => this.preview.serialize(writer));
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -2831,6 +2990,9 @@ export namespace messages {
                         break;
                     case 11:
                         pb_1.Message.addToRepeatedField(message, 11, reader.readString());
+                        break;
+                    case 12:
+                        reader.readMessage(message.preview, () => message.preview = LinkPreview.deserialize(reader));
                         break;
                     default: reader.skipField();
                 }

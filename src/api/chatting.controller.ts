@@ -23,6 +23,7 @@ import {
   MessageFileRequest,
   MessageForwardRequest,
   MessageImageRequest,
+  MessageLinkCustomPreviewRequest,
   MessageLinkPreviewRequest,
   MessageLocationRequest,
   MessagePollRequest,
@@ -93,6 +94,25 @@ export class ChattingController {
   async sendVideo(@Body() request: MessageVideoRequest) {
     const whatsapp = await this.manager.getWorkingSession(request.session);
     return whatsapp.sendVideo(request);
+  }
+
+  @Post('/send/link-custom-preview')
+  @ApiOperation({
+    summary: 'Send a text message with a CUSTOM link preview.',
+    description:
+      'You can use regular /api/sendText if you wanna send auto-generated link preview.',
+  })
+  @UsePipes(new WAHAValidationPipe())
+  async sendLinkCustomPreview(
+    @Body() request: MessageLinkCustomPreviewRequest,
+  ): Promise<any> {
+    const whatsapp = await this.manager.getWorkingSession(request.session);
+    if (!request.text.includes(request.preview.url)) {
+      throw new Error(
+        '"text" must include the URL provided in the "preview.url"',
+      );
+    }
+    return whatsapp.sendLinkCustomPreview(request);
   }
 
   @Post('/sendButtons')
@@ -166,12 +186,6 @@ export class ChattingController {
     return whatsapp.sendLocation(request);
   }
 
-  @Post('/sendLinkPreview')
-  async sendLinkPreview(@Body() request: MessageLinkPreviewRequest) {
-    const whatsapp = await this.manager.getWorkingSession(request.session);
-    return whatsapp.sendLinkPreview(request);
-  }
-
   @Post('/sendContactVcard')
   async sendContactVcard(@Body() request: MessageContactVcardRequest) {
     const whatsapp = await this.manager.getWorkingSession(request.session);
@@ -235,5 +249,12 @@ export class ChattingController {
   async reply(@Body() request: MessageReplyRequest) {
     const whatsapp = await this.manager.getWorkingSession(request.session);
     return whatsapp.reply(request);
+  }
+
+  @Post('/sendLinkPreview')
+  @ApiOperation({ deprecated: true })
+  async sendLinkPreview_DEPRECATED(@Body() request: MessageLinkPreviewRequest) {
+    const whatsapp = await this.manager.getWorkingSession(request.session);
+    return whatsapp.sendLinkPreview(request);
   }
 }

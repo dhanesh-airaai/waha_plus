@@ -4,8 +4,17 @@ import {
   ApiProperty,
   getSchemaPath,
 } from '@nestjs/swagger';
+import { IsFileType } from '@waha/nestjs/validation/IsFileType';
 import { GetChatMessagesQuery } from '@waha/structures/chats.dto';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { plainToInstance, Transform, Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
 
 import {
   SessionBaseRequest,
@@ -14,6 +23,9 @@ import {
 } from './base.dto';
 import {
   BinaryFile,
+  FileContent,
+  FileType,
+  FileURL,
   RemoteFile,
   VideoBinaryFile,
   VideoRemoteFile,
@@ -160,6 +172,73 @@ export class MessageTextRequest extends ChatRequest {
 
   linkPreview?: boolean = true;
   linkPreviewHighQuality?: boolean = false;
+}
+
+@ApiExtraModels(FileURL, FileContent)
+export class LinkPreviewData {
+  @IsNotEmpty()
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true,
+    require_tld: false,
+  })
+  url: string = 'https://github.com/';
+
+  @IsString()
+  title: string = 'Your Title';
+
+  @IsString()
+  description: string = 'Check this out, amazing!';
+
+  @IsOptional()
+  @ValidateNested()
+  @Transform(
+    ({ value }) => {
+      if (value?.url) {
+        return plainToInstance(FileURL, value);
+      }
+      if (value?.data) {
+        return plainToInstance(FileContent, value);
+      }
+      return value;
+    },
+    { toClassOnly: true },
+  )
+  @IsFileType({ message: 'Image must contain either "data" or "url".' })
+  @ApiProperty({
+    oneOf: [
+      { $ref: getSchemaPath(FileURL) },
+      { $ref: getSchemaPath(FileContent) },
+    ],
+    example: {
+      url:
+        process.env.WHATSAPP_SWAGGER_JPG_EXAMPLE_URL ||
+        'https://github.com/devlikeapro/waha/raw/core/examples/waha.jpg',
+    },
+  })
+  image?: FileType;
+}
+
+export class MessageLinkCustomPreviewRequest extends ChatRequest {
+  @IsString()
+  @ApiProperty({
+    description:
+      'The text to send. MUST include the URL provided in preview.url',
+  })
+  text: string = 'Check this out! https://github.com/';
+
+  @IsBoolean()
+  @IsOptional()
+  linkPreviewHighQuality?: boolean = true;
+
+  @ValidateNested()
+  @Type(() => LinkPreviewData)
+  preview: LinkPreviewData;
+
+  @ReplyToProperty()
+  @IsString()
+  @IsOptional()
+  reply_to?: string;
 }
 
 export class EditMessageRequest {
