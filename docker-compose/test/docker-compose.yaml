@@ -36,8 +36,8 @@ services:
       # Username and password for WAHA Dashboard
       # you can use the same username and password for both Swagger and Dashboard
       # Default - waha / waha
-      - WAHA_DASHBOARD_USERNAME=waha
-      - WAHA_DASHBOARD_PASSWORD=waha
+      - WAHA_DASHBOARD_USERNAME=admin
+      - WAHA_DASHBOARD_PASSWORD=admin
       # Engine specific environment variables
       # - WAHA_WEBJS_WEB_VERSION=2.2412.54-videofix
     restart: always
