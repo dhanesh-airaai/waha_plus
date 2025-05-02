@@ -32,6 +32,10 @@ export class MongoMessagesRepository
     if (filter['filter.fromMe'] != null) {
       query['data.key.fromMe'] = filter['filter.fromMe'];
     }
+    if (filter['filter.ack'] != null) {
+      const status = filter['filter.ack'] + 1;
+      query['data.status'] = status;
+    }
 
     let cursor = this.collection.find(query);
     cursor = this.pagination(cursor, pagination);

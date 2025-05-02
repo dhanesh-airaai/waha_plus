@@ -1,14 +1,14 @@
 import { IJsonQuery } from '@waha/core/storage/sql/IJsonQuery';
 
 export class PsqlJsonQuery implements IJsonQuery {
-  filter(field: string, key: string): string {
+  filter(field: string, key: string, value: any): [string, string] {
     const paths = key.split('.');
     key = paths.pop();
     const jsonPath = paths.map((k) => `'${k}'`).join('->');
     if (jsonPath) {
-      return `${field}::json->${jsonPath}->>'${key}' = ? `;
+      return [`${field}::json->${jsonPath}->>'${key}' = ? `, value];
     }
-    return `${field}::json->>'${key}' = ? `;
+    return [`${field}::json->>'${key}' = ? `, value];
   }
 
   sortBy(field: string, sortBy: string, direction: string): string {
