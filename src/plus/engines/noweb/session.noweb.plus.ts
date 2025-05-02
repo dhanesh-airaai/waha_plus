@@ -8,10 +8,8 @@ import {
   NewsletterFetchedUpdate,
 } from '@adiwajshing/baileys/lib/Types';
 import { UnprocessableEntityException } from '@nestjs/common';
-import {
-  toJID,
-  WhatsappSessionNoWebCore,
-} from '@waha/core/engines/noweb/session.noweb.core';
+import { WhatsappSessionNoWebCore } from '@waha/core/engines/noweb/session.noweb.core';
+import { toJID } from '@waha/core/utils/jids';
 import { parseBool, sortObjectByValues } from '@waha/helpers';
 import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
 import {

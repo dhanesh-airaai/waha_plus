@@ -6,8 +6,8 @@ import {
   getMessageIdFromSerialized,
   WhatsappSessionGoWSCore,
 } from '@waha/core/engines/gows/session.gows.core';
-import { toJID } from '@waha/core/engines/noweb/session.noweb.core';
 import { NotImplementedByEngineError } from '@waha/core/exceptions';
+import { toJID } from '@waha/core/utils/jids';
 import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
 import {
