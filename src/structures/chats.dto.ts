@@ -1,5 +1,7 @@
+import { BadRequestException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { BooleanString } from '@waha/nestjs/validation/BooleanString';
+import { WAMessageAck, WAMessageAckName } from '@waha/structures/enums.dto';
 import {
   LimitOffsetParams,
   PaginationParams,
@@ -39,6 +41,30 @@ export class GetChatMessagesFilter {
   @IsBoolean()
   @IsOptional()
   'filter.fromMe'?: boolean;
+
+  @ApiProperty({
+    required: false,
+    description: 'Filter messages by acknowledgment status',
+    enum: WAMessageAckName,
+  })
+  @IsEnum(WAMessageAckName)
+  @IsOptional()
+  'filter.ack'?: WAMessageAck;
+}
+
+export function transformAck(
+  filter: GetChatMessagesFilter,
+): GetChatMessagesFilter {
+  if (!filter) return filter;
+  if (!filter['filter.ack']) return filter;
+  const ackName = filter['filter.ack'];
+  // @ts-ignore
+  const ack: WAMessageAck = WAMessageAck[ackName];
+  if (ack == null) {
+    throw new BadRequestException(`Invalid ack: '${ackName}'`);
+  }
+  filter['filter.ack'] = ack;
+  return filter;
 }
 
 export class ChatPictureQuery {
@@ -62,7 +88,7 @@ export class GetChatMessagesQuery {
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
-  limit: number = 100;
+  limit: number = 10;
 
   @IsNumber()
   @IsOptional()
@@ -78,6 +104,35 @@ export class GetChatMessagesQuery {
   @IsBoolean()
   @IsOptional()
   downloadMedia: boolean = true;
+}
+
+export class ReadChatMessagesQuery {
+  @ApiProperty({
+    example: 30,
+    required: false,
+    description: 'How much messages to read (latest first)',
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  messages: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'How much days to read (latest first)',
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  days: number = 7;
+}
+
+export class ReadChatMessagesResponse {
+  @ApiProperty({
+    required: false,
+    description: 'Messages IDs that have been read',
+  })
+  ids?: string[];
 }
 
 export class GetChatMessageQuery {

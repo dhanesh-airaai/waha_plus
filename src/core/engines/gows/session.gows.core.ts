@@ -1,9 +1,12 @@
 import {
+  aggregateMessageKeysNotFromMe,
   getContentType,
   getUrlFromDirectPath,
   isJidGroup,
   jidNormalizedUser,
+  normalizeMessageContent,
 } from '@adiwajshing/baileys';
+import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import * as grpc from '@grpc/grpc-js';
 import { connectivityState } from '@grpc/grpc-js';
 import { UnprocessableEntityException } from '@nestjs/common';
@@ -29,11 +32,7 @@ import {
   statusToAck,
 } from '@waha/core/engines/gows/helpers';
 import { GowsAuthFactoryCore } from '@waha/core/engines/gows/store/GowsAuthFactoryCore';
-import {
-  parseMessageIdSerialized,
-  toCusFormat,
-  toJID,
-} from '@waha/core/engines/noweb/session.noweb.core';
+import { toCusFormat } from '@waha/core/engines/noweb/session.noweb.core';
 import { extractMediaContent } from '@waha/core/engines/noweb/utils';
 import {
   AvailableInPlusVersion,
@@ -41,6 +40,9 @@ import {
 } from '@waha/core/exceptions';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
+import { ExtractMessageKeysForRead } from '@waha/core/utils/convertors';
+import { parseMessageIdSerialized } from '@waha/core/utils/ids';
+import { toJID } from '@waha/core/utils/jids';
 import {
   Channel,
   ChannelListResult,
@@ -58,6 +60,8 @@ import {
   GetChatMessageQuery,
   GetChatMessagesFilter,
   GetChatMessagesQuery,
+  ReadChatMessagesQuery,
+  ReadChatMessagesResponse,
 } from '@waha/structures/chats.dto';
 import {
   ChatRequest,
@@ -91,6 +95,7 @@ import {
   ParticipantsRequest,
   SettingsSecurityChangeInfo,
 } from '@waha/structures/groups.dto';
+import { ReplyToMessage } from '@waha/structures/message.dto';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 import {
   WAHAChatPresences,
@@ -105,7 +110,6 @@ import { MeInfo, ProxyConfig } from '@waha/structures/sessions.dto';
 import {
   BROADCAST_ID,
   DeleteStatusRequest,
-  StatusRequest,
   TextStatus,
 } from '@waha/structures/status.dto';
 import { EnginePayload, WAMessageAckBody } from '@waha/structures/webhooks.dto';
@@ -115,8 +119,10 @@ import { onlyEvent } from '@waha/utils/reactive/ops/onlyEvent';
 import * as NodeCache from 'node-cache';
 import {
   debounceTime,
+  distinct,
   filter,
   groupBy,
+  interval,
   merge,
   mergeMap,
   Observable,
@@ -128,9 +134,8 @@ import { map } from 'rxjs/operators';
 import { promisify } from 'util';
 
 import * as gows from './types';
+import { MessageStatus } from './types';
 import MessageServiceClient = messages.MessageServiceClient;
-import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
-import { ReplyToMessage } from '@waha/structures/message.dto';
 
 enum WhatsMeowEvent {
   CONNECTED = 'gows.ConnectedEventData',
@@ -347,10 +352,18 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
 
     let [messagesFromMe$, messagesFromOthers$] = partition(messages$, isMine);
     messagesFromMe$ = messagesFromMe$.pipe(
+      map((msg) => {
+        msg.Status = MessageStatus.ServerAck;
+        return msg;
+      }),
       mergeMap((msg) => this.processIncomingMessage(msg, true)),
       share(), // share it so we don't process twice in message.any
     );
     messagesFromOthers$ = messagesFromOthers$.pipe(
+      map((msg) => {
+        msg.Status = MessageStatus.DeliveryAck;
+        return msg;
+      }),
       mergeMap((msg) => this.processIncomingMessage(msg, true)),
       share(), // share it so we don't process twice in message.any
     );
@@ -361,13 +374,10 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const receipt$ = all$.pipe(onlyEvent(WhatsMeowEvent.RECEIPT));
     const messageAck$ = receipt$.pipe(
       mergeMap(this.receiptToMessageAck.bind(this)),
-      // Create a composite key for deduplication
-      groupBy((message) => `${message.id}-${message.ack}`),
-      mergeMap((group$) =>
-        group$.pipe(
-          debounceTime(1000), // Wait 1 second for deduplication
-          map((message) => message), // Pass the latest message after debounce
-        ),
+      // emit only if we haven’t seen this key since the last flush
+      distinct(
+        (msg: WAMessageAckBody) => `${msg.id}-${msg.ack}-${msg.participant}`,
+        interval(60_000),
       ),
     );
     this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAck$);
@@ -703,15 +713,24 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   async sendSeen(request: SendSeenRequest) {
-    const key = parseMessageIdSerialized(request.messageId);
-    const req = new messages.MarkReadRequest({
-      session: this.session,
-      jid: key.remoteJid,
-      messageId: key.id,
-      sender: key.fromMe ? this.me.id : key.participant,
-    });
-    const response = await promisify(this.client.MarkRead)(req);
-    response.toObject();
+    const keys = ExtractMessageKeysForRead(request);
+    if (keys.length === 0) {
+      return;
+    }
+    const receipts = aggregateMessageKeysNotFromMe(keys);
+    for (const receipt of receipts) {
+      if (receipt.messageIds.length === 0) {
+        return;
+      }
+      const req = new messages.MarkReadRequest({
+        session: this.session,
+        jid: receipt.jid,
+        messageIds: receipt.messageIds,
+        sender: receipt.participant,
+      });
+      const response = await promisify(this.client.MarkRead)(req);
+      response.toObject();
+    }
     return;
   }
 
@@ -1322,6 +1341,8 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       });
     }
 
+    const status =
+      filter['filter.ack'] != null ? filter['filter.ack'] + 1 : null;
     const request = new messages.GetMessagesRequest({
       session: this.session,
       filters: new messages.MessageFilters({
@@ -1335,6 +1356,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
           messages.OptionalUInt64,
         ),
         fromMe: optional(filter['filter.fromMe'], messages.OptionalBool),
+        status: optional(status, messages.OptionalUInt32),
       }),
       pagination: new messages.Pagination({
         limit: query.limit,
@@ -1350,6 +1372,13 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     let result = await Promise.all(promises);
     result = result.filter(Boolean);
     return result;
+  }
+
+  public readChatMessages(
+    chatId: string,
+    request: ReadChatMessagesQuery,
+  ): Promise<ReadChatMessagesResponse> {
+    return this.readChatMessagesWSImpl(chatId, request);
   }
 
   public async getChatMessage(
@@ -1381,8 +1410,13 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     if (message.Message.pollUpdateMessage) return;
     // Ignore protocol messages
     if (message.Message.protocolMessage) return;
-    // Ignore key distribution messages
-    if (message.Message.senderKeyDistributionMessage) return;
+
+    const normalizedContent = normalizeMessageContent(message.Message);
+    const hasSomeContent = !!getContentType(normalizedContent);
+    if (!hasSomeContent) {
+      // Ignore key distribution messages
+      if (message.message.senderKeyDistributionMessage) return;
+    }
 
     if (downloadMedia) {
       try {
@@ -1405,11 +1439,11 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const id = buildMessageId(message);
     const body = this.extractBody(message.Message);
     const replyTo = this.extractReplyTo(message.Message);
-    let ack;
-    if (message.Status) {
-      ack = statusToAck(message.Status);
-    } else {
-      ack = message.Info.IsFromMe ? WAMessageAck.SERVER : WAMessageAck.DEVICE;
+    let ack = statusToAck(message.Status);
+    if (ack === WAMessageAck.ERROR) {
+      // GOWS error because of how golang treats it as null
+      // It'll be UNKNOWN instead of ERROR
+      ack = null;
     }
     const mediaContent = extractMediaContent(message.Message);
     const source = this.getSourceDeviceByMsg(message);
