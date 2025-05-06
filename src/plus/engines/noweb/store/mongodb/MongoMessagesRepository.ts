@@ -1,4 +1,5 @@
 import { ALL_JID } from '@waha/core/engines/noweb/session.noweb.core';
+import { AckToStatus } from '@waha/core/utils/acks';
 import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 import { FindCursor } from 'mongodb';
@@ -33,7 +34,7 @@ export class MongoMessagesRepository
       query['data.key.fromMe'] = filter['filter.fromMe'];
     }
     if (filter['filter.ack'] != null) {
-      const status = filter['filter.ack'] + 1;
+      const status = AckToStatus(filter['filter.ack']);
       query['data.status'] = status;
     }
 
