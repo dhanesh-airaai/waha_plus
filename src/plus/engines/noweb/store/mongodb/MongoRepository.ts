@@ -52,8 +52,34 @@ export class MongoRepository<Entity> {
   }
 
   async getAllByIds(ids: string[]) {
+    const entitiesMap = await this.getEntitiesByIds(ids);
+    return Array.from(entitiesMap.values()).filter(
+      (entity) => entity !== null,
+    ) as Entity[];
+  }
+
+  async getEntitiesByIds(ids: string[]): Promise<Map<string, Entity | null>> {
+    if (ids.length === 0) {
+      return new Map();
+    }
+
     const rows = await this.collection.find({ id: { $in: ids } }).toArray();
-    return rows.map(MongoRepository.revive);
+    const entitiesMap = new Map<string, Entity | null>();
+
+    // Initialize a map with null values for all requested IDs
+    for (const id of ids) {
+      entitiesMap.set(id, null);
+    }
+
+    // Fill in the map with found entities
+    for (const row of rows) {
+      const entity = MongoRepository.revive(row);
+      if (entity && row.id) {
+        entitiesMap.set(row.id, entity);
+      }
+    }
+
+    return entitiesMap;
   }
 
   protected async getBy(filters: any) {
