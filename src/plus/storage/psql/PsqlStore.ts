@@ -14,6 +14,7 @@ const PostgreSQLKnexConfig: Knex.Knex.Config = {
     min: 0,
     max: 10,
   },
+  acquireConnectionTimeout: 120_000, // by default, it's 60s
 };
 
 export class PsqlStore extends DataStore {
