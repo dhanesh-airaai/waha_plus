@@ -194,9 +194,26 @@ export class NowebPersistentStore implements INowebStore {
       const jid = jidNormalizedUser(update.key.remoteJid!);
       const message = await this.messagesRepo.getByJidById(jid, update.key.id);
       if (!message) {
+        this.logger.warn(
+          `got update for non-existent message. update: '${JSON.stringify(
+            update,
+          )}'`,
+        );
         continue;
       }
       const fields = { ...update.update };
+      // check if fields has only "status" field
+      const onlyStatusField =
+        Object.keys(fields).length === 1 &&
+        'status' in fields &&
+        fields.status !== null;
+      if (onlyStatusField) {
+        // if so, check the message don't have a newer status
+        if (message.status >= fields.status) {
+          continue;
+        }
+      }
+
       // It can overwrite the key, so we need to delete it
       delete fields['key'];
       Object.assign(message, fields);
@@ -226,8 +243,8 @@ export class NowebPersistentStore implements INowebStore {
     for (const chat of chats) {
       delete chat['messages'];
       chat.conversationTimestamp = toNumber(chat.conversationTimestamp) || null;
-      await this.chatRepo.save(chat);
     }
+    await this.chatRepo.upsertMany(chats);
     this.logger.info(`store sync - '${chats.length}' synced chats`);
   }
 
@@ -333,15 +350,19 @@ export class NowebPersistentStore implements INowebStore {
   }
 
   private async onContactsUpsert(contacts: Contact[]) {
+    const upserts = [];
+    const ids = contacts.map((c) => c.id);
+    const contactById = await this.contactRepo.getEntitiesByIds(ids);
     for (const update of contacts) {
-      const contact = await this.contactRepo.getById(update.id);
+      const contact = contactById.get(update.id) || {};
       // remove undefined from data
       Object.keys(update).forEach(
         (key) => update[key] === undefined && delete update[key],
       );
-      const result = { ...(contact || {}), ...update };
-      await this.contactRepo.save(result);
+      const result = { ...contact, ...update };
+      upserts.push(result);
     }
+    await this.contactRepo.upsertMany(upserts);
   }
 
   private async onContactUpdate(updates: Partial<Contact>[]) {

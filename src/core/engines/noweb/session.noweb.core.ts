@@ -36,11 +36,11 @@ import {
   LabelAssociationType,
 } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { MessageUserReceiptUpdate } from '@adiwajshing/baileys/lib/Types/Message';
+import { ILogger } from '@adiwajshing/baileys/lib/Utils/logger';
 import {
   isJidBroadcast,
   isLidUser,
 } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
-import { Logger as BaileysLogger } from '@adiwajshing/baileys/node_modules/pino';
 import { UnprocessableEntityException } from '@nestjs/common';
 import {
   ensureSuffix,
@@ -65,9 +65,11 @@ import { toVcard } from '@waha/core/helpers';
 import { createAgentProxy } from '@waha/core/helpers.proxy';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
+import { AckToStatus, StatusToAck } from '@waha/core/utils/acks';
 import { ExtractMessageKeysForRead } from '@waha/core/utils/convertors';
 import { parseMessageIdSerialized } from '@waha/core/utils/ids';
 import { isJidNewsletter, toJID } from '@waha/core/utils/jids';
+import { DistinctAck } from '@waha/core/utils/reactive';
 import { flipObject, splitAt } from '@waha/helpers';
 import { PairingCodeResponse } from '@waha/structures/auth.dto';
 import { CallData } from '@waha/structures/calls.dto';
@@ -218,7 +220,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   private autoRestartJob: SinglePeriodicJobRunner;
   private msgRetryCounterCache: NodeCache;
   private placeholderResendCache: NodeCache;
-  protected engineLogger: BaileysLogger;
+  protected engineLogger: ILogger;
 
   private authNOWEBStore: any;
 
@@ -246,7 +248,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
     this.engineLogger = this.loggerBuilder.child({
       name: 'NOWEBEngine',
-    }) as unknown as BaileysLogger;
+    }) as unknown as ILogger;
 
     // Restart job if session failed
     this.startDelayedJob = new SingleDelayedJobRunner(
@@ -566,11 +568,11 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   }
 
   private fixMessageUpsertStatus() {
-    // If no status - set it to WAMessageAck.DEVICE + 1
+    // If no status - set it to WAMessageAck.DEVICE
     this.sock.ev.on('messages.upsert', ({ messages }) => {
       for (const message of messages) {
         if (message.status == null) {
-          message.status = WAMessageAck.DEVICE + 1;
+          message.status = AckToStatus(WAMessageAck.DEVICE);
         }
       }
     });
@@ -920,7 +922,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     // Emit events for our reads
     const updates = keys.map((key) => ({
       key: key,
-      update: { status: WAMessageAck.READ + 1 },
+      update: { status: AckToStatus(WAMessageAck.READ) },
     }));
     this.sock?.ev.emit('messages.update', updates);
   }
@@ -1755,7 +1757,9 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       filter(isMine), // ack comes only for MY messages
       map(this.convertMessageReceiptUpdateToMessageAck.bind(this)),
     );
-    const messageAck$ = merge(messageAckDirect$, messageAckGroups$);
+    const messageAck$ = merge(messageAckDirect$, messageAckGroups$).pipe(
+      DistinctAck(),
+    );
     this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAck$);
 
     //
@@ -2025,7 +2029,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     const id = buildMessageId(message.key);
     const body = this.extractBody(message.message);
     const replyTo = this.extractReplyTo(message.message);
-    const ack = message.ack || message.status - 1;
+    const ack = message.ack || StatusToAck(message.status);
     const mediaContent = extractMediaContent(message.message);
     const source = this.getMessageSource(message.key.id);
     return Promise.resolve({
@@ -2114,7 +2118,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     const message = event;
     const fromToParticipant = getFromToParticipant(message.key);
     const id = buildMessageId(message.key);
-    const ack = message.update.status - 1;
+    const ack = StatusToAck(message.update.status);
     const body: WAMessageAckBody = {
       id: id,
       from: toCusFormat(fromToParticipant.from),
@@ -2129,7 +2133,6 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   protected convertMessageReceiptUpdateToMessageAck(event): WAMessageAckBody {
     const fromToParticipant = getFromToParticipant(event.key);
-    const id = buildMessageId(event.key);
 
     const receipt = event.receipt;
     let ack;
@@ -2140,6 +2143,15 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     } else if (receipt.readTimestamp) {
       ack = WAMessageAck.READ;
     }
+
+    const key = { ...event.key };
+    if (key.fromMe) {
+      key.participant = this.getSessionMeInfo()?.id;
+    } else {
+      key.participant = event.receipt.userJid;
+    }
+    const id = buildMessageId(key);
+
     const body: WAMessageAckBody = {
       id: id,
       from: toCusFormat(fromToParticipant.from),
@@ -2148,6 +2160,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       fromMe: event.key.fromMe,
       ack: ack,
       ackName: WAMessageAck[ack] || ACK_UNKNOWN,
+      _data: event,
     };
     return body;
   }
@@ -2323,7 +2336,7 @@ function hasPath(url: string) {
 }
 
 export class NOWEBEngineMediaProcessor implements IMediaEngineProcessor<any> {
-  private readonly logger: BaileysLogger;
+  private readonly logger: ILogger;
 
   constructor(
     public session: WhatsappSessionNoWebCore,
@@ -2331,7 +2344,7 @@ export class NOWEBEngineMediaProcessor implements IMediaEngineProcessor<any> {
   ) {
     this.logger = loggerBuilder.child({
       name: NOWEBEngineMediaProcessor.name,
-    }) as unknown as BaileysLogger;
+    }) as unknown as ILogger;
   }
 
   hasMedia(message: any): boolean {

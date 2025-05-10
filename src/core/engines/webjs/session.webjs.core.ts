@@ -30,10 +30,12 @@ import {
 } from '@waha/core/exceptions';
 import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
+import { StatusToAck } from '@waha/core/utils/acks';
 import {
   parseMessageIdSerialized,
   SerializeMessageKey,
 } from '@waha/core/utils/ids';
+import { DistinctAck } from '@waha/core/utils/reactive';
 import { splitAt } from '@waha/helpers';
 import { PairingCodeResponse } from '@waha/structures/auth.dto';
 import {
@@ -110,19 +112,10 @@ import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import * as lodash from 'lodash';
 import { ProtocolError } from 'puppeteer';
-import {
-  debounceTime,
-  distinct,
-  filter,
-  fromEvent,
-  groupBy,
-  interval,
-  merge,
-  mergeMap,
-  Observable,
-} from 'rxjs';
+import { filter, fromEvent, merge, mergeMap, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
+  AuthStrategy,
   Call,
   Channel as WEBJSChannel,
   Chat,
@@ -351,10 +344,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
   private async end() {
     this.engineStateCheckDelayedJob.cancel();
+    this.whatsapp?.removeAllListeners();
+    this.whatsapp?.pupBrowser?.removeAllListeners();
+    this.whatsapp?.pupPage?.removeAllListeners();
+
     try {
-      this.whatsapp?.removeAllListeners();
-      this.whatsapp?.pupBrowser?.removeAllListeners();
-      this.whatsapp?.pupPage?.removeAllListeners();
       // It's possible that browser yet starting
       await waitUntil(
         async () => {
@@ -365,11 +359,30 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         1_000,
         10_000,
       );
-      this.whatsapp?.destroy().catch((error) => {
-        this.logger.warn(error, 'Failed to destroy the client');
-      });
+      this.logger.debug(
+        'Successfully waited for browser to be ready for closing',
+      );
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(
+        error,
+        'Failed while waiting for browser to be ready for closing',
+      );
+    }
+
+    try {
+      await this.whatsapp?.destroy();
+      this.logger.debug('Successfully destroyed whatsapp client');
+    } catch (error) {
+      this.logger.error(error, 'Failed to destroy whatsapp client');
+    }
+
+    try {
+      // @ts-ignore
+      const strategy: AuthStrategy = this.whatsapp?.authStrategy;
+      await strategy?.destroy();
+      this.logger.debug('Successfully destroyed auth strategy');
+    } catch (error) {
+      this.logger.error(error, 'Failed to destroy auth strategy');
     }
   }
 
@@ -1336,13 +1349,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
     const messageAckAll$ = merge(messagesAckDM$, messageAckGroups$);
 
-    const messageAck$ = messageAckAll$.pipe(
-      // emit only if we haven’t seen this key since the last flush
-      distinct(
-        (msg: WAMessageAckBody) => `${msg.id}-${msg.ack}-${msg.participant}`,
-        interval(60_000),
-      ),
-    );
+    const messageAck$ = messageAckAll$.pipe(DistinctAck());
     this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAck$);
 
     //
@@ -1487,7 +1494,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       };
       const fromToParticipant = getFromToParticipant(messageKey);
       const id = SerializeMessageKey(messageKey);
-      const ack = receipt.status - 1;
+      const ack = StatusToAck(receipt.status);
       acks.push({
         id: id,
         from: fromToParticipant.from,
