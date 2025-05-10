@@ -7,9 +7,13 @@ import {
 } from '@waha/plus/storage/psql/PsqlConnectionConfig';
 import Knex from 'knex';
 
-const PoolConfig = {
-  min: 0,
-  max: 10,
+const PostgreSQLKnexConfig: Knex.Knex.Config = {
+  client: 'pg',
+  useNullAsDefault: true,
+  pool: {
+    min: 0,
+    max: 10,
+  },
 };
 
 export class PsqlStore extends DataStore {
@@ -27,10 +31,8 @@ export class PsqlStore extends DataStore {
   ) {
     super();
     this.main = Knex({
-      client: 'pg',
       connection: config,
-      useNullAsDefault: true,
-      pool: PoolConfig,
+      ...PostgreSQLKnexConfig,
     });
   }
 
@@ -44,10 +46,8 @@ export class PsqlStore extends DataStore {
       const config = changeDatabasePsql(this.config, dbName);
       addSuffix(config, 'Sessions');
       this.knex = Knex({
-        client: 'pg',
         connection: config,
-        useNullAsDefault: true,
-        pool: PoolConfig,
+        ...PostgreSQLKnexConfig,
       });
     } else {
       const dbName = this.getSessionDbName(sessionName);
@@ -115,10 +115,8 @@ export class PsqlStore extends DataStore {
     const config = changeDatabasePsql(this.config, dbName);
     addSuffix(config, suffix);
     return Knex({
-      client: 'pg',
       connection: config,
-      useNullAsDefault: true,
-      pool: PoolConfig,
+      ...PostgreSQLKnexConfig,
     });
   }
 }
