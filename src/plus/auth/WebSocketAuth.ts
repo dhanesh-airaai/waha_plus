@@ -1,5 +1,7 @@
 import * as url from 'url';
 
+import { validateApiKey } from './apiKey.strategy';
+
 export class WebSocketAuth {
   private key: string;
 
@@ -21,6 +23,8 @@ export class WebSocketAuth {
     }, {});
 
     const apiKey = query['x-api-key'];
-    callback(apiKey === this.key);
+    // @ts-ignore
+    const isValid = validateApiKey(apiKey, this.key);
+    callback(isValid);
   };
 }
