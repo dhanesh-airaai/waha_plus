@@ -6,13 +6,14 @@ import {
   Param,
   StreamableFile,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { MediaPsqlStorage } from '@waha/plus/media/psql/MediaPsqlStorage';
 import { MediaPsqlStorageFactory } from '@waha/plus/media/psql/MediaPsqlStorageFactory';
 import { PsqlCode } from '@waha/plus/storage/psql/PsqlCode';
 import { PinoLogger } from 'nestjs-pino';
 import * as NodeCache from 'node-cache';
 
+@ApiSecurity('api_key')
 @Controller('api/files')
 @ApiTags('🗄️ Storage')
 export class PsqlFilesController {
