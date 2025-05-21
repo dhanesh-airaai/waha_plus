@@ -16,7 +16,7 @@ export function parsePsql(url: string): PsqlConnectionConfig {
   }
 
   const host = urlObj.hostname;
-  const port = parseInt(urlObj.port, 10);
+  const port = parseInt(urlObj.port, 10) || 5432;
   const user = urlObj.username;
   const password = urlObj.password;
   const database = urlObj.pathname.split('/')[1];
