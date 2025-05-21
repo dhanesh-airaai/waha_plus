@@ -21,7 +21,10 @@ export class NoWebMongoDbAuth {
   constructor(db: Db) {
     this.db = db;
     this.collection = this.db.collection('auth');
-    this.lock = new AsyncLock({ maxPending: Infinity });
+    this.lock = new AsyncLock({
+      maxPending: Infinity,
+      maxExecutionTime: 60_000,
+    });
   }
 
   async init() {

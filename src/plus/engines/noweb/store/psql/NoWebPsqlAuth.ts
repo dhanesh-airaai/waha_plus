@@ -13,7 +13,10 @@ export class NoWebPsqlAuth {
 
   constructor(private knex: Knex.Knex) {
     this.repository = new PsqlNowebAuthRepository(knex);
-    this.lock = new AsyncLock({ maxPending: Infinity });
+    this.lock = new AsyncLock({
+      maxPending: Infinity,
+      maxExecutionTime: 60_000,
+    });
   }
 
   async init() {
