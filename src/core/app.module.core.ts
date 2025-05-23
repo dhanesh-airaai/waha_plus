@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TerminusModule } from '@nestjs/terminus';
 import { ChannelsController } from '@waha/api/channels.controller';
+import { LidsController } from '@waha/api/lids.controller';
 import { ProfileController } from '@waha/api/profile.controller';
 import {
   ServerController,
@@ -31,6 +32,7 @@ import { AuthController } from '../api/auth.controller';
 import { ChatsController } from '../api/chats.controller';
 import { ChattingController } from '../api/chatting.controller';
 import { ContactsController } from '../api/contacts.controller';
+import { EventsController } from '../api/events.controller';
 import { GroupsController } from '../api/groups.controller';
 import { HealthController } from '../api/health.controller';
 import { LabelsController } from '../api/labels.controller';
@@ -129,9 +131,11 @@ export const CONTROLLERS = [
   StatusController,
   LabelsController,
   ContactsController,
+  LidsController,
   GroupsController,
   PresenceController,
   ScreenshotController,
+  EventsController,
   PingController,
   HealthController,
   ServerController,
