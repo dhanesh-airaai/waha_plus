@@ -46,6 +46,10 @@ export class MongoRepository<Entity> {
     return rows.map(MongoRepository.revive);
   }
 
+  async getCount() {
+    return await this.collection.countDocuments();
+  }
+
   async getAllBy(filters: any) {
     const rows = await this.collection.find(filters).toArray();
     return rows.map(MongoRepository.revive);

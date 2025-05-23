@@ -1,6 +1,7 @@
 import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepository';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
+import { INowebLidPNRepository } from '@waha/core/engines/noweb/store/INowebLidPNRepository';
 import { INowebStorage } from '@waha/core/engines/noweb/store/INowebStorage';
 import {
   NowebLabelAssociationsMetadata,
@@ -11,6 +12,7 @@ import { Schema } from '@waha/core/storage/Schema';
 import { MongoGroupRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoGroupRepository';
 import { MongoLabelAssociationsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelAssociationsRepository';
 import { MongoLabelsRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLabelsRepository';
+import { MongoLidPNRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoLidPNRepository';
 import { Db } from 'mongodb';
 
 import { MongoChatRepository } from './MongoChatRepository';
@@ -137,5 +139,9 @@ export class MongoStorage extends INowebStorage {
       throw new Error(`Schema not found: ${name}`);
     }
     return schema;
+  }
+
+  getLidPNRepository(): INowebLidPNRepository {
+    return new MongoLidPNRepository(this.db, this.getSchema('lid_map'));
   }
 }

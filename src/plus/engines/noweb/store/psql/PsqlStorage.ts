@@ -4,11 +4,13 @@ import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepositor
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
 import { IMessagesRepository } from '@waha/core/engines/noweb/store/IMessagesRepository';
+import { INowebLidPNRepository } from '@waha/core/engines/noweb/store/INowebLidPNRepository';
 import { INowebStorage } from '@waha/core/engines/noweb/store/INowebStorage';
 import { Migrations } from '@waha/core/engines/noweb/store/schemas';
 import { PsqlChatRepository } from '@waha/plus/engines/noweb/store/psql/PsqlChatRepository';
 import { PsqlContactRepository } from '@waha/plus/engines/noweb/store/psql/PsqlContactRepository';
 import { PsqlGroupRepository } from '@waha/plus/engines/noweb/store/psql/PsqlGroupRepository';
+import { PsqlLidPNRepository } from '@waha/plus/engines/noweb/store/psql/PsqLidPNRepository';
 import { PsqlLabelAssociationsRepository } from '@waha/plus/engines/noweb/store/psql/PsqlLabelAssociationsRepository';
 import { PsqlLabelsRepository } from '@waha/plus/engines/noweb/store/psql/PsqlLabelsRepository';
 import { PsqlMessagesRepository } from '@waha/plus/engines/noweb/store/psql/PsqlMessagesRepository';
@@ -59,5 +61,9 @@ export class PsqlStorage extends INowebStorage {
 
   getLabelAssociationRepository(): ILabelAssociationRepository {
     return new PsqlLabelAssociationsRepository(this.knex);
+  }
+
+  getLidPNRepository(): INowebLidPNRepository {
+    return new PsqlLidPNRepository(this.knex);
   }
 }
