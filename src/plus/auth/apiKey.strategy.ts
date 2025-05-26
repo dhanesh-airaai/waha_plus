@@ -48,4 +48,9 @@ export class ApiKeyStrategy extends PassportStrategy(HeaderAPIKeyStrategy) {
       return done(isValid);
     });
   }
+
+  validate(apikey: string, done: (result: boolean) => void): void {
+    const isValid = validateApiKey(apikey, this.config.getApiKey());
+    return done(isValid);
+  }
 }
