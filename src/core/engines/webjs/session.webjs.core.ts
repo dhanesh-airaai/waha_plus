@@ -19,6 +19,10 @@ import {
   ToGroupV2UpdateEvent,
 } from '@waha/core/engines/webjs/groups.webjs';
 import { LocalAuth } from '@waha/core/engines/webjs/LocalAuth';
+import {
+  TagChatstateToPresence,
+  TagPresenceToPresence,
+} from '@waha/core/engines/webjs/presence';
 import { WebjsClientCore } from '@waha/core/engines/webjs/WebjsClientCore';
 import {
   CallErrorEvent,
@@ -55,6 +59,7 @@ import {
   GetChatMessageQuery,
   GetChatMessagesFilter,
   GetChatMessagesQuery,
+  OverviewFilter,
   ReadChatMessagesQuery,
   ReadChatMessagesResponse,
 } from '@waha/structures/chats.dto';
@@ -97,10 +102,10 @@ import { LidToPhoneNumber } from '@waha/structures/lids.dto';
 import { ReplyToMessage } from '@waha/structures/message.dto';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 import {
-  MessageSource,
-  WAMessage,
-  WAMessageReaction,
-} from '@waha/structures/responses.dto';
+  WAHAChatPresences,
+  WAHAPresenceData,
+} from '@waha/structures/presence.dto';
+import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { StatusRequest, TextStatus } from '@waha/structures/status.dto';
 import {
@@ -113,7 +118,7 @@ import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import * as lodash from 'lodash';
 import { ProtocolError } from 'puppeteer';
-import { filter, fromEvent, merge, mergeMap, Observable } from 'rxjs';
+import { filter, fromEvent, merge, mergeMap, Observable, share } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   AuthStrategy,
@@ -128,12 +133,13 @@ import {
   Label as WEBJSLabel,
   Location,
   Message,
-  MessageAck,
   MessageMedia,
   Reaction,
   WAState,
 } from 'whatsapp-web.js';
 import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
+
+import { WAJSPresenceChatStateType, WebJSPresence } from './types';
 
 export interface WebJSConfig {
   webVersion?: string;
@@ -261,7 +267,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       .then(() => {
         // Listen for browser disconnected event
         this.whatsapp.pupBrowser.on('disconnected', () => {
-          this.logger.error('The browser has been disconnected');
+          if (this.shouldRestart) {
+            this.logger.error('The browser has been disconnected');
+          } else {
+            this.logger.info('The browser has been disconnected');
+          }
           this.failed();
         });
 
@@ -424,6 +434,22 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       this.status = WAHASessionStatus.WORKING;
       this.qr.save('');
       this.logger.info(`Session '${this.name}' is ready!`);
+    });
+
+    //
+    // Temp fix for hiding "Fresh look" modal
+    // https://github.com/devlikeapro/waha/issues/987
+    //
+    this.whatsapp.on(Events.READY, async () => {
+      try {
+        const hidden = await this.whatsapp.hideUXFreshLook();
+        if (hidden) {
+          this.logger.info('"Fresh look" modal has been hidden');
+        }
+      } catch (err) {
+        this.logger.warn('Failed to hide "Fresh look" modal');
+        this.logger.warn(err, err.stack);
+      }
     });
 
     this.whatsapp.on(Events.AUTHENTICATED, (args) => {
@@ -678,7 +704,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Chats methods
    */
-  getChats(pagination: PaginationParams) {
+  getChats(pagination: PaginationParams, filter: OverviewFilter | null = null) {
     switch (pagination.sortBy) {
       case ChatSortField.ID:
         pagination.sortBy = 'id._serialized';
@@ -687,18 +713,19 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         pagination.sortBy = 't';
         break;
     }
-    return this.whatsapp.getChats(pagination);
+    return this.whatsapp.getChats(pagination, filter);
   }
 
   public async getChatsOverview(
     pagination: PaginationParams,
+    filter?: OverviewFilter,
   ): Promise<ChatSummary[]> {
     pagination = {
       ...pagination,
       sortBy: ChatSortField.CONVERSATION_TIMESTAMP,
       sortOrder: SortOrder.DESC,
     };
-    const chats = await this.getChats(pagination);
+    const chats = await this.getChats(pagination, filter);
 
     const promises = [];
     for (const chat of chats) {
@@ -1262,6 +1289,52 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     }
   }
 
+  public getPresences(): Promise<WAHAChatPresences[]> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public async getPresence(id: string): Promise<WAHAChatPresences> {
+    const chatId = toCusFormat(id);
+    const presences = await this.whatsapp.getPresence(chatId);
+    return this.toWahaPresences(chatId, presences);
+  }
+
+  public async subscribePresence(id: string): Promise<any> {
+    const chatId = toCusFormat(id);
+    await this.whatsapp.subscribePresence(chatId);
+  }
+
+  private toWahaPresences(
+    chatId: string,
+    data: WebJSPresence[],
+  ): WAHAChatPresences {
+    const presences: WAHAPresenceData[] = data.map((presence) => {
+      let status: WAHAPresenceStatus = WAHAPresenceStatus.OFFLINE;
+      switch (presence.state) {
+        case WAJSPresenceChatStateType.AVAILABLE:
+          status = WAHAPresenceStatus.ONLINE;
+          break;
+        case WAJSPresenceChatStateType.UNAVAILABLE:
+          status = WAHAPresenceStatus.OFFLINE;
+          break;
+        case WAJSPresenceChatStateType.TYPING:
+          status = WAHAPresenceStatus.TYPING;
+          break;
+        case WAJSPresenceChatStateType.RECORDING_AUDIO:
+          status = WAHAPresenceStatus.RECORDING;
+      }
+      return {
+        participant: presence.participant,
+        lastSeen: presence.lastSeen || null,
+        lastKnownPresence: status,
+      };
+    });
+    return {
+      id: toCusFormat(chatId),
+      presences: presences,
+    };
+  }
+
   /**
    * Status methods
    */
@@ -1390,6 +1463,22 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     //
     const stateChanged$ = fromEvent(this.whatsapp, Events.STATE_CHANGED);
     this.events2.get(WAHAEvents.STATE_CHANGE).switch(stateChanged$);
+
+    //
+    // Presence
+    //
+    const tagPresenceNode$ = fromEvent(this.whatsapp, Events.TAG_PRESENCE);
+    const presences$ = tagPresenceNode$.pipe(
+      map(TagPresenceToPresence),
+      filter(Boolean),
+    );
+    const tagChatstateNode$ = fromEvent(this.whatsapp, 'tag:chatstate');
+    const chatstatePresences$ = tagChatstateNode$.pipe(
+      map(TagChatstateToPresence),
+      filter(Boolean),
+    );
+    const presenceUpdate$ = merge(presences$, chatstatePresences$);
+    this.events2.get(WAHAEvents.PRESENCE_UPDATE).switch(presenceUpdate$);
 
     //
     // Groups
@@ -1588,10 +1677,12 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   public async getEngineInfo() {
-    // Add 1 seconds timeout
+    if (!this.whatsapp || !this.whatsapp.pupPage) {
+      return null;
+    }
     return {
-      WWebVersion: await this.whatsapp?.getWWebVersion(),
-      state: await this.whatsapp?.getState(),
+      WWebVersion: await this.whatsapp.getWWebVersion(),
+      state: await this.whatsapp.getState(),
     };
   }
 

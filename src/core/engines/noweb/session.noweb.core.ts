@@ -90,6 +90,7 @@ import {
   GetChatMessageQuery,
   GetChatMessagesFilter,
   GetChatMessagesQuery,
+  OverviewFilter,
   PinDuration,
   ReadChatMessagesQuery,
   ReadChatMessagesResponse,
@@ -386,7 +387,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   resubscribeToKnownPresences() {
     for (const jid in this.store.presences) {
-      this.sock.presenceSubscribe(jid);
+      this.subscribePresence(jid);
     }
   }
 
@@ -468,7 +469,10 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       } else if (connection === 'open') {
         this.qr.save('');
         this.status = WAHASessionStatus.WORKING;
-        this.resubscribeToKnownPresences();
+        // Do we need to resubscribe?
+        // Ideally not, we need to explicitly call interesting
+        // jids every 1 minute
+        // this.resubscribeToKnownPresences();
         return;
       } else if (connection === 'close') {
         this.qr.save('');
@@ -616,7 +620,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       }
       for (const message of messages) {
         const content = normalizeMessageContent(message.message);
-        if (!content.pollUpdateMessage) {
+        if (!content?.pollUpdateMessage) {
           continue;
         }
         const creationMsgKey = content.pollUpdateMessage.pollCreationMessageKey;
@@ -1127,8 +1131,17 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   public async getChatsOverview(
     pagination: PaginationParams,
+    filter?: OverviewFilter,
   ): Promise<ChatSummary[]> {
-    const chats = await this.store.getChats(pagination, false);
+    // Convert customer format IDs to JID format if filter is provided
+    let jidFilter;
+    if (filter?.ids && filter.ids.length > 0) {
+      jidFilter = {
+        ids: filter.ids.map((id) => toJID(id)),
+      };
+    }
+
+    const chats = await this.store.getChats(pagination, false, jidFilter);
     // Remove unreadCount, it's not ready yet
     chats.forEach((chat) => delete chat.unreadCount);
 
@@ -1512,14 +1525,14 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   }
 
   public async getPresence(chatId: string): Promise<WAHAChatPresences> {
-    const remoteJid = toJID(chatId);
-    if (!(remoteJid in this.store.presences)) {
-      this.store.presences[remoteJid] = {};
-      await this.sock.presenceSubscribe(remoteJid);
+    const jid = toJID(chatId);
+    await this.subscribePresence(jid);
+    if (!(jid in this.store.presences)) {
+      this.store.presences[jid] = {};
       await sleep(1000);
     }
-    const result = this.store.presences[remoteJid];
-    return this.toWahaPresences(remoteJid, result);
+    const result = this.store.presences[jid];
+    return this.toWahaPresences(jid, result);
   }
 
   public subscribePresence(id: string): Promise<void> {
