@@ -43,14 +43,15 @@ export class PsqlFilesController {
     return this.storages.get(session);
   }
 
-  @Get(':session/*filepath')
+  @Get(':session/*parts')
   @ApiOperation({
     summary: 'Get file',
   })
   async get(
     @Param('session') session: string,
-    @Param('filepath') filepath: string,
+    @Param('parts') parts: string[],
   ): Promise<StreamableFile> {
+    const filepath = parts.join('/');
     const storage = await this.getStorage(session);
     let data;
     try {
@@ -77,14 +78,15 @@ export class PsqlFilesController {
     });
   }
 
-  @Delete(':session/*filepath')
+  @Delete(':session/*parts')
   @ApiOperation({
     summary: 'Delete file',
   })
   async delete(
     @Param('session') session: string,
-    @Param('filepath') filepath: string,
+    @Param('parts') parts: string[],
   ) {
+    const filepath = parts.join('/');
     const storage = await this.getStorage(session);
     try {
       await storage.remove(filepath);

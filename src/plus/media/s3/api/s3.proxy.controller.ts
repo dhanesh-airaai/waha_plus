@@ -23,18 +23,19 @@ export class S3ProxyController {
     this.enabled = s3config.s3ProxyFiles;
   }
 
-  @Get(':bucket/*key')
+  @Get(':bucket/*parts')
   @ApiOperation({
     summary: 'Get files from S3',
   })
   async get(
     @Param('bucket') bucket: string,
-    @Param('key') key: string,
+    @Param('parts') parts: string[],
   ): Promise<StreamableFile> {
     if (!this.enabled) {
       throw new NotFoundException('S3 proxy is disabled');
     }
 
+    const key = parts.join('/');
     const filename = this.getS3Filename(key);
     let stream: Readable;
     try {
