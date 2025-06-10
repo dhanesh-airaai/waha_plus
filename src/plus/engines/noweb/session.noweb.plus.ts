@@ -9,9 +9,11 @@ import {
 } from '@adiwajshing/baileys/lib/Types';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { WhatsappSessionNoWebCore } from '@waha/core/engines/noweb/session.noweb.core';
+import { WAMimeType } from '@waha/core/media/WAMimeType';
 import { toJID } from '@waha/core/utils/jids';
 import { parseBool, sortObjectByValues } from '@waha/helpers';
 import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
+import { Ffmpeg } from '@waha/plus/utils/ffmpeg';
 import {
   Channel,
   ChannelListResult,
@@ -46,6 +48,11 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   authFactory = new NowebAuthFactoryPlus();
   storageFactory = new NowebStorageFactoryPlus();
 
+  constructor(config) {
+    super(config);
+    this.mediaConverter = new Ffmpeg(this.name, this.logger);
+  }
+
   protected async uploadMedia(
     file: RemoteFile | BinaryFile,
     type: any,
@@ -56,7 +63,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     if (!('url' in file || 'data' in file)) {
       return;
     }
-    const message: any = this.fileToMessage(file, type);
+    const message: any = await this.fileToMessage(file, type);
     const options: MediaGenerationOptions = {
       logger: this.engineLogger,
       upload: this.sock.waUploadToServer,
@@ -69,41 +76,29 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return new NowebClient(this.sock);
   }
 
-  private async fetch(url: string): Promise<Buffer> {
-    // fetch url using axios
-    return axios.get(url, { responseType: 'arraybuffer' }).then((res) => {
-      return Buffer.from(res.data);
-    });
-  }
-
-  protected fileToMessage(
+  protected async fileToMessage(
     file: RemoteFile | BinaryFile,
     type: any,
     caption = '',
   ) {
-    if (!('url' in file || 'data' in file)) {
+    let content: Buffer;
+    if ('url' in file) {
+      content = await this.fetch(file.url);
+    } else if ('data' in file) {
+      content = Buffer.from(file.data, 'base64');
+    } else {
       throw new UnprocessableEntityException(
-        'Either file.url or file.data must be specified.',
+        'Either "file.url" or "file.data" must be specified.',
       );
     }
 
-    if ('url' in file) {
-      return {
-        [type]: { url: file.url },
-        caption: caption,
-        mimetype: file.mimetype,
-        fileName: file.filename,
-        ptt: type === 'audio',
-      };
-    } else if ('data' in file) {
-      return {
-        [type]: Buffer.from(file.data, 'base64'),
-        mimetype: file.mimetype,
-        caption: caption,
-        fileName: file.filename,
-        ptt: type === 'audio',
-      };
-    }
+    return {
+      [type]: content,
+      mimetype: file.mimetype,
+      caption: caption,
+      fileName: file.filename,
+      ptt: type === 'audio',
+    };
   }
 
   private async fileToBuffer(file: FileType): Promise<Buffer> {
@@ -160,7 +155,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
    */
 
   async sendImage(request: MessageImageRequest) {
-    const message: any = this.fileToMessage(
+    const message: any = await this.fileToMessage(
       request.file,
       'image',
       request.caption,
@@ -171,7 +166,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   }
 
   async sendFile(request: MessageFileRequest) {
-    const message: any = this.fileToMessage(
+    const message: any = await this.fileToMessage(
       request.file,
       'document',
       request.caption,
@@ -182,18 +177,26 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   }
 
   async sendVoice(request: MessageVoiceRequest) {
-    const message: any = this.fileToMessage(request.file, 'audio');
+    const message: any = await this.fileToMessage(request.file, 'audio');
+    if (request.convert) {
+      message['audio'] = await this.mediaConverter.voice(message['audio']);
+      message.mimetype = WAMimeType.VOICE;
+    }
     const chatId = toJID(this.ensureSuffix(request.chatId));
     const options = await this.getMessageOptions(request);
     return this.sock.sendMessage(chatId, message, options);
   }
 
   async sendVideo(request: MessageVideoRequest) {
-    const message: any = this.fileToMessage(
+    const message: any = await this.fileToMessage(
       request.file,
       'video',
       request.caption,
     );
+    if (request.convert) {
+      message['video'] = await this.mediaConverter.video(message['video']);
+      message.mimetype = WAMimeType.VIDEO;
+    }
     const chatId = toJID(this.ensureSuffix(request.chatId));
     const options = await this.getMessageOptions(request);
     message.ptv = parseBool(request.asNote);
@@ -248,7 +251,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
    * Status methods
    */
   public async sendImageStatus(status: ImageStatus) {
-    const message: any = this.fileToMessage(
+    const message: any = await this.fileToMessage(
       status.file,
       'image',
       status.caption,
@@ -270,7 +273,11 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   }
 
   public async sendVoiceStatus(status: VoiceStatus) {
-    const message: any = this.fileToMessage(status.file, 'audio');
+    const message: any = await this.fileToMessage(status.file, 'audio');
+    if (status.convert) {
+      message['audio'] = await this.mediaConverter.voice(message['audio']);
+      message.mimetype = WAMimeType.VOICE;
+    }
     const jids = await this.prepareJidsForStatus(status.contacts);
     if (!status.id) {
       this.upsertMeInJIDs(jids);
@@ -289,11 +296,15 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   }
 
   public async sendVideoStatus(status: VideoStatus) {
-    const message: any = this.fileToMessage(
+    const message: any = await this.fileToMessage(
       status.file,
       'video',
       status.caption,
     );
+    if (status.convert) {
+      message['video'] = await this.mediaConverter.video(message['video']);
+      message.mimetype = WAMimeType.VIDEO;
+    }
     const jids = await this.prepareJidsForStatus(status.contacts);
     if (!status.id) {
       this.upsertMeInJIDs(jids);

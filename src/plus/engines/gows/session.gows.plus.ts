@@ -7,9 +7,11 @@ import {
   WhatsappSessionGoWSCore,
 } from '@waha/core/engines/gows/session.gows.core';
 import { NotImplementedByEngineError } from '@waha/core/exceptions';
+import { WAMimeType } from '@waha/core/media/WAMimeType';
 import { toJID } from '@waha/core/utils/jids';
 import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
+import { Ffmpeg } from '@waha/plus/utils/ffmpeg';
 import {
   Channel,
   ChannelListResult,
@@ -27,7 +29,11 @@ import {
   MessageVideoRequest,
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
-import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
+import {
+  BinaryFile,
+  RemoteFile,
+  VoiceRemoteFile,
+} from '@waha/structures/files.dto';
 import {
   ImageStatus,
   VideoStatus,
@@ -42,11 +48,9 @@ axiosRetry(axios, { retries: 3 });
 export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   protected authFactory = new GowsAuthFactoryPlus();
 
-  private async fetch(url: string): Promise<Buffer> {
-    // fetch url using axios
-    return axios.get(url, { responseType: 'arraybuffer' }).then((res) => {
-      return Buffer.from(res.data);
-    });
+  constructor(config) {
+    super(config);
+    this.mediaConverter = new Ffmpeg(this.name, this.logger);
   }
 
   private async fileToMedia(
@@ -128,6 +132,26 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     const jid = toJID(this.ensureSuffix(request.chatId));
     const media = await this.fileToMedia(request.file);
     media.type = type;
+
+    if (request.convert) {
+      switch (type) {
+        case messages.MediaType.AUDIO:
+          media.content = await this.mediaConverter.voice(
+            media.content as Buffer,
+          );
+          media.mimetype = WAMimeType.VOICE;
+          break;
+        case messages.MediaType.VIDEO:
+          media.content = await this.mediaConverter.video(
+            media.content as Buffer,
+          );
+          media.mimetype = WAMimeType.VIDEO;
+          break;
+        default:
+          this.logger.warn(`No conversion for ${type}`);
+          break;
+      }
+    }
 
     // Only for Voice Status
     let backgroundColor: messages.OptionalString | null = null;
@@ -242,6 +266,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
       session: null,
       // @ts-ignore
       backgroundColor: status.backgroundColor,
+      convert: status.convert,
     };
     return await this.sendMedia(messages.MediaType.AUDIO, request);
   }
@@ -252,6 +277,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
       caption: status.caption,
       chatId: Jid.BROADCAST,
       session: null,
+      convert: status.convert,
     };
     return await this.sendMedia(messages.MediaType.VIDEO, request);
   }

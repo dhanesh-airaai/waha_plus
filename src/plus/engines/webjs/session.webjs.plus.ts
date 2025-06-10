@@ -1,12 +1,15 @@
+import { UnprocessableEntityException } from '@nestjs/common';
 import {
   getChannelInviteLink,
   getPublicUrlFromDirectPath,
 } from '@waha/core/abc/session.abc';
 import { WhatsappSessionWebJSCore } from '@waha/core/engines/webjs/session.webjs.core';
+import { WAMimeType } from '@waha/core/media/WAMimeType';
 import {
   WebjsChannelMessage,
   WebjsClientPlus,
 } from '@waha/plus/engines/webjs/WebjsClientPlus';
+import { Ffmpeg } from '@waha/plus/utils/ffmpeg';
 import {
   ChannelListResult,
   ChannelMessage,
@@ -28,6 +31,7 @@ import {
   VideoStatus,
   VoiceStatus,
 } from '@waha/structures/status.dto';
+import { IsChrome } from '@waha/version';
 import { GroupChat, MessageMedia } from 'whatsapp-web.js';
 
 import { WebJSAuthFactory } from './WebJSAuthFactory';
@@ -35,6 +39,11 @@ import { WebJSAuthFactory } from './WebJSAuthFactory';
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   authFactory = new WebJSAuthFactory();
   whatsapp: WebjsClientPlus;
+
+  constructor(config) {
+    super(config);
+    this.mediaConverter = new Ffmpeg(this.name, this.logger);
+  }
 
   protected getClassDirName() {
     return __dirname;
@@ -52,7 +61,9 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return new WebjsClientPlus(clientOptions);
   }
 
-  private async fileToMedia(file: BinaryFile | RemoteFile) {
+  private async fileToMedia(
+    file: BinaryFile | RemoteFile,
+  ): Promise<MessageMedia> {
     if ('url' in file) {
       const mediaOptions = { unsafeMime: true };
       const media = await MessageMedia.fromUrl(file.url, mediaOptions);
@@ -128,6 +139,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
 
   async sendVoice(request) {
     const media = await this.fileToMedia(request.file);
+    media.mimetype = WAMimeType.VOICE;
     let options = this.getMessageOptions(request);
     options = {
       ...options,
@@ -141,7 +153,12 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   }
 
   async sendVideo(request: MessageVideoRequest) {
+    this.checkBrowserIsChrome();
     const media = await this.fileToMedia(request.file);
+    if (request.convert) {
+      await this.convertVideo(media);
+    }
+
     let options = this.getMessageOptions(request);
     options = {
       ...options,
@@ -152,6 +169,15 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
       media,
       options,
     );
+  }
+
+  private async convertVideo(media: MessageMedia) {
+    let content = Buffer.from(media.data, 'base64');
+    content = await this.mediaConverter.video(content);
+    media.data = content.toString('base64');
+    media.mimetype = WAMimeType.VIDEO;
+    media.filename = null;
+    media.filesize = null;
   }
 
   async sendButtonsReply(request: MessageButtonReply) {
@@ -189,6 +215,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   public async sendVoiceStatus(status: VoiceStatus) {
     this.checkStatusRequest(status);
     const media = await this.fileToMedia(status.file);
+    media.mimetype = WAMimeType.VOICE;
     const options = {
       sendAudioAsVoice: true,
     };
@@ -196,12 +223,24 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   }
 
   public async sendVideoStatus(status: VideoStatus) {
+    this.checkBrowserIsChrome();
     this.checkStatusRequest(status);
     const media = await this.fileToMedia(status.file);
+    if (status.convert) {
+      await this.convertVideo(media);
+    }
     const options = {
       caption: status.caption,
     };
     return this.whatsapp.sendMessage(BROADCAST_ID, media, options);
+  }
+
+  private checkBrowserIsChrome() {
+    if (!IsChrome) {
+      const msg =
+        'Use "devlikeapro/waha-plus:chrome" docker image to send video in WEBJS';
+      throw new UnprocessableEntityException(msg);
+    }
   }
 
   /**
