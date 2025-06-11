@@ -33,9 +33,11 @@ export function getEngineName(): string {
 }
 
 export const VERSION: WAHAEnvironment = {
-  version: '2025.6.1',
+  version: '2025.6.2',
   engine: getEngineName(),
   tier: getWAHAVersion(),
   browser:
     getEngineName() === WAHAEngine.WEBJS ? getBrowserExecutablePath() : null,
 };
+
+export const IsChrome = VERSION.browser?.includes('chrome');

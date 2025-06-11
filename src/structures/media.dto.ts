@@ -35,3 +35,34 @@ export class WAMedia {
   // eslint-disable-next-line @typescript-eslint/ban-types
   error?: object;
 }
+
+export class FileDTO {
+  @ApiProperty({
+    description: 'The URL for the file',
+  })
+  url?: string;
+
+  @ApiProperty({
+    description: 'Base64 content of the file',
+    example: null,
+  })
+  data?: string;
+}
+
+export class VoiceFileDTO extends FileDTO {
+  @ApiProperty({
+    description: 'The URL for the voice file',
+    example:
+      process.env.WHATSAPP_SWAGGER_VIDEO_EXAMPLE_URL ||
+      'https://github.com/devlikeapro/waha/raw/core/examples/voice.mp3',
+  })
+  url?: string;
+}
+
+export class VideoFileDTO extends FileDTO {
+  @ApiProperty({
+    description: 'The URL for the video file',
+    example: 'https://github.com/devlikeapro/waha/raw/core/examples/video.mp4',
+  })
+  url?: string;
+}
