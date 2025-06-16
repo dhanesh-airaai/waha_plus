@@ -111,6 +111,7 @@ import { StatusRequest, TextStatus } from '@waha/structures/status.dto';
 import {
   EnginePayload,
   WAMessageAckBody,
+  WAMessageEditedBody,
   WAMessageRevokedBody,
 } from '@waha/structures/webhooks.dto';
 import { PaginatorInMemory } from '@waha/utils/Paginator';
@@ -1418,9 +1419,12 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         const beforeMessage = event.before
           ? this.toWAMessage(event.before)
           : null;
+        // Extract the revoked message ID from the protocolMessageKey.id field
+        const revokedMessageId = afterMessage?._data?.protocolMessageKey?.id;
         return {
           after: afterMessage,
           before: beforeMessage,
+          revokedMessageId: revokedMessageId,
         };
       }),
     );
@@ -1431,6 +1435,26 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       map(this.processMessageReaction.bind(this)),
     );
     this.events2.get(WAHAEvents.MESSAGE_REACTION).switch(messagesReaction$);
+
+    const messageEdit$ = fromEvent(
+      this.whatsapp,
+      Events.MESSAGE_EDIT,
+      (message, newBody, prevBody) => {
+        return { message, newBody, prevBody };
+      },
+    );
+    const messagesEdit$ = messageEdit$.pipe(
+      map((event): WAMessageEditedBody => {
+        const message = this.toWAMessage(event.message);
+        return {
+          ...message,
+          body: event.newBody,
+          editedMessageId: message._data?.id?.id,
+          _data: event,
+        };
+      }),
+    );
+    this.events2.get(WAHAEvents.MESSAGE_EDITED).switch(messagesEdit$);
 
     const messageAckWEBJS$ = fromEvent(
       this.whatsapp,

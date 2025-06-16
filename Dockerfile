@@ -1,7 +1,7 @@
 #
 # Build
 #
-ARG NODE_VERSION=22.8-bullseye
+ARG NODE_VERSION=22.16-bullseye
 FROM node:${NODE_VERSION} AS build
 ENV PUPPETEER_SKIP_DOWNLOAD=True
 
@@ -119,6 +119,21 @@ RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
     fi
 
+# Install xvfb
+RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
+    apt-get update && apt-get install -y --no-install-recommends \
+        xvfb \
+        libnss3 \
+        libxss1 \
+        libasound2 \
+        libatk-bridge2.0-0 \
+        libgtk-3-0 \
+        libdrm2 \
+        ca-certificates \
+        curl \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
 # Install Chromium
 RUN if [ "$USE_BROWSER" = "chromium" ]; then \
         apt-get update  \
@@ -131,7 +146,7 @@ RUN if [ "$USE_BROWSER" = "chromium" ]; then \
 # Install Chrome
 # Available versions:
 # https://www.ubuntuupdates.org/package/google_chrome/stable/main/base/google-chrome-stable
-ARG CHROME_VERSION="137.0.7151.55-1"
+ARG CHROME_VERSION="137.0.7151.103-1"
 RUN if [ "$USE_BROWSER" = "chrome" ]; then \
         wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
           && apt-get update \
