@@ -79,15 +79,13 @@ export class SqlKVRepository<Entity> {
     }
   }
 
-  private async upsertBatch(entities: Entity[]): Promise<void> {
+  protected async upsertBatch(entities: Entity[]): Promise<void> {
     const all = entities.map((entity) => this.dump(entity));
     // make it unique by .id
     const data = lodash.uniqBy(all, (d: any) => d.id);
     if (data.length != all.length) {
       console.warn(
-        `WARNING - Duplicated entities for upsert batch: ${JSON.stringify(
-          entities,
-        )}`,
+        `WARNING - Duplicated entities for upsert batch: all=${all.length}, data=${data.length}`,
       );
     }
     const columns = this.columns.map((c) => `"${c.fieldName}"`);
