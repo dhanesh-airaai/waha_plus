@@ -1,6 +1,6 @@
 import { WebSocketGateway } from '@nestjs/websockets';
 import { WebsocketGatewayCore } from '@waha/core/api/websocket.gateway.core';
-import { WebSocketAuth } from '@waha/plus/auth/WebSocketAuth';
+import { WebSocketAuth } from '@waha/core/auth/WebSocketAuth';
 
 @WebSocketGateway({
   path: '/ws',

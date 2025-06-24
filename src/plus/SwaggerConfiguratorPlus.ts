@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
+import { BasicAuthFunction } from '@waha/core/auth/basicAuth';
 
 import { SwaggerConfiguratorCore } from '../core/SwaggerConfiguratorCore';
-import { BasicAuthFunction } from './auth/basicAuth';
 import { DashboardConfigServicePlus } from './config/DashboardConfigServicePlus';
 import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 
