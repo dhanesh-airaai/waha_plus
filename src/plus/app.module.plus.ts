@@ -3,6 +3,7 @@ import * as process from 'node:process';
 import { INestApplication, MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { WebsocketGatewayCore } from '@waha/core/api/websocket.gateway.core';
 import { ApiKeyStrategy } from '@waha/core/auth/apiKey.strategy';
 import { AuthMiddleware } from '@waha/core/auth/auth.middleware';
 import { BasicAuthFunction } from '@waha/core/auth/basicAuth';
@@ -13,7 +14,6 @@ import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorag
 import { ChannelsInfoServiceCore } from '@waha/core/services/ChannelsInfoServiceCore';
 import { parseBool } from '@waha/helpers';
 import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
-import { WebsocketGatewayPlus } from '@waha/plus/api/websocket.gateway.plus';
 import { HttpsExpress } from '@waha/plus/HttpsExpress';
 import { MediaPsqlStorageModule } from '@waha/plus/media/psql/media.psql.storage.module';
 import { MediaS3StorageModule } from '@waha/plus/media/s3/media.s3.storage.module';
@@ -110,7 +110,7 @@ const PROVIDERS = [
   WebJSEngineConfigService,
   GowsEngineConfigService,
   ApiKeyStrategy,
-  WebsocketGatewayPlus,
+  WebsocketGatewayCore,
   MediaLocalStorageConfig,
 ];
 
