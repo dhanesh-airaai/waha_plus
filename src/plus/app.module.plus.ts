@@ -3,6 +3,7 @@ import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { WebsocketGatewayCore } from '@waha/core/api/websocket.gateway.core';
 import { ApiKeyStrategy } from '@waha/core/auth/apiKey.strategy';
+import { WebSocketAuth } from '@waha/core/auth/WebSocketAuth';
 import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
@@ -87,6 +88,7 @@ const PROVIDERS = [
   ApiKeyStrategy,
   WebsocketGatewayCore,
   MediaLocalStorageConfig,
+  WebSocketAuth,
 ];
 
 @Module({
