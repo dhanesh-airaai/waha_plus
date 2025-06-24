@@ -34,8 +34,6 @@ import { DashboardConfigServiceCore } from '../core/config/DashboardConfigServic
 import { EngineConfigService } from '../core/config/EngineConfigService';
 import { SwaggerConfigServiceCore } from '../core/config/SwaggerConfigServiceCore';
 import { noSlashAtTheEnd } from '../utils/string';
-import { DashboardConfigServicePlus } from './config/DashboardConfigServicePlus';
-import { SwaggerConfigServicePlus } from './config/SwaggerConfigServicePlus';
 import { CheckFreeDiskSpaceIndicator } from './health/CheckFreeDiskSpaceIndicator';
 import { MongoStoreHealthIndicator } from './health/MongoStoreHealthIndicator';
 import { WAHAHealthCheckServicePlus } from './health/WAHAHealthCheckServicePlus';
@@ -79,30 +77,15 @@ const PROVIDERS = [
     useClass: WAHAHealthCheckServicePlus,
   },
   {
-    provide: SwaggerConfigServiceCore,
-    useClass: SwaggerConfigServicePlus,
-  },
-  {
-    provide: SwaggerConfigServicePlus,
-    useClass: SwaggerConfigServicePlus,
-  },
-  {
-    provide: DashboardConfigServiceCore,
-    useClass: DashboardConfigServicePlus,
-  },
-  {
     provide: ChannelsInfoServiceCore,
     useClass: ChannelsInfoServicePlus,
-  },
-  {
-    provide: DashboardConfigServicePlus,
-    useClass: DashboardConfigServicePlus,
   },
   {
     provide: APP_INTERCEPTOR,
     useClass: BufferJsonReplacerInterceptor,
   },
-  SwaggerConfigServicePlus,
+  SwaggerConfigServiceCore,
+  DashboardConfigServiceCore,
   MongoStoreHealthIndicator,
   CheckFreeDiskSpaceIndicator,
   WhatsappConfigService,
@@ -123,7 +106,7 @@ const PROVIDERS = [
 export class AppModulePlus extends AppModuleCore {
   constructor(
     protected config: WhatsappConfigService,
-    private dashboardConfig: DashboardConfigServicePlus,
+    private dashboardConfig: DashboardConfigServiceCore,
   ) {
     super(config);
   }
