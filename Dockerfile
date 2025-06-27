@@ -1,8 +1,10 @@
+ARG NODE_IMAGE_TAG=22.16-bookworm-slim
+ARG GOLANG_IMAGE_TAG=1.23-bookworm
+
 #
 # Build
 #
-ARG NODE_VERSION=22.16-bullseye
-FROM node:${NODE_VERSION} AS build
+FROM node:${NODE_IMAGE_TAG} AS build
 ENV PUPPETEER_SKIP_DOWNLOAD=True
 
 # npm packages
@@ -10,6 +12,10 @@ WORKDIR /git
 COPY package.json .
 COPY yarn.lock .
 ENV YARN_CHECKSUM_BEHAVIOR=update
+
+# git
+RUN apt-get update && apt-get install -y git
+
 RUN npm install -g corepack && corepack enable
 RUN yarn set version 3.6.3
 RUN yarn install
@@ -23,10 +29,13 @@ RUN yarn build && find ./dist -name "*.d.ts" -delete
 #
 # Dashboard
 #
-FROM node:${NODE_VERSION} AS dashboard
+FROM node:${NODE_IMAGE_TAG} AS dashboard
 
 # jq to parse json
 RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
+
+# wget, unzip
+RUN apt-get update && apt-get install -y wget unzip && rm -rf /var/lib/apt/lists/*
 
 COPY waha.config.json /tmp/waha.config.json
 RUN \
@@ -42,7 +51,7 @@ RUN \
 #
 # GOWS
 #
-FROM golang:1.23-bullseye AS gows
+FROM golang:${GOLANG_IMAGE_TAG} AS gows
 
 # jq to parse json
 RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
@@ -73,7 +82,7 @@ RUN \
 #
 # Final
 #
-FROM node:${NODE_VERSION} AS release
+FROM node:${NODE_IMAGE_TAG} AS release
 ENV PUPPETEER_SKIP_DOWNLOAD=True
 # Quick fix for memory potential memory leaks
 # https://github.com/devlikeapro/waha/issues/347
@@ -98,6 +107,13 @@ RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
     fi
 
+# Install wget - either for chromium or chrome
+RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
+    apt-get update  \
+    && apt-get install -y wget \
+    && rm -rf /var/lib/apt/lists/*; \
+    fi
+
 # Install fonts if using either chromium or chrome
 RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
     apt-get update  \
@@ -119,10 +135,11 @@ RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
     fi
 
-# Install xvfb
+# Install xvfb, xauth
 RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
     apt-get update && apt-get install -y --no-install-recommends \
         xvfb \
+        xauth \
         libnss3 \
         libxss1 \
         libasound2 \
@@ -178,6 +195,11 @@ ENV WAHA_GOWS_PATH /app/gows
 ENV WAHA_GOWS_SOCKET /tmp/gows.sock
 
 COPY entrypoint.sh /entrypoint.sh
+
+# Add healthcheck
+COPY ping-check.sh /ping-check.sh
+RUN chmod +x /ping-check.sh
+HEALTHCHECK --interval=60s --timeout=10s --retries=3 --start-period=30s CMD ["/bin/bash", "/ping-check.sh"]
 
 # Chokidar options to monitor file changes
 ENV CHOKIDAR_USEPOLLING=1

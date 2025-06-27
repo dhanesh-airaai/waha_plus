@@ -1,16 +1,5 @@
 #!/bin/sh
 
-#
-# Run Xvfb if exists
-#
-if command -v Xvfb > /dev/null 2>&1; then
-  # Start virtual X server in the background
-  Xvfb :99 -screen 0 1280x720x24 &
-  export DISPLAY=:99
-  sleep 2
-else
-  echo "Xvfb command not found, skipping virtual X server setup"
-fi
 
 #
 # Calculate UV_THREADPOOL_SIZE based on number of CPUs
@@ -47,17 +36,6 @@ if [ -n "$key" ]; then
     echo "WARNING: Plain text API key detected. Converting to hashed format for security."
     echo "For better security, use WAHA_API_KEY=sha512:{SHA512_HASH_FOR_YOUR_API_KEY}"
     echo "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️"
-
-    # Start a background task to display another warning after 5 seconds
-    (
-      sleep 5
-      echo "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️"
-      echo "SECURITY REMINDER: Your plain text API key has been hashed for this session."
-      echo "In the future, please use WAHA_API_KEY=sha512:{SHA512_HASH_FOR_YOUR_API_KEY}"
-      echo "to avoid exposing your API key in environment variables or process lists."
-      echo "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️"
-    ) &
-
     # Hash the key using sha512sum
     HASHED_KEY=$(echo -n "$key" | sha512sum | awk '{print $1}')
     export WAHA_API_KEY="sha512:$HASHED_KEY"
@@ -65,6 +43,24 @@ if [ -n "$key" ]; then
 fi
 
 #
+# xvfb-run
+#
+USE_XVFB=false
+if [ -z "$WHATSAPP_DEFAULT_ENGINE" ] || [ "$WHATSAPP_DEFAULT_ENGINE" = "WEBJS" ]; then
+  # Try to run xvfb-run with a test command
+  if xvfb-run --auto-servernum echo "xvfb-run is working!"; then
+    USE_XVFB=true
+  else
+    echo "xvfb-run test failed, do not run it"
+    USE_XVFB=false
+  fi
+fi
+
+#
 # Start your application using node with exec to ensure proper signal handling
 #
-exec node dist/main
+if [ "$USE_XVFB" = "true" ]; then
+  exec xvfb-run --auto-servernum node dist/main
+else
+  exec node dist/main
+fi
