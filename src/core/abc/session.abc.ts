@@ -30,6 +30,7 @@ import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { LidToPhoneNumber } from '@waha/structures/lids.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';
 import { MessageSource, WAMessage } from '@waha/structures/responses.dto';
+import { BrowserTraceQuery } from '@waha/structures/server.debug.dto';
 import { DefaultMap } from '@waha/utils/DefaultMap';
 import { generatePrefixedId } from '@waha/utils/ids';
 import { LoggerBuilder } from '@waha/utils/logging';
@@ -285,7 +286,6 @@ export abstract class WhatsappSession {
       '--aggressive-cache-discard',
       '--disable-accelerated-2d-canvas',
       '--disable-application-cache',
-      // '--disable-background-networking', // COMMENTED to test WEBJS stability
       // DO NOT disable software rasterizer, it will break the video
       // https://github.com/devlikeapro/waha/issues/629
       // '--disable-software-rasterizer',
@@ -320,9 +320,8 @@ export abstract class WhatsappSession {
       '--no-sandbox',
       '--no-zygote',
       '--password-store=basic',
-      // '--renderer-process-limit=2', // COMMENTED to test WEBJS stability
+      '--renderer-process-limit=1',
       '--safebrowsing-disable-auto-update',
-      // '--single-process',
       '--use-mock-keychain',
       '--window-size=1280,720',
     ];
@@ -350,6 +349,10 @@ export abstract class WhatsappSession {
   /**
    * START - Methods for API
    */
+
+  public browserTrace(query: BrowserTraceQuery): Promise<string> {
+    throw new NotImplementedByEngineError();
+  }
 
   /**
    * Auth methods

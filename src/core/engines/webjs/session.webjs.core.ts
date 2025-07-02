@@ -106,6 +106,7 @@ import {
   WAHAPresenceData,
 } from '@waha/structures/presence.dto';
 import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
+import { BrowserTraceQuery } from '@waha/structures/server.debug.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { StatusRequest, TextStatus } from '@waha/structures/status.dto';
 import {
@@ -117,7 +118,9 @@ import {
 import { PaginatorInMemory } from '@waha/utils/Paginator';
 import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
+import { TmpDir } from '@waha/utils/tmpdir';
 import * as lodash from 'lodash';
+import * as path from 'path';
 import { ProtocolError } from 'puppeteer';
 import { filter, fromEvent, merge, mergeMap, Observable, share } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -194,13 +197,19 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     if (cacheType === 'local') {
       this.logger.info(`Using web version: '${webVersion}'`);
     }
+    const args = this.getBrowserArgsForPuppeteer();
+    // add at the start
+    args.unshift(`--a-waha-timestamp=${new Date()}`);
+    args.unshift(`--a-waha-session=${this.name}`);
     return {
       puppeteer: {
         headless: true,
         executablePath: this.getBrowserExecutablePath(),
-        args: this.getBrowserArgsForPuppeteer(),
+        args: args,
         dumpio: this.isDebugEnabled(),
       },
+      userAgent:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
       webVersion: webVersion,
       webVersionCache: {
         type: cacheType,
@@ -513,6 +522,23 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * START - Methods for API
    */
+  public async browserTrace(query: BrowserTraceQuery): Promise<string> {
+    const tmpdir = new TmpDir(
+      this.logger,
+      `waha-browser-trace-${this.name}-`,
+      (10 * query.seconds + 120) * 1000,
+    );
+    const page = this.whatsapp.pupPage;
+    return await tmpdir.use(async (dir) => {
+      this.logger.info({ query }, `Starting browser tracing...`);
+      const filepath = path.join(dir, 'trace.json');
+      await page.tracing.start({ path: filepath });
+      await sleep(query.seconds * 1000);
+      await page.tracing.stop();
+      this.logger.info(`Browser tracing finished, saved to ${filepath}`);
+      return filepath;
+    });
+  }
 
   /**
    * Auth methods
