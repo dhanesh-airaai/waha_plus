@@ -9,11 +9,10 @@ function sanitize(input: string) {
 
 export class TmpDir {
   private readonly prefix: string;
-  private cleanupTimeout = 10_000;
-
   constructor(
     private logger: Logger,
     prefix: string,
+    private cleanupTimeout = 10_000,
   ) {
     this.prefix = sanitize(prefix);
     if (this.prefix.length > 249) {
