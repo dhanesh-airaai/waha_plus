@@ -1,9 +1,8 @@
+import { TmpDir } from '@waha/utils/tmpdir';
 import { spawn } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Logger } from 'pino';
-
-import { TmpDir } from './tmpdir';
 
 class FfmpegCommandBuilder {
   private readonly parts: string[] = [];
