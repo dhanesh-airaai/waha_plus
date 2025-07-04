@@ -1,10 +1,6 @@
-import makeWASocket, {
-  BinaryNode,
-  getBinaryNodeChild,
-  QueryIds,
-} from '@adiwajshing/baileys';
-import { toNewsletterMetadata } from '@adiwajshing/baileys/lib/Socket/newsletter';
+import makeWASocket, { QueryIds } from '@adiwajshing/baileys';
 import { NewsletterMetadata } from '@adiwajshing/baileys/lib/Types';
+import { toNewsletterMetadata } from '@waha/core/engines/noweb/noweb.newsletter';
 import {
   ChannelPagination,
   ChannelSearchByText,
@@ -50,12 +46,8 @@ export class NowebClient {
     const queryId =
       NewsletterMexQueryIds.NEWSLETTERS_DIRECTORY_LIST as unknown as QueryIds;
     const path = NewsletterXWAPaths.NEWSLETTERS_DIRECTORY_LIST;
-    const response = await this.sock.newsletterWMexQuery(
-      undefined,
-      queryId,
-      variables,
-    );
-    return parseNewsletterSearchNode(response, path);
+    const response = await this.sock.executeWMexQuery(variables, queryId, path);
+    return parseNewsletterSearchNode(response);
   }
 
   async searchChannelsByText(
@@ -72,36 +64,12 @@ export class NowebClient {
     const queryId =
       NewsletterMexQueryIds.NEWSLETTERS_DIRECTORY_SEARCH as unknown as QueryIds;
     const path = NewsletterXWAPaths.NEWSLETTERS_DIRECTORY_SEARCH;
-    const response = await this.sock.newsletterWMexQuery(
-      undefined,
-      queryId,
-      variables,
-    );
-    return parseNewsletterSearchNode(response, path);
+    const response = await this.sock.executeWMexQuery(variables, queryId, path);
+    return parseNewsletterSearchNode(response);
   }
 }
 
-function parseNewsletterSearchNode(
-  node: BinaryNode,
-  path: string,
-): NewsletterSearchResponse {
-  const result = getBinaryNodeChild(node, 'result')?.content?.toString();
-  if (!result) {
-    throw new Error('Invalid node - no result');
-  }
-
-  const content: any = JSON.parse(result);
-  if (content.errors) {
-    throw new Error(`Error 'content' received from server: ${result}`);
-  }
-  const data = content.data;
-  if (!data) {
-    throw new Error('Invalid node - no path');
-  }
-  const response = data[path];
-  if (!response) {
-    throw new Error(`Invalid node - no path '${path}' found`);
-  }
+function parseNewsletterSearchNode(response: any): NewsletterSearchResponse {
   const pageInfo = response.page_info;
   const page: ChannelPagination = {
     startCursor: pageInfo.startCursor,
@@ -114,6 +82,6 @@ function parseNewsletterSearchNode(
 
   return {
     page: page,
-    newsletters: newsletters,
+    newsletters: newsletters as any,
   };
 }

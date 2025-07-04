@@ -244,7 +244,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       text: request.text,
       linkPreview: urlInfo,
     };
-    return this.sock.sendMessage(chatId, message, options);
+    return this.sock.sendMessage(chatId, message as any, options);
   }
 
   /**
@@ -330,7 +330,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     query: PreviewChannelMessages,
   ): Promise<ChannelMessage[]> {
     const downloadMedia = query.downloadMedia;
-    const updates = await this.sock.newsletterFetchMessages(
+    const updates = await this.sock.newsletterFetchPreviewMessages(
       'invite',
       inviteCode,
       query.limit,
