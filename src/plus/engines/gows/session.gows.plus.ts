@@ -250,34 +250,25 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
    * Status methods
    */
   public async sendImageStatus(status: ImageStatus) {
-    const request: MessageImageRequest = {
-      file: status.file,
-      caption: status.caption,
+    const request = {
+      ...status,
       chatId: Jid.BROADCAST,
-      session: null,
     };
     return await this.sendMedia(messages.MediaType.IMAGE, request);
   }
 
   public async sendVoiceStatus(status: VoiceStatus) {
-    const request: MessageVoiceRequest = {
-      file: status.file,
+    const request = {
+      ...status,
       chatId: Jid.BROADCAST,
-      session: null,
-      // @ts-ignore
-      backgroundColor: status.backgroundColor,
-      convert: status.convert,
     };
     return await this.sendMedia(messages.MediaType.AUDIO, request);
   }
 
   public async sendVideoStatus(status: VideoStatus) {
-    const request: MessageVideoRequest = {
-      file: status.file,
-      caption: status.caption,
+    const request = {
+      ...status,
       chatId: Jid.BROADCAST,
-      session: null,
-      convert: status.convert,
     };
     return await this.sendMedia(messages.MediaType.VIDEO, request);
   }
