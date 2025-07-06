@@ -12,6 +12,7 @@ import makeWASocket, {
   proto,
   updateMessageWithReaction,
   updateMessageWithReceipt,
+  WAMessage,
 } from '@adiwajshing/baileys';
 import { GroupMetadata } from '@adiwajshing/baileys/lib/Types/GroupMetadata';
 import { Label } from '@adiwajshing/baileys/lib/Types/Label';
@@ -64,7 +65,6 @@ export class NowebPersistentStore implements INowebStore {
   public presences: any;
 
   private lock: any = new AsyncLock({
-    timeout: 5_000,
     maxPending: Infinity,
     maxExecutionTime: 60_000,
   });
@@ -102,9 +102,43 @@ export class NowebPersistentStore implements INowebStore {
     // All
     ev.on('messaging-history.set', (data) => this.onMessagingHistorySet(data));
     // Messages
-    ev.on('messages.upsert', (data) =>
-      this.withLock('messages', () => this.onMessagesUpsert(data)),
-    );
+    ev.on('messages.upsert', (data) => {
+      this.withLock('messages', () => this.onMessagesUpsert(data));
+      this.withNoLock('lids', async () => {
+        const messages: WAMessage[] = data.messages;
+        if (!messages) {
+          return;
+        }
+        const contacts: Partial<Contact>[] = messages
+          .map((message) => {
+            if (!message.key) {
+              return null;
+            }
+            // Phone
+            let pn = message.key.senderPn || message.key.participantPn;
+            // 123 => 123@s.whatsapp.net
+            if (pn && !pn.includes('@')) {
+              pn = `${pn}@s.whatsapp.net`;
+            }
+            // 123@c.us => 123@s.whatsapp.net
+            if (pn && !isJidUser(pn)) {
+              pn = jidNormalizedUser(pn);
+            }
+            // 999@lid
+            const lid = message.key.senderLid || message.key.participantLid;
+            return {
+              id: message.key.remoteJid,
+              lid: lid,
+              jid: pn,
+            };
+          })
+          .filter(Boolean);
+        const lids = await this.handleLidPNUpdates(contacts);
+        this.logger.debug(
+          `messages.upsert - '${lids.length}' synced lid to pn mapping`,
+        );
+      });
+    });
     ev.on('messages.update', (data) =>
       this.withLock('messages', () => this.onMessageUpdate(data)),
     );
@@ -133,7 +167,7 @@ export class NowebPersistentStore implements INowebStore {
     );
     ev.on('groups.update', (data) => {
       this.withLock('groups', () => this.onGroupUpdate(data));
-      this.withLock('lids', async () => {
+      this.withNoLock('lids', async () => {
         const participants = lodash.flatMap(data, (g) => g?.participants || []);
         const lids = await this.handleLidPNUpdates(participants);
         this.logger.debug(
@@ -150,7 +184,7 @@ export class NowebPersistentStore implements INowebStore {
     // Contacts
     ev.on('contacts.upsert', (data) => {
       this.withLock('contacts', () => this.onContactsUpsert(data));
-      this.withLock('lids', async () => {
+      this.withNoLock('lids', async () => {
         const lids = await this.handleLidPNUpdates(data);
         this.logger.debug(
           `contacts.upsert - '${lids.length}' synced lid to pn mapping`,
@@ -159,7 +193,7 @@ export class NowebPersistentStore implements INowebStore {
     });
     ev.on('contacts.update', (data) => {
       this.withLock('contacts', () => this.onContactUpdate(data));
-      this.withLock('lids', async () => {
+      this.withNoLock('lids', async () => {
         const lids = await this.handleLidPNUpdates(data);
         this.logger.debug(
           `contacts.update - '${lids.length}' synced lid to pn mapping`,
@@ -200,7 +234,7 @@ export class NowebPersistentStore implements INowebStore {
         await this.onContactsUpsert(contacts);
         this.logger.info(`history sync - '${contacts.length}' synced contacts`);
       }),
-      this.withLock('lids', async () => {
+      this.withNoLock('lids', async () => {
         const lids = await this.handleLidPNUpdates(contacts);
         this.logger.info(
           `history sync - '${lids.length}' synced lid to pn mapping`,
@@ -237,6 +271,14 @@ export class NowebPersistentStore implements INowebStore {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const jid = jidNormalizedUser(update.key.remoteJid!);
       if (!update.key.id) {
+        continue;
+      }
+      if (!jid) {
+        this.logger.warn(
+          `got message update for unknown jid. update: '${JSON.stringify(
+            update,
+          )}'`,
+        );
         continue;
       }
       const message = await this.messagesRepo.getByJidById(jid, update.key.id);
@@ -394,6 +436,10 @@ export class NowebPersistentStore implements INowebStore {
 
   private withLock(key, fn) {
     return this.lock.acquire(key, fn);
+  }
+
+  private withNoLock(key, fn) {
+    return fn();
   }
 
   private async onContactsUpsert(contacts: Contact[]) {
@@ -625,16 +671,16 @@ export class NowebPersistentStore implements INowebStore {
         });
       }
       // contact.pn = pn, contact.lid = lid
-      else if (isJidUser(contact.pn) && isLidUser(contact.lid)) {
+      else if (isJidUser(contact.jid) && isLidUser(contact.lid)) {
         lids.push({
-          pn: contact.pn,
+          pn: contact.jid,
           id: contact.lid,
         });
       }
       // contact.pn = pn, contact.id = lid
-      else if (isJidUser(contact.pn) && isLidUser(contact.id)) {
+      else if (isJidUser(contact.jid) && isLidUser(contact.id)) {
         lids.push({
-          pn: contact.pn,
+          pn: contact.jid,
           id: contact.id,
         });
       }
