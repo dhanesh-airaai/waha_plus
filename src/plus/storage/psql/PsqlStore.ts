@@ -120,4 +120,11 @@ export class PsqlStore extends DataStore {
       ...PostgreSQLKnexConfig,
     });
   }
+
+  getWAHADatabase(): Knex.Knex {
+    if (!this.knex) {
+      throw new Error('Knex is not initialized, call LocalStore.init() first');
+    }
+    return this.knex;
+  }
 }

@@ -1,9 +1,14 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   OnApplicationBootstrap,
   OnModuleInit,
 } from '@nestjs/common';
+import {
+  AppsService,
+  IAppsService,
+} from '@waha/apps/app_sdk/services/IAppsService';
 import { EngineBootstrap } from '@waha/core/abc/EngineBootstrap';
 import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
@@ -87,8 +92,10 @@ export class SessionManagerPlus
     gowsConfigService: GowsEngineConfigService,
     log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
+    @Inject(AppsService)
+    appsService: IAppsService,
   ) {
-    super(log, config, gowsConfigService);
+    super(log, config, gowsConfigService, appsService);
     this.sessions = {};
     const engineName = this.engineConfigService.getDefaultEngineName();
     this.EngineClass = this.getEngine(engineName);
@@ -152,6 +159,8 @@ export class SessionManagerPlus
       this.sessionWorkerRepository = new PsqlSessionWorkerRepository(
         this.store,
       );
+      const knex = this.store.getWAHADatabase();
+      await this.appsService.migrate(knex);
     } else {
       this.log.info('Using local storage for session info.');
       this.store = new LocalStoreCore(engineName);
@@ -164,6 +173,8 @@ export class SessionManagerPlus
       this.sessionWorkerRepository = new Sqlite3SessionWorkerRepository(
         this.store,
       );
+      const knex = this.store.getWAHADatabase();
+      await this.appsService.migrate(knex);
     }
 
     await this.sessionConfigRepository.init();
@@ -341,6 +352,9 @@ export class SessionManagerPlus
     // configure webhooks
     const webhooks = this.getWebhooks(config);
     webhook.configure(session, webhooks);
+
+    // Apps
+    await this.configureApps(session);
 
     // start session
     await session.start();

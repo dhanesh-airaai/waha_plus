@@ -1,4 +1,5 @@
 import { Document } from 'bson';
+import Knex from 'knex';
 import { MongoClient } from 'mongodb';
 
 import { DataStore } from '../../../core/abc/DataStore';
@@ -47,5 +48,11 @@ export class MongoStore extends DataStore {
 
   async close() {
     await this.mongo?.close();
+  }
+
+  getWAHADatabase(): Knex.Knex {
+    throw new Error(
+      'MongoDB is deprecated and will not have all WAHA features. Consider switching to PostgreSQL',
+    );
   }
 }
