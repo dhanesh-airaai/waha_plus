@@ -292,7 +292,7 @@ export class SessionManagerPlus
   async upsert(name: string, config?: SessionConfig): Promise<void> {
     this.log.info({ session: name }, `Saving session...`);
     await this.sessionAuthRepository.init(name);
-    await this.sessionConfigRepository.saveConfig(name, config || null);
+    await this.sessionConfigRepository.saveConfig(name, config || {});
     this.log.info({ session: name }, `Session saved.`);
   }
 
