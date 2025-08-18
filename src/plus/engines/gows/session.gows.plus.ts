@@ -1,4 +1,10 @@
-import { getAudioDuration, getAudioWaveform } from '@adiwajshing/baileys';
+import {
+  getAudioDuration,
+  getAudioWaveform,
+  isJidGroup,
+} from '@adiwajshing/baileys';
+import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
+import { UnprocessableEntityException } from '@nestjs/common';
 import { Jid } from '@waha/core/engines/const';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
 import { parseJson } from '@waha/core/engines/gows/helpers';
@@ -8,7 +14,7 @@ import {
 } from '@waha/core/engines/gows/session.gows.core';
 import { NotImplementedByEngineError } from '@waha/core/exceptions';
 import { WAMimeType } from '@waha/core/media/WAMimeType';
-import { toJID } from '@waha/core/utils/jids';
+import { isJidNewsletter, toJID } from '@waha/core/utils/jids';
 import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
 import { Ffmpeg } from '@waha/plus/utils/ffmpeg';
@@ -29,6 +35,7 @@ import {
   MessageVideoRequest,
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
+import { SendListRequest } from '@waha/structures/chatting.list.dto';
 import {
   BinaryFile,
   RemoteFile,
@@ -70,6 +77,35 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
       mimetype: file.mimetype,
       filename: file.filename,
     });
+  }
+
+  /**
+   * Send methods
+   */
+  async sendList(request: SendListRequest): Promise<any> {
+    const jid = toJID(this.ensureSuffix(request.chatId));
+    if (isJidGroup(jid) || isJidBroadcast(jid) || isJidNewsletter(jid)) {
+      throw new UnprocessableEntityException(
+        `List message can only be sent to a direct message chat.`,
+      );
+    }
+    const m = request.message;
+    const list = messages.ListMessage.fromObject({
+      title: m.title,
+      description: m.description,
+      footer: m.footer,
+      button: m.button,
+      sections: m.sections,
+    });
+    const message = new messages.MessageRequest({
+      jid: jid,
+      session: this.session,
+      replyTo: getMessageIdFromSerialized(request.reply_to),
+      list: list,
+    });
+    const response = await promisify(this.client.SendMessage)(message);
+    const data = response.toObject();
+    return this.messageResponse(jid, data);
   }
 
   /**

@@ -1,12 +1,14 @@
 import {
   extractImageThumb,
   getStream,
+  isJidUser,
   prepareWAMessageMedia,
 } from '@adiwajshing/baileys';
 import {
   MediaGenerationOptions,
   NewsletterFetchedUpdate,
 } from '@adiwajshing/baileys/lib/Types';
+import { isLidUser } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { WhatsappSessionNoWebCore } from '@waha/core/engines/noweb/session.noweb.core';
 import { WAMimeType } from '@waha/core/media/WAMimeType';
@@ -30,6 +32,7 @@ import {
   MessageVideoRequest,
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
+import { SendListRequest } from '@waha/structures/chatting.list.dto';
 import { BinaryFile, FileType, RemoteFile } from '@waha/structures/files.dto';
 import {
   ImageStatus,
@@ -113,6 +116,28 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       );
     }
     return content;
+  }
+
+  /**
+   * Send methods
+   */
+  async sendList(request: SendListRequest): Promise<any> {
+    const jid = toJID(this.ensureSuffix(request.chatId));
+    if (!isLidUser(jid) && !isJidUser(jid)) {
+      throw new UnprocessableEntityException(
+        `List message can only be sent to a direct message chat.`,
+      );
+    }
+    const message = request.message;
+    const msg = {
+      text: message.description || '',
+      title: message.title,
+      buttonText: message.button,
+      footer: message.footer,
+      sections: message.sections,
+    } as any;
+    const options = await this.getMessageOptions(request);
+    return await this.sock.sendMessage(jid, msg, options);
   }
 
   /**
