@@ -14,6 +14,7 @@ import {
 } from '@waha/core/engines/gows/session.gows.core';
 import { NotImplementedByEngineError } from '@waha/core/exceptions';
 import { WAMimeType } from '@waha/core/media/WAMimeType';
+import { parseMessageIdSerialized } from '@waha/core/utils/ids';
 import { isJidNewsletter, toJID } from '@waha/core/utils/jids';
 import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
@@ -32,6 +33,7 @@ import {
   MessageFileRequest,
   MessageImageRequest,
   MessageLinkCustomPreviewRequest,
+  MessagePollVoteRequest,
   MessageVideoRequest,
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
@@ -238,6 +240,27 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
 
   async sendVideo(request: MessageVideoRequest) {
     return await this.sendMedia(messages.MediaType.VIDEO, request);
+  }
+
+  async sendPollVote(request: MessagePollVoteRequest) {
+    const jid = toJID(this.ensureSuffix(request.chatId));
+    const key = parseMessageIdSerialized(request.pollMessageId, true);
+    const pollVote = new messages.PollVoteMessage({
+      pollMessageId: key.id,
+      options: request.votes,
+    });
+    if (request.pollServerId != null) {
+      // protobuf expects int64 number
+      pollVote.pollServerId = request.pollServerId;
+    }
+    const message = new messages.MessageRequest({
+      jid: jid,
+      session: this.session,
+      pollVote: pollVote,
+    });
+    const response = await promisify(this.client.SendMessage)(message);
+    const data = response.toObject();
+    return this.messageResponse(jid, data);
   }
 
   async sendLinkCustomPreview(
