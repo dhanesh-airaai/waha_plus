@@ -1,11 +1,11 @@
 import {
   aggregateMessageKeysNotFromMe,
-  Contact,
   getContentType,
   getUrlFromDirectPath,
   isJidGroup,
   jidNormalizedUser,
   normalizeMessageContent,
+  proto,
   WAMessageKey,
 } from '@adiwajshing/baileys';
 import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
@@ -35,6 +35,7 @@ import {
 } from '@waha/core/engines/gows/helpers';
 import { GowsAuthFactoryCore } from '@waha/core/engines/gows/store/GowsAuthFactoryCore';
 import {
+  extractBody,
   getDestination,
   toCusFormat,
 } from '@waha/core/engines/noweb/session.noweb.core';
@@ -80,6 +81,7 @@ import {
   MessageLinkCustomPreviewRequest,
   MessageLocationRequest,
   MessagePollRequest,
+  MessagePollVoteRequest,
   MessageReactionRequest,
   MessageReplyRequest,
   MessageTextRequest,
@@ -87,6 +89,7 @@ import {
   SendSeenRequest,
   WANumberExistResult,
 } from '@waha/structures/chatting.dto';
+import { SendListRequest } from '@waha/structures/chatting.list.dto';
 import { ContactQuery, ContactUpdateBody } from '@waha/structures/contacts.dto';
 import {
   ACK_UNKNOWN,
@@ -96,7 +99,6 @@ import {
   WAMessageAck,
 } from '@waha/structures/enums.dto';
 import {
-  EventCancelRequest,
   EventMessageRequest,
   EventResponse,
   EventResponsePayload,
@@ -168,6 +170,7 @@ import {
   isLabelChatAddedEvent,
   isLabelUpsertEvent,
 } from './labels.gows';
+import IMessageKey = proto.IMessageKey;
 
 enum WhatsMeowEvent {
   CONNECTED = 'gows.ConnectedEventData',
@@ -307,6 +310,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       this.me = {
         id: toCusFormat(jidNormalizedUser(data.ID)),
         pushName: data.PushName,
+        lid: jidNormalizedUser(data.LID),
       };
       // @ts-ignore
       this.me.jid = data.ID;
@@ -444,7 +448,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
         const waMessage = await this.toWAMessage(message);
         // Extract the body from editedMessage using extractBody function
         const body =
-          this.extractBody(message.Message.protocolMessage.editedMessage) || '';
+          extractBody(message.Message.protocolMessage.editedMessage) || '';
         // Extract the original message ID from protocolMessage.key
         const editedMessageId = message.Message.protocolMessage.key?.ID;
         return {
@@ -536,6 +540,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       onlyEvent(WhatsMeowEvent.POLL_VOTE_EVENT),
       map(this.toPollVotePayload.bind(this)),
       filter(Boolean),
+      share(),
     );
 
     // Split into successful and failed responses
@@ -792,6 +797,14 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     return this.messageResponse(jid, data);
   }
 
+  sendPollVote(request: MessagePollVoteRequest) {
+    throw new AvailableInPlusVersion('Poll voting');
+  }
+
+  sendList(request: SendListRequest): Promise<any> {
+    throw new AvailableInPlusVersion();
+  }
+
   public async deleteMessage(chatId: string, messageId: string) {
     const jid = toJID(this.ensureSuffix(chatId));
     const key = parseMessageIdSerialized(messageId);
@@ -881,8 +894,21 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     };
   }
 
-  sendLocation(request: MessageLocationRequest) {
-    throw new Error('Method not implemented.');
+  async sendLocation(request: MessageLocationRequest) {
+    const jid = toJID(this.ensureSuffix(request.chatId));
+    const message = new messages.MessageRequest({
+      jid: jid,
+      session: this.session,
+      replyTo: getMessageIdFromSerialized(request.reply_to),
+      location: new messages.Location({
+        name: request.title,
+        degreesLatitude: request.latitude,
+        degreesLongitude: request.longitude,
+      }),
+    });
+    const response = await promisify(this.client.SendMessage)(message);
+    const data = response.toObject();
+    return this.messageResponse(jid, data);
   }
 
   forwardMessage(request: MessageForwardRequest): Promise<WAMessage> {
@@ -1883,7 +1909,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   protected toWAMessage(message): WAMessage {
     const fromToParticipant = getFromToParticipant(message);
     const id = buildMessageId(message);
-    const body = this.extractBody(message.Message);
+    const body = extractBody(message.Message);
     const replyTo = this.extractReplyTo(message.Message);
     let ack = statusToAck(message.Status);
     if (ack === WAMessageAck.ERROR) {
@@ -1919,12 +1945,19 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   private toPollVotePayload(event: any): PollVotePayload {
     // Extract event creation message key from the message
     const creationKey = event.Message?.pollUpdateMessage.pollCreationMessageKey;
-    const key: WAMessageKey = {
+    const pollKey: IMessageKey = {
       remoteJid: creationKey.remoteJID,
       fromMe: creationKey.fromMe,
       id: creationKey.ID,
       participant: creationKey.participant,
     };
+    const voteKey: IMessageKey = {
+      id: event.Info.ID,
+      remoteJid: event.Info.Chat,
+      participant: event.IsGroup ? event.Info.Sender : null,
+      fromMe: event.IsFromMe,
+    };
+    const key = fixPollCreationKey(voteKey, pollKey, this.me);
     const fromToParticipant = getFromToParticipant(event);
     const pollCreationKey = getDestination(key);
     return {
@@ -1984,21 +2017,6 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     return sentDeviceId === myDeviceId ? MessageSource.API : MessageSource.APP;
   }
 
-  private extractBody(message) {
-    if (!message) {
-      return null;
-    }
-    let body = message.Conversation || message.conversation;
-    if (!body) {
-      body = message.extendedTextMessage?.text;
-    }
-    if (!body) {
-      const media = extractMediaContent(message);
-      body = media?.caption;
-    }
-    return body;
-  }
-
   protected extractReplyTo(message): ReplyToMessage | null {
     const msgType = getContentType(message);
     const contextInfo = message[msgType]?.contextInfo;
@@ -2009,7 +2027,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     if (!quotedMessage) {
       return null;
     }
-    const body = this.extractBody(quotedMessage);
+    const body = extractBody(quotedMessage);
     return {
       id: contextInfo.stanzaID,
       participant: toCusFormat(contextInfo.participant),
@@ -2191,6 +2209,7 @@ function getFromToParticipant(message) {
     from: info.Chat,
     to: info.IsGroup ? info.Sender : null,
     participant: info.IsGroup ? info.Sender : null,
+    fromMe: info.IsFromMe,
   };
 }
 
@@ -2242,4 +2261,64 @@ export function getMessageIdFromSerialized(serialized: string): string | null {
   }
   const key = parseMessageIdSerialized(serialized, true);
   return key.id;
+}
+
+/**
+ * Poll creation keys are a bit tricky — they contain the data that the receiver uses.
+ * When recipients respond to a poll, they send back THEIR `message.id`.
+ *
+ * For example,
+ * - If we send a poll and in our system the ID is "true_{chatId}_{ID}",
+ * - The corresponding `pollCreationKey` will be "false_{ourId}_{ID}" —
+ *   essentially the opposite of our message ID.
+ *
+ * The function inspects the key and,
+ * if it originates from us (based on `remoteJid` or `participant`),
+ * adjusts it to the correct value.
+ */
+
+function fixPollCreationKey(
+  vote: IMessageKey,
+  poll: IMessageKey,
+  me: MeInfo,
+): IMessageKey {
+  // If the vote is from me, the pollCreationKey is already in my perspective
+  if (vote?.fromMe) {
+    return poll;
+  }
+  if (!me) {
+    return poll;
+  }
+  if (!poll) {
+    return poll;
+  }
+
+  // DM - my poll, not my vote
+  if (
+    toCusFormat(poll.remoteJid) == toCusFormat(me.id) ||
+    toCusFormat(poll.remoteJid) == toCusFormat(me.lid)
+  ) {
+    return {
+      id: poll.id,
+      remoteJid: vote.remoteJid,
+      fromMe: true,
+      participant: undefined,
+    };
+  }
+
+  // Many Participants Chat - my poll, not my vote
+  if (
+    toCusFormat(poll.participant) == toCusFormat(me.id) ||
+    toCusFormat(poll.participant) == toCusFormat(me.lid)
+  ) {
+    return {
+      id: poll.id,
+      remoteJid: vote.remoteJid,
+      fromMe: true,
+      participant: me.id,
+    };
+  }
+
+  // Other
+  return poll;
 }

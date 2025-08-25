@@ -16,7 +16,6 @@ import makeWASocket, {
   jidNormalizedUser,
   makeCacheableSignalKeyStore,
   MiscMessageGenerationOptions,
-  NewsletterMetadata,
   normalizeMessageContent,
   PresenceData,
   proto,
@@ -121,6 +120,7 @@ import {
   SendSeenRequest,
   WANumberExistResult,
 } from '@waha/structures/chatting.dto';
+import { SendListRequest } from '@waha/structures/chatting.list.dto';
 import {
   ContactQuery,
   ContactRequest,
@@ -735,6 +735,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return {
       id: toCusFormat(meId),
       pushName: me.name,
+      lid: me.lid,
     };
   }
 
@@ -952,15 +953,21 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     );
   }
 
+  sendList(request: SendListRequest): Promise<any> {
+    throw new AvailableInPlusVersion();
+  }
+
   async sendLocation(request: MessageLocationRequest) {
+    const chatId = toJID(this.ensureSuffix(request.chatId));
     const msg = {
       location: {
+        name: request.title || null,
         degreesLatitude: request.latitude,
         degreesLongitude: request.longitude,
       },
     };
     const options = await this.getMessageOptions(request);
-    return await this.sock.sendMessage(request.chatId, msg, options);
+    return await this.sock.sendMessage(chatId, msg, options);
   }
 
   async forwardMessage(request: MessageForwardRequest): Promise<WAMessage> {
@@ -2702,5 +2709,20 @@ export function extractBody(message): string | null {
   if (!body) {
     body = content.buttonsResponseMessage?.selectedDisplayText;
   }
+
+  // List message
+  if (!body) {
+    const type = getContentType(content);
+    if (type == 'listMessage') {
+      const list = content.listMessage;
+      const parts = [list.title, list.description, list.footerText];
+      body = parts.filter(Boolean).join('\n');
+    } else if (type === 'listResponseMessage') {
+      const response = content.listResponseMessage;
+      const parts = [response.title, response.description];
+      body = parts.filter(Boolean).join('\n');
+    }
+  }
+
   return body;
 }
