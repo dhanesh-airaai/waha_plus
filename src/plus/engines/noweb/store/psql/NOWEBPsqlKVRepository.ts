@@ -6,6 +6,7 @@ import {
 import { PsqlKVRepository } from '@waha/plus/storage/psql/PsqlKVRepository';
 
 // PostgreSQL TEXT or JSONB columns do not allow null bytes (c-style strings)
+// oxlint-disable-next-line no-control-regex
 const invalidCharsRegex = /\u0000/g;
 
 export function sanitizeJsonUnicode(str: string): string {
