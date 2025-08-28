@@ -338,6 +338,7 @@ export class SessionManagerPlus
       sessionStore: this.store,
       proxyConfig: proxyConfig,
       sessionConfig: config,
+      ignore: this.ignoreChatsConfig(config),
     };
     if (this.EngineClass === WhatsappSessionWebJSPlus) {
       sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
