@@ -335,12 +335,15 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   public async channelsCreateChannel(
     request: CreateChannelRequest,
   ): Promise<Channel> {
-    const media = await this.fileToMedia(request.picture);
+    let media: messages.Media;
+    if (request.picture) {
+      media = await this.fileToMedia(request.picture);
+    }
     const req = new messages.CreateNewsletterRequest({
       session: this.session,
       name: request.name,
       description: request.description,
-      picture: media.content,
+      picture: media?.content,
     });
     const response = await promisify(this.client.CreateNewsletter)(req);
     const newsletter = response.toObject() as messages.Newsletter;
