@@ -58,7 +58,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     const clientOptions = this.getClientOptions();
     clientOptions.authStrategy = authStrategy;
     this.addProxyConfig(clientOptions);
-    return new WebjsClientPlus(clientOptions);
+    return new WebjsClientPlus(clientOptions, this.getWebjsTagsFlag());
   }
 
   private async fileToMedia(
