@@ -89,6 +89,42 @@ export class NowebConfig {
   markOnline: boolean = true;
 }
 
+export class WebjsConfig {
+  @ApiProperty({
+    description:
+      "Enable emission of special 'tag:*' engine events required for presence.update and message.ack.\n" +
+      'WARNING: Enabling this may have performance and stability impact. Disabled by default.',
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  tagsEventsOn?: boolean = false;
+}
+
+export class IgnoreConfig {
+  @ApiProperty({
+    description: 'Ignore a status@broadcast (stories) events',
+  })
+  @IsBoolean()
+  @IsOptional()
+  status?: boolean;
+
+  @ApiProperty({
+    description: 'Ignore groups events',
+  })
+  @IsBoolean()
+  @IsOptional()
+  groups?: boolean;
+
+  @ApiProperty({
+    description: 'Ignore channels events',
+  })
+  @IsBoolean()
+  @IsOptional()
+  channels?: boolean;
+}
+
 export class SessionConfig {
   @ValidateNested({ each: true })
   @Type(() => WebhookConfig)
@@ -127,6 +163,19 @@ export class SessionConfig {
 
   @ApiProperty({
     example: {
+      status: null,
+      groups: null,
+      channels: null,
+    },
+    description: 'Ignore some events related to specific chats',
+  })
+  @ValidateNested()
+  @Type(() => IgnoreConfig)
+  @IsOptional()
+  ignore?: IgnoreConfig;
+
+  @ApiProperty({
+    example: {
       store: {
         enabled: true,
         fullSync: false,
@@ -137,6 +186,15 @@ export class SessionConfig {
   @Type(() => NowebConfig)
   @IsOptional()
   noweb?: NowebConfig;
+
+  @ApiProperty({
+    description: 'WebJS-specific settings.',
+    required: false,
+  })
+  @ValidateNested()
+  @Type(() => WebjsConfig)
+  @IsOptional()
+  webjs?: WebjsConfig;
 }
 
 export class SessionDTO {

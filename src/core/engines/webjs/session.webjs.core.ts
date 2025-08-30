@@ -103,6 +103,7 @@ import {
 } from '@waha/structures/groups.dto';
 import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { LidToPhoneNumber } from '@waha/structures/lids.dto';
+import { WAMedia } from '@waha/structures/media.dto';
 import { ReplyToMessage } from '@waha/structures/message.dto';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 import {
@@ -235,7 +236,14 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       rmMaxRetries: undefined,
     });
     this.addProxyConfig(clientOptions);
-    return new WebjsClientCore(clientOptions);
+    return new WebjsClientCore(clientOptions, this.getWebjsTagsFlag());
+  }
+
+  protected getWebjsTagsFlag() {
+    // Emit 'tag:*' events only when explicitly enabled in session config.
+    // This flag is required for presence.update and message.ack events.
+    // Disabled by default for performance and stability reasons.
+    return !!this.sessionConfig?.webjs?.tagsEventsOn;
   }
 
   private restartClient() {
@@ -783,7 +791,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       chat.id._serialized,
       false,
     );
-    const lastMessage = !!chat.lastMessage
+    const lastMessage = chat.lastMessage
       ? this.toWAMessage(chat.lastMessage)
       : null;
     return {
@@ -1439,6 +1447,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     //
     const messageReceived$ = fromEvent(this.whatsapp, Events.MESSAGE_RECEIVED);
     const messagesFromOthers$ = messageReceived$.pipe(
+      filter((msg: Message) => this.jids.include(msg?.id?.remote)),
       mergeMap((msg: any) => this.processIncomingMessage(msg, true)),
       share(),
     );
@@ -1446,6 +1455,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
     const messageCreate$ = fromEvent(this.whatsapp, Events.MESSAGE_CREATE);
     const messagesFromAll$ = messageCreate$.pipe(
+      filter((msg: Message) => this.jids.include(msg?.id?.remote)),
       mergeMap((msg: any) => this.processIncomingMessage(msg, true)),
       share(),
     );
@@ -1456,6 +1466,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       Events.MESSAGE_CIPHERTEXT,
     );
     const messagesWaiting$ = messageCiphertext$.pipe(
+      filter((msg: Message) => this.jids.include(msg?.id?.remote)),
       mergeMap((msg: any) => this.processIncomingMessage(msg, false)),
       share(),
     );
@@ -1469,6 +1480,9 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       },
     );
     const messagesRevoked$ = messageRevoked$.pipe(
+      filter((evt: any) =>
+        this.jids.include(evt?.after?.id?.remote || evt?.before?.id?.remote),
+      ),
       map((event): WAMessageRevokedBody => {
         const afterMessage = event.after ? this.toWAMessage(event.after) : null;
         const beforeMessage = event.before
@@ -1487,6 +1501,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
     const messageReaction$ = fromEvent(this.whatsapp, 'message_reaction');
     const messagesReaction$ = messageReaction$.pipe(
+      filter((reaction: Reaction) => this.jids.include(reaction?.id?.remote)),
       map(this.processMessageReaction.bind(this)),
       filter(Boolean),
     );
@@ -1500,6 +1515,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       },
     );
     const messagesEdit$ = messageEdit$.pipe(
+      filter((event: any) => this.jids.include(event?.message?.id?.remote)),
       map((event): WAMessageEditedBody => {
         const message = this.toWAMessage(event.message);
         return {
@@ -1523,6 +1539,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       map((event) => event.message),
       map<any, WAMessage>(this.toWAMessage.bind(this)),
       filter((ack) => !isJidGroup(ack.to) && !isJidStatusBroadcast(ack.to)),
+      filter((ack) => this.jids.include(ack.to)),
     );
     const tagReceiptNode$ = fromEvent(this.whatsapp, Events.TAG_RECEIPT);
     const messageAckGroups$ = tagReceiptNode$.pipe(
@@ -1532,6 +1549,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       filter(Boolean),
       mergeMap(this.TagReceiptToMessageAck.bind(this)),
       filter((ack) => isJidGroup(ack.to) || isJidStatusBroadcast(ack.to)),
+      filter((ack) => this.jids.include(ack.to)),
     );
 
     const messageAckAll$ = merge(messagesAckDM$, messageAckGroups$);
@@ -1552,11 +1570,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     const presences$ = tagPresenceNode$.pipe(
       map(TagPresenceToPresence),
       filter(Boolean),
+      filter((presence: any) => this.jids.include(presence.id)),
     );
     const tagChatstateNode$ = fromEvent(this.whatsapp, 'tag:chatstate');
     const chatstatePresences$ = tagChatstateNode$.pipe(
       map(TagChatstateToPresence),
       filter(Boolean),
+      filter((presence: any) => this.jids.include(presence.id)),
     );
     const presenceUpdate$ = merge(presences$, chatstatePresences$);
     this.events2.get(WAHAEvents.PRESENCE_UPDATE).switch(presenceUpdate$);
@@ -1625,6 +1645,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       },
     );
     const chatsArchived$ = chatArchived$.pipe(
+      filter((event: any) => this.jids.include(event?.chat?.id?._serialized)),
       map((event) => {
         return {
           id: event.chat.id._serialized,
@@ -1640,6 +1661,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     //
     const call$ = fromEvent(this.whatsapp, 'call');
     const calls$ = call$.pipe(
+      filter((call: Call) => this.jids.include((call as any)?.from)),
       map((call: Call) => {
         return {
           id: call.id,
@@ -1657,15 +1679,14 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     message: Message,
     downloadMedia = true,
   ) {
+    // Convert
+    const wamessage = this.toWAMessage(message);
+    // Media
     if (downloadMedia) {
-      try {
-        message = await this.downloadMedia(message);
-      } catch (e) {
-        this.logger.error('Failed when tried to download media for a message');
-        this.logger.error(e, e.stack);
-      }
+      const media = await this.downloadMediaSafe(message);
+      wamessage.media = media;
     }
-    return this.toWAMessage(message);
+    return wamessage;
   }
 
   private processMessageReaction(reaction: Reaction): WAMessageReaction {
@@ -1737,8 +1758,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       // Media
       // @ts-ignore
       hasMedia: Boolean(message.hasMedia),
-      // @ts-ignore
-      media: message.media || null,
+      media: null,
       // @ts-ignore
       mediaUrl: message.media?.url,
       // @ts-ignore
@@ -1781,9 +1801,24 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return contact;
   }
 
-  protected downloadMedia(message: Message) {
+  protected async downloadMediaSafe(message): Promise<WAMedia | null> {
+    try {
+      return await this.downloadMedia(message);
+    } catch (e) {
+      this.logger.error('Failed when tried to download media for a message');
+      this.logger.error(e, e.stack);
+    }
+    return null;
+  }
+
+  protected async downloadMedia(message: Message) {
     const processor = new WEBJSEngineMediaProcessor();
-    return this.mediaManager.processMedia(processor, message, this.name);
+    const media = await this.mediaManager.processMedia(
+      processor,
+      message,
+      this.name,
+    );
+    return media;
   }
 
   protected getMessageOptions(request: any): any {

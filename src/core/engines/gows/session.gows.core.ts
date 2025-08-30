@@ -254,6 +254,11 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
         proxy: new messages.SessionProxyConfig({
           url: this.getProxyUrl(this.proxyConfig),
         }),
+        ignore: new messages.SessionIgnoreJidsConfig({
+          status: this.jids.ignore.status,
+          groups: this.jids.ignore.groups,
+          newsletters: this.jids.ignore.channels,
+        }),
       }),
     });
 
@@ -391,7 +396,11 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const all$ = this.all$;
     this.events2.get(WAHAEvents.ENGINE_EVENT).switch(all$);
 
-    const messages$ = all$.pipe(onlyEvent(WhatsMeowEvent.MESSAGE));
+    const messages$ = all$.pipe(
+      onlyEvent(WhatsMeowEvent.MESSAGE),
+      filter((msg: any) => this.jids.include(msg?.Info?.Chat)),
+      share(),
+    );
 
     let [messagesFromMe$, messagesFromOthers$] = partition(messages$, isMine);
     messagesFromMe$ = messagesFromMe$.pipe(
@@ -461,7 +470,10 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     );
     this.events2.get(WAHAEvents.MESSAGE_EDITED).switch(messagesEdited$);
 
-    const receipt$ = all$.pipe(onlyEvent(WhatsMeowEvent.RECEIPT));
+    const receipt$ = all$.pipe(
+      onlyEvent(WhatsMeowEvent.RECEIPT),
+      filter((r: any) => this.jids.include(r?.Chat)),
+    );
     const messageAck$ = receipt$.pipe(
       mergeMap(this.receiptToMessageAck.bind(this)),
       DistinctAck(),
@@ -476,9 +488,13 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
 
     const presence$ = all$.pipe(
       onlyEvent(WhatsMeowEvent.PRESENCE),
+      filter((event: any) => this.jids.include(event?.From)),
       filter((event) => !isJidGroup(event.From)),
     );
-    const chatPresence$ = all$.pipe(onlyEvent(WhatsMeowEvent.CHAT_PRESENCE));
+    const chatPresence$ = all$.pipe(
+      onlyEvent(WhatsMeowEvent.CHAT_PRESENCE),
+      filter((event: any) => this.jids.include(event?.Chat)),
+    );
     const presenceUpdates$ = merge(presence$, chatPresence$).pipe(
       map((event) => this.toWahaPresences(event.From || event.Chat, [event])),
     );
@@ -538,6 +554,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     //
     const pollVoteEvent$ = all$.pipe(
       onlyEvent(WhatsMeowEvent.POLL_VOTE_EVENT),
+      filter((event: any) => this.jids.include(event?.Info?.Chat)),
       map(this.toPollVotePayload.bind(this)),
       filter(Boolean),
       share(),
@@ -557,6 +574,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     //
     const eventMessageResponse$ = all$.pipe(
       onlyEvent(WhatsMeowEvent.EVENT_MESSAGE_RESPONSE),
+      filter((event: any) => this.jids.include(event?.Info?.Chat)),
       map(this.toEventResponsePayload.bind(this)),
       filter(Boolean),
     );
@@ -1841,6 +1859,17 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     return labels.map(this.toLabel);
   }
 
+  public async chatsUnreadChat(chatId: string): Promise<any> {
+    const jid = toJID(this.ensureSuffix(chatId));
+    const request = new messages.ChatUnreadRequest({
+      session: this.session,
+      jid: jid,
+      read: false,
+    });
+    await promisify(this.client.MarkChatUnread)(request);
+    return { success: true };
+  }
+
   public async putLabelsToChat(chatId: string, labels: LabelID[]) {
     const jid = toJID(chatId);
     const labelsIds = labels.map((label) => label.id);
@@ -1870,7 +1899,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   // END - Methods for API
   //
 
-  protected async processIncomingMessage(message, downloadMedia = true) {
+  protected shouldProcessIncomingMessage(message): boolean {
     // if there is no text or media message
     if (!message) return;
     if (!message.Message) return;
@@ -1889,21 +1918,42 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       // Ignore key distribution messages
       if (message?.Message?.senderKeyDistributionMessage) return;
     }
-
-    if (downloadMedia) {
-      try {
-        message = await this.downloadMedia(message);
-      } catch (e) {
-        this.logger.error('Failed when tried to download media for a message');
-        this.logger.error(e, e.stack);
-      }
-    }
-    return this.toWAMessage(message);
+    return true;
   }
 
-  protected downloadMedia(message) {
+  protected async processIncomingMessage(message, downloadMedia = true) {
+    // Filter
+    if (!this.shouldProcessIncomingMessage(message)) {
+      return null;
+    }
+    // Convert
+    const wamessage = this.toWAMessage(message);
+    // Media
+    if (downloadMedia) {
+      const media = await this.downloadMediaSafe(message);
+      wamessage.media = media;
+    }
+    return wamessage;
+  }
+
+  protected async downloadMediaSafe(message) {
+    try {
+      return await this.downloadMedia(message);
+    } catch (e) {
+      this.logger.error('Failed when tried to download media for a message');
+      this.logger.error(e, e.stack);
+      return null;
+    }
+  }
+
+  protected async downloadMedia(message) {
     const processor = new GOWSEngineMediaProcessor(this);
-    return this.mediaManager.processMedia(processor, message, this.name);
+    const media = await this.mediaManager.processMedia(
+      processor,
+      message,
+      this.name,
+    );
+    return media;
   }
 
   protected toWAMessage(message): WAMessage {
@@ -1931,7 +1981,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       participant: toCusFormat(fromToParticipant.participant),
       // Media
       hasMedia: Boolean(mediaContent),
-      media: message.media || null,
+      media: null,
       mediaUrl: message.media?.url,
       // @ts-ignore
       ack: ack,
