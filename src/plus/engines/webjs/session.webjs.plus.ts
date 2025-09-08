@@ -172,7 +172,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   }
 
   private async convertVideo(media: MessageMedia) {
-    let content = Buffer.from(media.data, 'base64');
+    let content: Buffer<ArrayBufferLike> = Buffer.from(media.data, 'base64');
     content = await this.mediaConverter.video(content);
     media.data = content.toString('base64');
     media.mimetype = WAMimeType.VIDEO;
