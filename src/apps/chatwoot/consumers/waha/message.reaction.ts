@@ -4,11 +4,11 @@ import { SendAttachment } from '@waha/apps/chatwoot/client/types';
 import { QueueName } from '@waha/apps/chatwoot/consumers/QueueName';
 import { EventData } from '@waha/apps/chatwoot/consumers/types';
 import {
+  ChatWootMessagePartial,
   ChatWootWAHABaseConsumer,
   IMessageInfo,
 } from '@waha/apps/chatwoot/consumers/waha/base';
 import { MessageBaseHandler } from '@waha/apps/chatwoot/consumers/waha/base';
-import { TKey } from '@waha/apps/chatwoot/locale';
 import { WAHASessionAPI } from '@waha/apps/chatwoot/session/WAHASelf';
 import { SessionManager } from '@waha/core/abc/manager.abc';
 import { parseMessageIdSerialized } from '@waha/core/utils/ids';
@@ -18,6 +18,7 @@ import { WAMessageReaction, WAReaction } from '@waha/structures/responses.dto';
 import { WAHAWebhookMessageReaction } from '@waha/structures/webhooks.dto';
 import { Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
+import { TKey } from '@waha/apps/chatwoot/i18n/templates';
 
 @Processor(QueueName.WAHA_MESSAGE_REACTION, { concurrency: JOB_CONCURRENCY })
 export class WAHAMessageReactionConsumer extends ChatWootWAHABaseConsumer {
@@ -41,6 +42,7 @@ export class WAHAMessageReactionConsumer extends ChatWootWAHABaseConsumer {
     const event: WAHAWebhookMessageReaction = job.data.event as any;
     const session = new WAHASessionAPI(event.session, container.WAHASelf());
     const handler = new MessageReactionHandler(
+      job,
       container.MessageMappingService(),
       container.ContactConversationService(),
       container.Logger(),
@@ -54,15 +56,24 @@ export class WAHAMessageReactionConsumer extends ChatWootWAHABaseConsumer {
 }
 
 export class MessageReactionHandler extends MessageBaseHandler<WAMessageReaction> {
-  getContent(payload: WAMessageReaction) {
+  protected async getMessage(
+    payload: WAMessageReaction,
+  ): Promise<ChatWootMessagePartial> {
     const reaction = payload.reaction as WAReaction;
     const emoji = reaction.text;
-    if (!emoji) {
-      return this.l.key(TKey.WHATSAPP_REACTION_REMOVED).render();
+    let content: string;
+    if (emoji) {
+      content = this.l.key(TKey.WHATSAPP_REACTION_ADDED).render({
+        emoji: emoji,
+      });
+    } else {
+      content = this.l.key(TKey.WHATSAPP_REACTION_REMOVED).render();
     }
-    return this.l.key(TKey.WHATSAPP_REACTION_ADDED).render({
-      emoji: emoji,
-    });
+    return {
+      content: content,
+      attachments: [],
+      private: undefined,
+    };
   }
 
   getReplyToWhatsAppID(payload: WAMessageReaction) {

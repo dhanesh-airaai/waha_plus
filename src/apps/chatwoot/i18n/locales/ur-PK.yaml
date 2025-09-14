@@ -1,9 +1,9 @@
 # Urdu translations for ChatWoot integration
-LOCALE_NAME: '🇵🇰 اردو (Urdu)'
-APP_INBOX_CONTACT_NAME: 'واٹس ایپ انٹیگریشن (WAHA)'
-APP_INBOX_CONTACT_AVATAR_URL: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+locale.name: '🇵🇰 اردو (Urdu)'
+app.inbox.contact.name: 'واٹس ایپ انٹیگریشن (WAHA)'
+app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
 
-JOB_ERROR_REPORT: |
+job.report.error: |
   ⚠️ **{{{header}}}**
   {{#attempts.nextDelay}}
   🔄 {{attempts.nextDelay}} سیکنڈ میں دوبارہ کوشش کر رہا ہے...
@@ -20,51 +20,52 @@ JOB_ERROR_REPORT: |
   ```
   {{/error}}
 
-JOB_SUCCEEDED_REPORT: |
+job.report.succeeded: |
   ✅ **کامیاب ہوا**
   کوشش: {{{attempts.current}}} / {{{attempts.max}}}
   تفصیلات: [{{{details.text}}}]({{{details.url}}})
 
-WHATSAPP_ERROR_SENDING_MESSAGE: واٹس ایپ پر پیغام نہیں بھیج سکا۔
-WHATSAPP_ERROR_RECEIVING_MESSAGE: واٹس ایپ سے پیغام موصول نہیں کر سکا
-WHATSAPP_ERROR_REMOVING_MESSAGE: واٹس ایپ سے پیغام ہٹا نہیں سکا
-APP_SCHEDULED_JOB_ERROR: شیڈول کردہ کام انجام دینے میں ناکام رہا
+whatsapp.message.sending.error: واٹس ایپ پر پیغام نہیں بھیج سکا۔
+whatsapp.message.receiving.error: واٹس ایپ سے پیغام موصول نہیں کر سکا
+whatsapp.message.removing.error: واٹس ایپ سے پیغام ہٹا نہیں سکا
+job.scheduled.error.header: شیڈول کردہ کام انجام دینے میں ناکام رہا
 
-MESSAGE_FROM_WHATSAPP: |
+message.from.whatsapp: |
   {{{text}}}
 
   📱 *واٹس ایپ سے بھیجا گیا*
 
-MESSAGE_FROM_API: |
+message.from.api: |
   {{{text}}}
 
   📱 *API کے ذریعے بھیجا گیا*
 
-MESSAGE_REMOVED_IN_WHATSAPP: |
+message.removed.in.whatsapp: |
   ❌ *یہ پیغام واٹس ایپ میں حذف کر دیا گیا تھا*
 
-MESSAGE_EDITED_IN_WHATSAPP: |
+message.edited.in.whatsapp: |
   {{{text}}}
 
   ✏️ *واٹس ایپ میں ترمیم کی گئی*
 
-WHATSAPP_GROUP_MESSAGE: |
+whatsapp.group.message: |
   {{{text}}}
 
   👥 *{{{participant}}}*
 
-WHATSAPP_REACTION_ADDED: |
+whatsapp.reaction.added: |
   *ردعمل دیا* {{{emoji}}}
 
-WHATSAPP_REACTION_REMOVED: |
+whatsapp.reaction.removed: |
   *ردعمل ہٹا دیا گیا*
 
-WHATSAPP_CONTACT_GROUP_SUFFIX: 'گروپ'
-WHATSAPP_CONTACT_CHANNEL_SUFFIX: 'چینل'
+whatsapp.contact.group.suffix: 'گروپ'
+whatsapp.contact.channel.suffix: 'چینل'
+whatsapp.contact.broadcast.suffix: 'براڈکاسٹ فہرست'
 # Aka Stories
-WHATSAPP_CONTACT_STATUS_NAME: 'سٹیٹس'
+whatsapp.contact.status.name: 'سٹیٹس'
 
-APP_CONNECTED_MESSAGE: |
+app.connected.message: |
   🔗 **منسلک: واٹس ایپ سیشن ChatWoot انبکس سے**
 
   ✅ واٹس ایپ سیشن **{{{name}}}** کامیابی سے اس ChatWoot انبکس سے منسلک ہو گیا ہے۔
@@ -82,7 +83,7 @@ APP_CONNECTED_MESSAGE: |
 
   آئیے شروع کریں! 🚀
 
-APP_DISCONNECTED_MESSAGE: |
+app.disconnected.message: |
   🔌 **منقطع: واٹس ایپ سیشن ChatWoot انبکس سے**
 
   ❌ واٹس ایپ سیشن **{{{name}}}** اس ChatWoot انبکس سے منقطع ہو گیا ہے۔
@@ -91,15 +92,15 @@ APP_DISCONNECTED_MESSAGE: |
 
   دوبارہ منسلک ہونے کے لیے، براہ کرم اپنے منتظم سے رابطہ کریں۔
 
-APP_UPDATED_MESSAGE: |
+app.updated.message: |
   🔄 **اپڈیٹ شدہ: واٹس ایپ سیشن کی ترتیبات**
 
   ✅ واٹس ایپ سیشن **{{{name}}}** کی ترتیبات اپڈیٹ کر دی گئی ہیں۔
 
-APP_COMMANDS_LIST: |
+app.commands.list: |
   آپ درج ذیل کمانڈز میں سے ایک بھیج کر **واٹس ایپ انٹیگریشن** کا انتظام کر سکتے ہیں:
 
-  🖥️ سیشنز:
+  🖥️ **سیشن**:
   1. **status** - موجودہ سیشن کی حالت حاصل کریں۔
   2. **restart** - سیشن کو دوبارہ شروع کریں - یہ آپ کے واٹس ایپ اکاؤنٹ کو دوبارہ منسلک کرنے کی کوشش کرے گا۔
   3. **start** - سیشن شروع کریں۔
@@ -109,42 +110,47 @@ APP_COMMANDS_LIST: |
   7. **screenshot** - سیشن کا اسکرین شاٹ حاصل کریں (صرف **WEBJS** انجن میں دستیاب)۔
   8. **help** - دستیاب کمانڈز۔
 
+  {{#commands.server}}
   ⚙️ سرور:
   - **server status** - سرور ورژن اور حالت کی معلومات حاصل کریں۔
   - **server reboot** - سرور کو آرام سے دوبارہ شروع کریں۔
   - **server reboot force** - سرور کو زبردستی دوبارہ شروع کریں۔
+  {{/commands.server}}
 
   اس گفتگو میں **کمانڈ** (کیس سے غیر حساس) یا **کمانڈ نمبر** بھیجیں۔
 
-APP_HELP_REMINDER: |
+app.commands.server.disabled: ⛔ **سرور کمانڈز غیر فعال ہیں**۔
+
+  براہ کرم اپنے منتظم سے رابطہ کریں۔
+
   دستیاب کمانڈز کی فہرست حاصل کرنے کے لیے **help** بھیجیں۔
 
-APP_SESSION_STATUS_CHANGE: |
+app.help.reminder: |
+  دستیاب کمانڈز کی فہرست حاصل کرنے کے لیے **help** بھیجیں۔
+
+app.session.status.change: |
   {{{emoji}}} "{{{session}}}" سیشن {{{status}}} حالت میں تبدیل ہو گیا
 
-APP_SESSION_CURRENT_STATUS: |
+app.session.current.status: |
   {{{emoji}}} **{{{session}}}** سیشن کی حالت **{{{status}}}** میں ہے
   **واٹس ایپ اکاؤنٹ:**
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_DASHBOARD_LINK: |
-  مزید تفصیلات کے لیے [WAHA ڈیش بورڈ]({{{url}}}) ملاحظہ کریں۔
-
-APP_SESSION_STATUS_WORKING: |
+app.session.status.working: |
   ✅ یہ ChatWoot انبکس **واٹس ایپ اکاؤنٹ** سے منسلک ہے اور پیغامات بھیجنے اور موصول کرنے کے لیے تیار ہے!
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_SESSION_STATUS_ERROR: |
+app.session.status.error: |
   ⚠️ **یہ ChatWoot انبکس واٹس ایپ اکاؤنٹ سے منسلک ہے لیکن پیغامات بھیجنے اور موصول کرنے کے لیے تیار نہیں ہے!**
 
   براہ کرم سیشن کی حالت چیک کریں اور اسے دوبارہ شروع کرنے کی کوشش کریں یا لاگ آؤٹ کریں اور QR کوڈ دوبارہ اسکین کریں۔
 
-APP_SESSION_SCAN_QR_CODE: |
+app.session.scan.qr.code: |
   ⚠️ **اس ChatWoot انبکس کے ساتھ واٹس ایپ اکاؤنٹ کو منسلک کرنے کے لیے اپنے فون پر QR کوڈ اسکین کریں!**
 
-APP_SERVER_VERSION_AND_STATUS: |
+app.server.version.and.status: |
   **ورژن:**
   ```
   {{{version}}}
@@ -155,16 +161,16 @@ APP_SERVER_VERSION_AND_STATUS: |
   {{{status}}}
   ```
 
-APP_SERVER_REBOOT: |
+app.server.reboot: |
   سرور آرام سے دوبارہ شروع ہو رہا ہے...
 
-APP_SERVER_REBOOT_FORCE: |
+app.server.reboot.force: |
   سرور زبردستی دوبارہ شروع ہو رہا ہے...
 
-APP_LOGOUT_SUCCESS: |
+app.logout.success: |
   ✅ اکاؤنٹ کامیابی سے غیر مجاز ہو گیا!
 
-APP_NEW_VERSION_AVAILABLE: |
+waha.new.version.available: |
   🔄 **نیا ورژن دستیاب ہے!**
 
   موجودہ ورژن: **{{{currentVersion}}}**
@@ -172,7 +178,7 @@ APP_NEW_VERSION_AVAILABLE: |
 
   👉 [**🆕 تبدیلیوں کی فہرست**]({{{changelogUrl}}}) میں نیا کیا ہے دیکھیں
 
-APP_CORE_VERSION_USED: |
+waha.core.version.used: |
   ❤️ **WAHA کی حمایت کریں!**
 
   آپ مفت **WAHA Core** ورژن استعمال کر رہے ہیں۔ اگر آپ کو یہ پروجیکٹ مفید لگتا ہے، تو براہ کرم اس کی ترقی کی حمایت کرنے پر غور کریں۔
@@ -180,3 +186,51 @@ APP_CORE_VERSION_USED: |
   آپ کی حمایت ہی وہ واحد طریقہ ہے جس سے ہم اپڈیٹس، فکسز، اور نئی خصوصیات پر کام جاری رکھ سکتے ہیں۔
 
   [**🎁 ہماری حمایت کریں**]({{{supportUrl}}})
+
+chatwoot.to.whatsapp.message.text: |
+  {{{ content }}}
+
+chatwoot.to.whatsapp.message.media.caption: |
+  {{#singleAttachment}}
+  {{#content}}
+  {{{ content }}}
+  {{/content}}
+  {{/singleAttachment}}
+
+whatsapp.to.chatwoot.message: |
+  {{{payload.body}}}
+
+whatsapp.to.chatwoot.message.contacts: |
+  👤 **شیئر کیے گئے رابطہ(رابطے)**
+
+  {{#contacts}}
+  🪪 نام: **{{fullName}}**
+  {{#phoneNumbers}}
+  - 📞 فون: **{{.}}**
+  {{/phoneNumbers}}
+
+  {{/contacts}}
+
+whatsapp.to.chatwoot.message.location: |
+  {{#message}}
+  {{#locationMessage}}
+  📍 **شیئر کی گئی لوکیشن**
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/locationMessage}}
+
+  {{#liveLocationMessage}}
+  📍📡 **لائیو لوکیشن شیئر کی جا رہی ہے**
+  حقیقی وقت کی تازہ کاریوں کے لیے **WhatsApp** کھولیں۔
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/liveLocationMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.unsupported: |
+  ⚠️ **ChatWoot میں اس قسم کا پیغام معاونت یافتہ نہیں ہے۔**
+  📱 اسے دیکھنے کے لیے براہ کرم **WhatsApp** کھولیں۔
+
+  تفصیلات: [{{{details.text}}}]({{{details.url}}})

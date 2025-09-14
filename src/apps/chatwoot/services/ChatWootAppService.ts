@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { IAppService } from '@waha/apps/app_sdk/services/IAppService';
 import { CacheForConfig } from '@waha/apps/chatwoot/cache/ConversationCache';
 import { CHATWOOT_CUSTOM_ATTRIBUTES } from '@waha/apps/chatwoot/const';
@@ -10,7 +10,10 @@ import { WhatsappSession } from '@waha/core/abc/session.abc';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 import { DIContainer } from '../di/DIContainer';
-import { TKey } from '../locale';
+
+import { TKey } from '@waha/apps/chatwoot/i18n/templates';
+import { session } from 'passport';
+import { i18n } from '@waha/apps/chatwoot/i18n';
 
 @Injectable()
 export class ChatWootAppService implements IAppService {
@@ -21,9 +24,35 @@ export class ChatWootAppService implements IAppService {
     protected logger: PinoLogger,
   ) {}
 
+  validate(app: App<ChatWootAppConfig>): void {
+    if (!i18n.has(app.config.locale)) {
+      throw new UnprocessableEntityException(
+        `Unknown '${app.config.locale}' locale in 'config.local'`,
+      );
+    }
+  }
+
   async beforeCreated(app: App<ChatWootAppConfig>) {
     await this.setupCustomAttributes(app);
     await this.sendConnectedMessage(app);
+  }
+
+  async beforeEnabled(
+    savedApp: App<ChatWootAppConfig>,
+    newApp: App<ChatWootAppConfig>,
+  ): Promise<void> {
+    // Enabling -> behave like created
+    await this.beforeCreated(newApp);
+    return;
+  }
+
+  async beforeDisabled(
+    savedApp: App<ChatWootAppConfig>,
+    newApp: App<ChatWootAppConfig>,
+  ): Promise<void> {
+    // Disabling -> behave like deleted
+    await this.beforeDeleted(savedApp);
+    return;
   }
 
   async beforeUpdated(

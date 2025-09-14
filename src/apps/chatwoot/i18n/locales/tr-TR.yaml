@@ -1,8 +1,9 @@
 # Turkish translations for ChatWoot integration
-LOCALE_NAME: '🇹🇷 Türkçe (Turkish)'
-APP_INBOX_CONTACT_NAME: 'WhatsApp Entegrasyonu (WAHA)'
+locale.name: '🇹🇷 Türkçe (Turkish)'
+app.inbox.contact.name: 'WhatsApp Entegrasyonu (WAHA)'
+app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
 
-JOB_ERROR_REPORT: |
+job.report.error: |
   ⚠️ **{{{header}}}**
   {{#attempts.nextDelay}}
   🔄 {{attempts.nextDelay}} saniye içinde tekrar deneniyor...
@@ -19,51 +20,52 @@ JOB_ERROR_REPORT: |
   ```
   {{/error}}
 
-JOB_SUCCEEDED_REPORT: |
+job.report.succeeded: |
   ✅ **Başarılı**
   Deneme: {{{attempts.current}}} / {{{attempts.max}}}
   Detaylar: [{{{details.text}}}]({{{details.url}}})
 
-WHATSAPP_ERROR_SENDING_MESSAGE: WhatsApp'ta mesaj gönderilemedi.
-WHATSAPP_ERROR_RECEIVING_MESSAGE: WhatsApp'tan mesaj alınamadı
-WHATSAPP_ERROR_REMOVING_MESSAGE: WhatsApp'tan mesaj kaldırılamadı
-APP_SCHEDULED_JOB_ERROR: Zamanlanmış görev yürütülemedi
+whatsapp.message.sending.error: WhatsApp'ta mesaj gönderilemedi.
+whatsapp.message.receiving.error: WhatsApp'tan mesaj alınamadı
+whatsapp.message.removing.error: WhatsApp'tan mesaj kaldırılamadı
+job.scheduled.error.header: Zamanlanmış görev yürütülemedi
 
-MESSAGE_FROM_WHATSAPP: |
+message.from.whatsapp: |
   {{{text}}}
 
   📱 *WhatsApp'tan gönderildi*
 
-MESSAGE_FROM_API: |
+message.from.api: |
   {{{text}}}
 
   📱 *API aracılığıyla gönderildi*
 
-MESSAGE_REMOVED_IN_WHATSAPP: |
+message.removed.in.whatsapp: |
   ❌ *Bu mesaj WhatsApp'ta silindi*
 
-MESSAGE_EDITED_IN_WHATSAPP: |
+message.edited.in.whatsapp: |
   {{{text}}}
 
   ✏️ *WhatsApp'ta düzenlendi*
 
-WHATSAPP_GROUP_MESSAGE: |
+whatsapp.group.message: |
   {{{text}}}
 
   👥 *{{{participant}}}*
 
-WHATSAPP_REACTION_ADDED: |
+whatsapp.reaction.added: |
   *Tepki verdi* {{{emoji}}}
 
-WHATSAPP_REACTION_REMOVED: |
+whatsapp.reaction.removed: |
   *Tepki kaldırıldı*
 
-WHATSAPP_CONTACT_GROUP_SUFFIX: 'Grup'
-WHATSAPP_CONTACT_CHANNEL_SUFFIX: 'Kanal'
+whatsapp.contact.group.suffix: 'Grup'
+whatsapp.contact.channel.suffix: 'Kanal'
+whatsapp.contact.broadcast.suffix: 'Yayın Listesi'
 # Aka Stories
-WHATSAPP_CONTACT_STATUS_NAME: 'Durum'
+whatsapp.contact.status.name: 'Durum'
 
-APP_CONNECTED_MESSAGE: |
+app.connected.message: |
   🔗 **BAĞLANDI: WhatsApp Oturumu ChatWoot Gelen Kutusuna**
 
   ✅ WhatsApp oturumu **{{{name}}}** bu ChatWoot Gelen Kutusuna başarıyla bağlandı.
@@ -81,7 +83,7 @@ APP_CONNECTED_MESSAGE: |
 
   Hadi başlayalım! 🚀
 
-APP_DISCONNECTED_MESSAGE: |
+app.disconnected.message: |
   🔌 **BAĞLANTI KESİLDİ: WhatsApp Oturumu ChatWoot Gelen Kutusundan**
 
   ❌ WhatsApp oturumu **{{{name}}}** bu ChatWoot Gelen Kutusundan bağlantısı kesildi.
@@ -90,15 +92,15 @@ APP_DISCONNECTED_MESSAGE: |
 
   Yeniden bağlanmak için, lütfen yöneticinizle iletişime geçin.
 
-APP_UPDATED_MESSAGE: |
+app.updated.message: |
   🔄 **GÜNCELLENDİ: WhatsApp Oturum Ayarları**
 
   ✅ WhatsApp oturumu **{{{name}}}** için ayarlar güncellendi.
 
-APP_COMMANDS_LIST: |
+app.commands.list: |
   Aşağıdaki komutlardan birini göndererek **WhatsApp Entegrasyonu**nu yönetebilirsiniz:
 
-  🖥️ Oturumlar:
+  🖥️ **Oturum**:
   1. **status** - mevcut oturum durumunu alın.
   2. **restart** - oturumu yeniden başlatın - bu, WhatsApp hesabınızı yeniden bağlamaya çalışacaktır.
   3. **start** - oturumu başlatın.
@@ -108,42 +110,47 @@ APP_COMMANDS_LIST: |
   7. **screenshot** - oturumun ekran görüntüsünü alın (yalnızca **WEBJS** motorunda kullanılabilir).
   8. **help** - kullanılabilir komutlar.
 
+  {{#commands.server}}
   ⚙️ Sunucu:
   - **server status** - sunucu sürümü ve durum bilgilerini alın.
   - **server reboot** - sunucuyu nazikçe yeniden başlatın.
   - **server reboot force** - sunucuyu zorla yeniden başlatın.
+  {{/commands.server}}
 
   Bu konuşmaya bir **komut** (büyük/küçük harf duyarsız) veya **komut numarası** gönderin.
 
-APP_HELP_REMINDER: |
+app.commands.server.disabled: ⛔ **Sunucu komutları devre dışı**.
+
+  Lütfen yöneticinizle iletişime geçin.
+
   Kullanılabilir komutların listesini almak için **help** gönderin.
 
-APP_SESSION_STATUS_CHANGE: |
+app.help.reminder: |
+  Kullanılabilir komutların listesini almak için **help** gönderin.
+
+app.session.status.change: |
   {{{emoji}}} "{{{session}}}" oturumu {{{status}}} durumuna geçti
 
-APP_SESSION_CURRENT_STATUS: |
+app.session.current.status: |
   {{{emoji}}} **{{{session}}}** oturum durumu **{{{status}}}** içinde
   **WhatsApp Hesabı:**
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_DASHBOARD_LINK: |
-  Daha fazla ayrıntı için [WAHA Kontrol Paneli]({{{url}}}) ziyaret edin.
-
-APP_SESSION_STATUS_WORKING: |
+app.session.status.working: |
   ✅ Bu ChatWoot Gelen Kutusu **WhatsApp Hesabına** bağlı ve mesaj gönderip almaya hazır!
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_SESSION_STATUS_ERROR: |
+app.session.status.error: |
   ⚠️ **Bu ChatWoot Gelen Kutusu WhatsApp Hesabına bağlı ancak mesaj gönderip almaya hazır DEĞİL!**
 
   Lütfen oturum durumunu kontrol edin ve yeniden başlatmayı deneyin veya çıkış yapın ve QR kodu tekrar tarayın.
 
-APP_SESSION_SCAN_QR_CODE: |
+app.session.scan.qr.code: |
   ⚠️ **WhatsApp Hesabını bu ChatWoot Gelen Kutusuna bağlamak için telefonunuzda QR kodu tarayın!**
 
-APP_SERVER_VERSION_AND_STATUS: |
+app.server.version.and.status: |
   **Sürüm:**
   ```
   {{{version}}}
@@ -154,16 +161,16 @@ APP_SERVER_VERSION_AND_STATUS: |
   {{{status}}}
   ```
 
-APP_SERVER_REBOOT: |
+app.server.reboot: |
   Sunucu nazikçe yeniden başlatılıyor...
 
-APP_SERVER_REBOOT_FORCE: |
+app.server.reboot.force: |
   Sunucu zorla yeniden başlatılıyor...
 
-APP_LOGOUT_SUCCESS: |
+app.logout.success: |
   ✅ Hesap başarıyla yetkilendirilmedi!
 
-APP_NEW_VERSION_AVAILABLE: |
+waha.new.version.available: |
   🔄 **Yeni Sürüm Mevcut!**
 
   Mevcut sürüm: **{{{currentVersion}}}**
@@ -171,7 +178,7 @@ APP_NEW_VERSION_AVAILABLE: |
 
   👉 [**🆕 Değişiklik Günlüğü**]({{{changelogUrl}}}) içinde yenilikleri kontrol edin
 
-APP_CORE_VERSION_USED: |
+waha.core.version.used: |
   ❤️ **WAHA'yı Destekleyin!**
 
   Ücretsiz **WAHA Core** sürümünü kullanıyorsunuz. Bu projeyi faydalı buluyorsanız, lütfen geliştirilmesini desteklemeyi düşünün.
@@ -179,3 +186,51 @@ APP_CORE_VERSION_USED: |
   Desteğiniz, güncellemeler, düzeltmeler ve yeni özellikler üzerinde çalışmaya devam edebilmemizin tek yoludur.
 
   [**🎁 Bizi Destekleyin**]({{{supportUrl}}})
+
+chatwoot.to.whatsapp.message.text: |
+  {{{ content }}}
+
+chatwoot.to.whatsapp.message.media.caption: |
+  {{#singleAttachment}}
+  {{#content}}
+  {{{ content }}}
+  {{/content}}
+  {{/singleAttachment}}
+
+whatsapp.to.chatwoot.message: |
+  {{{payload.body}}}
+
+whatsapp.to.chatwoot.message.contacts: |
+  👤 **Paylaşılan Kişi(ler)**
+
+  {{#contacts}}
+  🪪 İsim: **{{fullName}}**
+  {{#phoneNumbers}}
+  - 📞 Telefon: **{{.}}**
+  {{/phoneNumbers}}
+
+  {{/contacts}}
+
+whatsapp.to.chatwoot.message.location: |
+  {{#message}}
+  {{#locationMessage}}
+  📍 **Paylaşılan Konum**
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/locationMessage}}
+
+  {{#liveLocationMessage}}
+  📍📡 **Canlı Konum Paylaşılıyor**
+  Gerçek zamanlı güncellemeleri görmek için **WhatsApp’ı** açın.
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/liveLocationMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.unsupported: |
+  ⚠️ **Bu mesaj türü ChatWoot’ta desteklenmiyor.**
+  📱 Görüntülemek için lütfen **WhatsApp’ı** açın.
+
+  Ayrıntılar: [{{{details.text}}}]({{{details.url}}})

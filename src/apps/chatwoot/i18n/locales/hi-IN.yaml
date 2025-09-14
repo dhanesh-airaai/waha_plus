@@ -1,8 +1,9 @@
 # Hindi translations for ChatWoot integration
-LOCALE_NAME: '🇮🇳 हिंदी (Hindi)'
-APP_INBOX_CONTACT_NAME: 'व्हाट्सएप इंटीग्रेशन (WAHA)'
+locale.name: '🇮🇳 हिंदी (Hindi)'
+app.inbox.contact.name: 'व्हाट्सएप इंटीग्रेशन (WAHA)'
+app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
 
-JOB_ERROR_REPORT: |
+job.report.error: |
   ⚠️ **{{{header}}}**
   {{#attempts.nextDelay}}
   🔄 {{attempts.nextDelay}} सेकंड में पुनः प्रयास कर रहा है...
@@ -19,51 +20,52 @@ JOB_ERROR_REPORT: |
   ```
   {{/error}}
 
-JOB_SUCCEEDED_REPORT: |
+job.report.succeeded: |
   ✅ **सफल**
   प्रयास: {{{attempts.current}}} / {{{attempts.max}}}
   विवरण: [{{{details.text}}}]({{{details.url}}})
 
-WHATSAPP_ERROR_SENDING_MESSAGE: व्हाट्सएप पर संदेश नहीं भेज सका।
-WHATSAPP_ERROR_RECEIVING_MESSAGE: व्हाट्सएप से संदेश प्राप्त नहीं कर सका
-WHATSAPP_ERROR_REMOVING_MESSAGE: व्हाट्सएप से संदेश हटा नहीं सका
-APP_SCHEDULED_JOB_ERROR: निर्धारित कार्य निष्पादित करने में विफल रहा
+whatsapp.message.sending.error: व्हाट्सएप पर संदेश नहीं भेज सका।
+whatsapp.message.receiving.error: व्हाट्सएप से संदेश प्राप्त नहीं कर सका
+whatsapp.message.removing.error: व्हाट्सएप से संदेश हटा नहीं सका
+job.scheduled.error.header: निर्धारित कार्य निष्पादित करने में विफल रहा
 
-MESSAGE_FROM_WHATSAPP: |
+message.from.whatsapp: |
   {{{text}}}
 
   📱 *व्हाट्सएप से भेजा गया*
 
-MESSAGE_FROM_API: |
+message.from.api: |
   {{{text}}}
 
   📱 *API के माध्यम से भेजा गया*
 
-MESSAGE_REMOVED_IN_WHATSAPP: |
+message.removed.in.whatsapp: |
   ❌ *यह संदेश व्हाट्सएप में हटा दिया गया था*
 
-MESSAGE_EDITED_IN_WHATSAPP: |
+message.edited.in.whatsapp: |
   {{{text}}}
 
   ✏️ *व्हाट्सएप में संपादित*
 
-WHATSAPP_GROUP_MESSAGE: |
+whatsapp.group.message: |
   {{{text}}}
 
   👥 *{{{participant}}}*
 
-WHATSAPP_REACTION_ADDED: |
+whatsapp.reaction.added: |
   *प्रतिक्रिया दी* {{{emoji}}}
 
-WHATSAPP_REACTION_REMOVED: |
+whatsapp.reaction.removed: |
   *प्रतिक्रिया हटा दी गई*
 
-WHATSAPP_CONTACT_GROUP_SUFFIX: 'समूह'
-WHATSAPP_CONTACT_CHANNEL_SUFFIX: 'चैनल'
+whatsapp.contact.group.suffix: 'समूह'
+whatsapp.contact.channel.suffix: 'चैनल'
+whatsapp.contact.broadcast.suffix: 'प्रसारण सूची'
 # Aka Stories
-WHATSAPP_CONTACT_STATUS_NAME: 'स्थिति'
+whatsapp.contact.status.name: 'स्थिति'
 
-APP_CONNECTED_MESSAGE: |
+app.connected.message: |
   🔗 **कनेक्टेड: व्हाट्सएप सत्र से ChatWoot इनबॉक्स**
 
   ✅ व्हाट्सएप सत्र **{{{name}}}** सफलतापूर्वक इस ChatWoot इनबॉक्स से जुड़ गया है।
@@ -81,7 +83,7 @@ APP_CONNECTED_MESSAGE: |
 
   चलिए शुरू करते हैं! 🚀
 
-APP_DISCONNECTED_MESSAGE: |
+app.disconnected.message: |
   🔌 **डिस्कनेक्टेड: व्हाट्सएप सत्र से ChatWoot इनबॉक्स**
 
   ❌ व्हाट्सएप सत्र **{{{name}}}** इस ChatWoot इनबॉक्स से डिस्कनेक्ट हो गया है।
@@ -90,15 +92,15 @@ APP_DISCONNECTED_MESSAGE: |
 
   फिर से कनेक्ट करने के लिए, कृपया अपने प्रशासक से संपर्क करें।
 
-APP_UPDATED_MESSAGE: |
+app.updated.message: |
   🔄 **अपडेटेड: व्हाट्सएप सत्र सेटिंग्स**
 
   ✅ व्हाट्सएप सत्र **{{{name}}}** की सेटिंग्स अपडेट की गई हैं।
 
-APP_COMMANDS_LIST: |
+app.commands.list: |
   आप निम्न कमांड में से एक भेजकर **व्हाट्सएप इंटीग्रेशन** का प्रबंधन कर सकते हैं:
 
-  🖥️ सत्र:
+  🖥️ **सेशन**:
   1. **status** - वर्तमान सत्र स्थिति प्राप्त करें।
   2. **restart** - सत्र को पुनरारंभ करें - यह आपके व्हाट्सएप खाते को फिर से कनेक्ट करने का प्रयास करेगा।
   3. **start** - सत्र शुरू करें।
@@ -108,42 +110,47 @@ APP_COMMANDS_LIST: |
   7. **screenshot** - सत्र का स्क्रीनशॉट प्राप्त करें (केवल **WEBJS** इंजन में उपलब्ध)।
   8. **help** - उपलब्ध कमांड।
 
+  {{#commands.server}}
   ⚙️ सर्वर:
   - **server status** - सर्वर संस्करण और स्थिति जानकारी प्राप्त करें।
   - **server reboot** - सर्वर को सुचारू रूप से पुनरारंभ करें।
   - **server reboot force** - सर्वर को जबरदस्ती पुनरारंभ करें।
+  {{/commands.server}}
 
   इस वार्तालाप में **कमांड** (केस इनसेंसिटिव) या **कमांड नंबर** भेजें।
 
-APP_HELP_REMINDER: |
+app.commands.server.disabled: ⛔ **सर्वर कमांड अक्षम हैं**।
+
+  कृपया अपने व्यवस्थापक से संपर्क करें।
+
+  उपलब्ध कमांड की सूची पाने के लिए **help** भेजें।
+
+app.help.reminder: |
   उपलब्ध कमांड की सूची प्राप्त करने के लिए **help** भेजें।
 
-APP_SESSION_STATUS_CHANGE: |
+app.session.status.change: |
   {{{emoji}}} "{{{session}}}" सत्र {{{status}}} स्थिति में बदल गया
 
-APP_SESSION_CURRENT_STATUS: |
+app.session.current.status: |
   {{{emoji}}} **{{{session}}}** सत्र की स्थिति **{{{status}}}** में है
   **व्हाट्सएप खाता:**
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_DASHBOARD_LINK: |
-  अधिक जानकारी के लिए [WAHA डैशबोर्ड]({{{url}}}) पर जाएं।
-
-APP_SESSION_STATUS_WORKING: |
+app.session.status.working: |
   ✅ यह ChatWoot इनबॉक्स **व्हाट्सएप खाते** से जुड़ा हुआ है और संदेश भेजने और प्राप्त करने के लिए तैयार है!
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_SESSION_STATUS_ERROR: |
+app.session.status.error: |
   ⚠️ **यह ChatWoot इनबॉक्स व्हाट्सएप खाते से जुड़ा हुआ है लेकिन संदेश भेजने और प्राप्त करने के लिए तैयार नहीं है!**
 
   कृपया सत्र की स्थिति जांचें और इसे पुनरारंभ करने का प्रयास करें या लॉग आउट करें और QR कोड फिर से स्कैन करें।
 
-APP_SESSION_SCAN_QR_CODE: |
+app.session.scan.qr.code: |
   ⚠️ **इस ChatWoot इनबॉक्स के साथ व्हाट्सएप खाता जोड़ने के लिए अपने फोन पर QR कोड स्कैन करें!**
 
-APP_SERVER_VERSION_AND_STATUS: |
+app.server.version.and.status: |
   **संस्करण:**
   ```
   {{{version}}}
@@ -154,16 +161,16 @@ APP_SERVER_VERSION_AND_STATUS: |
   {{{status}}}
   ```
 
-APP_SERVER_REBOOT: |
+app.server.reboot: |
   सर्वर सुचारू रूप से पुनरारंभ हो रहा है...
 
-APP_SERVER_REBOOT_FORCE: |
+app.server.reboot.force: |
   सर्वर जबरदस्ती पुनरारंभ हो रहा है...
 
-APP_LOGOUT_SUCCESS: |
+app.logout.success: |
   ✅ खाता सफलतापूर्वक अनधिकृत किया गया!
 
-APP_NEW_VERSION_AVAILABLE: |
+waha.new.version.available: |
   🔄 **नया संस्करण उपलब्ध!**
 
   वर्तमान संस्करण: **{{{currentVersion}}}**
@@ -171,7 +178,7 @@ APP_NEW_VERSION_AVAILABLE: |
 
   👉 [**🆕 चेंजलॉग**]({{{changelogUrl}}}) में क्या नया है देखें
 
-APP_CORE_VERSION_USED: |
+waha.core.version.used: |
   ❤️ **WAHA का समर्थन करें!**
 
   आप मुफ्त **WAHA Core** संस्करण का उपयोग कर रहे हैं। यदि आपको यह प्रोजेक्ट उपयोगी लगता है, तो कृपया इसके विकास का समर्थन करने पर विचार करें।
@@ -179,3 +186,51 @@ APP_CORE_VERSION_USED: |
   आपका समर्थन ही एकमात्र तरीका है जिससे हम अपडेट, फिक्स और नई सुविधाओं पर काम करना जारी रख सकते हैं।
 
   [**🎁 हमें समर्थन दें**]({{{supportUrl}}})
+
+chatwoot.to.whatsapp.message.text: |
+  {{{ content }}}
+
+chatwoot.to.whatsapp.message.media.caption: |
+  {{#singleAttachment}}
+  {{#content}}
+  {{{ content }}}
+  {{/content}}
+  {{/singleAttachment}}
+
+whatsapp.to.chatwoot.message: |
+  {{{payload.body}}}
+
+whatsapp.to.chatwoot.message.contacts: |
+  👤 **साझा संपर्क**
+
+  {{#contacts}}
+  🪪 नाम: **{{fullName}}**
+  {{#phoneNumbers}}
+  - 📞 फ़ोन: **{{.}}**
+  {{/phoneNumbers}}
+
+  {{/contacts}}
+
+whatsapp.to.chatwoot.message.location: |
+  {{#message}}
+  {{#locationMessage}}
+  📍 **साझा स्थान**
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/locationMessage}}
+
+  {{#liveLocationMessage}}
+  📍📡 **लाइव लोकेशन साझा की जा रही है**
+  रीयल-टाइम अपडेट देखने के लिए **WhatsApp** खोलें।
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/liveLocationMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.unsupported: |
+  ⚠️ **इस प्रकार का संदेश ChatWoot में समर्थित नहीं है।**
+  📱 इसे देखने के लिए कृपया **WhatsApp** खोलें।
+
+  विवरण: [{{{details.text}}}]({{{details.url}}})

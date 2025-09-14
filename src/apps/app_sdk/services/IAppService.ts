@@ -5,7 +5,19 @@ import { WhatsappSession } from '@waha/core/abc/session.abc';
  * Exact App service
  */
 export interface IAppService {
+  validate(app: App): void;
+
   beforeCreated(app: App): Promise<void>;
+
+  /**
+   * Called only when the app transitions from disabled -> enabled.
+   */
+  beforeEnabled(savedApp: App, newApp: App): Promise<void>;
+
+  /**
+   * Called only when the app transitions from enabled -> disabled.
+   */
+  beforeDisabled(savedApp: App, newApp: App): Promise<void>;
 
   beforeUpdated(savedApp: App, newApp: App): Promise<void>;
 

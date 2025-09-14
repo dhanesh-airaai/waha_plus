@@ -1,11 +1,15 @@
 import type { conversation_message_create } from '@figuro/chatwoot-sdk/dist/models/conversation_message_create';
 import { ILogger } from '@waha/apps/app_sdk/ILogger';
-import { NextAttemptDelayInWholeSeconds } from '@waha/apps/app_sdk/JobUtils';
+import {
+  JobLink,
+  NextAttemptDelayInWholeSeconds,
+} from '@waha/apps/app_sdk/JobUtils';
 import { Conversation } from '@waha/apps/chatwoot/client/Conversation';
 import { MessageType } from '@waha/apps/chatwoot/client/types';
 import { ErrorRenderer } from '@waha/apps/chatwoot/error/ErrorRenderer';
-import { Locale, TKey } from '@waha/apps/chatwoot/locale';
+import { Locale } from '@waha/apps/chatwoot/i18n/locale';
 import { Job } from 'bullmq';
+import { TKey } from '@waha/apps/chatwoot/i18n/templates';
 
 export class ChatWootErrorReporter {
   private errorRenderer: ErrorRenderer = new ErrorRenderer();
@@ -25,10 +29,7 @@ export class ChatWootErrorReporter {
   ) {
     const errorText = this.errorRenderer.renderError(error);
     this.logger.error(errorText);
-    const errorUrl = `http://localhost:3000/jobs/queue/${encodeURIComponent(
-      this.job.queueName,
-    )}/${this.job.id}`;
-    const template = this.l.key(TKey.JOB_ERROR_REPORT);
+    const template = this.l.key(TKey.JOB_REPORT_ERROR);
     const nextDelay = NextAttemptDelayInWholeSeconds(this.job);
     const attempts = {
       current: this.job.attemptsMade + 1,
@@ -38,10 +39,7 @@ export class ChatWootErrorReporter {
     const content = template.render({
       header: header,
       error: nextDelay != null ? null : errorText,
-      details: {
-        text: `${this.job.queueName} => ${this.job.id}`,
-        url: errorUrl,
-      },
+      details: JobLink(this.job),
       attempts: attempts,
     });
     const request: conversation_message_create = {
@@ -74,7 +72,7 @@ export class ChatWootErrorReporter {
     const jobUrl = `http://localhost:3000/jobs/queue/${encodeURIComponent(
       this.job.queueName,
     )}/${this.job.id}`;
-    const template = this.l.key(TKey.JOB_SUCCEEDED_REPORT);
+    const template = this.l.key(TKey.JOB_REPORT_SUCCEEDED);
     const attempts = {
       current: this.job.attemptsMade + 1,
       max: this.job.opts?.attempts || 1,

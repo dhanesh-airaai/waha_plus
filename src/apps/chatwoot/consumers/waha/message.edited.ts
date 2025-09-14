@@ -3,11 +3,11 @@ import { JOB_CONCURRENCY } from '@waha/apps/app_sdk/constants';
 import { QueueName } from '@waha/apps/chatwoot/consumers/QueueName';
 import { EventData } from '@waha/apps/chatwoot/consumers/types';
 import {
+  ChatWootMessagePartial,
   ChatWootWAHABaseConsumer,
   IMessageInfo,
 } from '@waha/apps/chatwoot/consumers/waha/base';
 import { MessageBaseHandler } from '@waha/apps/chatwoot/consumers/waha/base';
-import { TKey } from '@waha/apps/chatwoot/locale';
 import { WhatsappToMarkdown } from '@waha/apps/chatwoot/text';
 import { SessionManager } from '@waha/core/abc/manager.abc';
 import { RMutexService } from '@waha/modules/rmutex/rmutex.service';
@@ -21,6 +21,8 @@ import { PinoLogger } from 'nestjs-pino';
 
 import { SendAttachment } from '../../client/types';
 import { WAHASessionAPI } from '../../session/WAHASelf';
+import { TKey } from '@waha/apps/chatwoot/i18n/templates';
+import { WAMessage } from '@waha/structures/responses.dto';
 
 @Processor(QueueName.WAHA_MESSAGE_EDITED, { concurrency: JOB_CONCURRENCY })
 export class WAHAMessageEditedConsumer extends ChatWootWAHABaseConsumer {
@@ -44,6 +46,7 @@ export class WAHAMessageEditedConsumer extends ChatWootWAHABaseConsumer {
     const event: WAHAWebhookMessageEdited = job.data.event as any;
     const session = new WAHASessionAPI(event.session, container.WAHASelf());
     const handler = new MessageEditedHandler(
+      job,
       container.MessageMappingService(),
       container.ContactConversationService(),
       container.Logger(),
@@ -57,12 +60,19 @@ export class WAHAMessageEditedConsumer extends ChatWootWAHABaseConsumer {
 }
 
 class MessageEditedHandler extends MessageBaseHandler<WAMessageEditedBody> {
-  getContent(payload: WAMessageEditedBody): string {
+  protected async getMessage(
+    payload: WAMessageEditedBody,
+  ): Promise<ChatWootMessagePartial> {
     const body = payload.body;
     const formatted = WhatsappToMarkdown(body);
-    return this.l
+    const content = this.l
       .key(TKey.MESSAGE_EDITED_IN_WHATSAPP)
       .render({ text: formatted });
+    return {
+      content: content,
+      attachments: [],
+      private: undefined,
+    };
   }
 
   getReplyToWhatsAppID(payload: WAMessageEditedBody): string {

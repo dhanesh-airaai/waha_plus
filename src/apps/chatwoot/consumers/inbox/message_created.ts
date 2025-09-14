@@ -8,7 +8,6 @@ import {
 } from '@waha/apps/chatwoot/consumers/inbox/base';
 import { QueueName } from '@waha/apps/chatwoot/consumers/QueueName';
 import { DIContainer } from '@waha/apps/chatwoot/di/DIContainer';
-import { TKey } from '@waha/apps/chatwoot/locale';
 import { EngineHelper } from '@waha/apps/chatwoot/session';
 import { WAHASessionAPI } from '@waha/apps/chatwoot/session/WAHASelf';
 import {
@@ -30,6 +29,12 @@ import { Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
 
 import { SerializeWhatsAppKey } from '../../client/ids';
+import { TKey } from '@waha/apps/chatwoot/i18n/templates';
+import {
+  ChatWootConfig,
+  LinkPreview,
+} from '@waha/apps/chatwoot/dto/config.dto';
+import { Locale } from '@waha/apps/chatwoot/i18n/locale';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mime = require('mime-types');
@@ -45,7 +50,7 @@ export class ChatWootInboxMessageCreatedConsumer extends ChatWootInboxMessageCon
   }
 
   ErrorHeaderKey(): TKey | null {
-    return TKey.WHATSAPP_ERROR_SENDING_MESSAGE;
+    return TKey.WHATSAPP_MESSAGE_SENDING_ERROR;
   }
 
   protected async Process(container: DIContainer, body, job: Job) {
@@ -55,6 +60,8 @@ export class ChatWootInboxMessageCreatedConsumer extends ChatWootInboxMessageCon
       container.MessageMappingService(),
       container.Logger(),
       session,
+      container.ChatWootConfig(),
+      container.Locale(),
     );
     return await handler.handle(body);
   }
@@ -65,6 +72,8 @@ export class MessageHandler {
     private mappingService: MessageMappingService,
     private logger: ILogger,
     private session: WAHASessionAPI,
+    private config: ChatWootConfig,
+    private l: Locale,
   ) {}
 
   async handle(body: any) {
@@ -78,9 +87,7 @@ export class MessageHandler {
     }
 
     const content = MarkdownToWhatsApp(message.content);
-    const attachments = message.attachments || [];
     const results = [];
-    const multipleAttachments = attachments.length > 1;
     let part = 1;
     const replyTo = await this.getReplyTo(message).catch((err) => {
       this.logger.error(`Error getting reply to message ID: ${err}`);
@@ -88,22 +95,28 @@ export class MessageHandler {
     });
 
     // Send text
-    if (attachments.length == 0 || multipleAttachments) {
-      const msg = await this.sendTextMessage(chatId, content, replyTo);
+    const attachments = message.attachments || [];
+    if (content && attachments.length !== 1) {
+      const textTemplate = this.l.key(TKey.CW_TO_WA_MESSAGE_TEXT);
+      const text = textTemplate.render({
+        content: content,
+        chatwoot: body,
+      });
+      const msg = await this.sendTextMessage(chatId, text, replyTo);
       results.push(msg);
       part = await this.saveMapping(message, msg, part);
       this.logger.info(`Text message sent: ${msg.id}`);
     }
 
     // Send files
-    const fileMessageContent = multipleAttachments ? '' : content;
+    const captionTemplate = this.l.key(TKey.CW_TO_WA_MESSAGE_MEDIA_CAPTION);
     for (const file of attachments) {
-      const msg = await this.sendFile(
-        chatId,
-        fileMessageContent,
-        file,
-        replyTo,
-      );
+      const caption = captionTemplate.render({
+        content: content,
+        chatwoot: body,
+        singleAttachment: attachments.length == 1,
+      });
+      const msg = await this.sendFile(chatId, caption, file, replyTo);
       this.logger.info(
         `File message sent: ${msg.id} - ${file.data_url} - ${file.file_type}`,
       );
@@ -154,8 +167,10 @@ export class MessageHandler {
       chatId: chatId,
       text: content,
       reply_to: replyTo,
-      linkPreview: false,
-      linkPreviewHighQuality: false,
+      linkPreview: [LinkPreview.LQ, LinkPreview.HQ].includes(
+        this.config.linkPreview,
+      ),
+      linkPreviewHighQuality: this.config.linkPreview == LinkPreview.HQ,
     };
     const session = this.session;
     await session.readMessages(chatId);

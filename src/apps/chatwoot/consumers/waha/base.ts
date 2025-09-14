@@ -13,7 +13,7 @@ import { WhatsAppChatIdKey } from '@waha/apps/chatwoot/consumers/mutex';
 import { EventData } from '@waha/apps/chatwoot/consumers/types';
 import { WhatsAppContactInfo } from '@waha/apps/chatwoot/contacts/WhatsAppContactInfo';
 import { DIContainer } from '@waha/apps/chatwoot/di/DIContainer';
-import { Locale, TKey } from '@waha/apps/chatwoot/locale';
+import { Locale } from '@waha/apps/chatwoot/i18n/locale';
 import { WAHASelf, WAHASessionAPI } from '@waha/apps/chatwoot/session/WAHASelf';
 import {
   AppRepository,
@@ -35,7 +35,8 @@ import { sleep } from '@waha/utils/promiseTimeout';
 import { Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
 
-import { ChatWootAppConfig } from '../../dto/config.dto';
+import { TKey } from '@waha/apps/chatwoot/i18n/templates';
+import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 
 export function ListenEventsForChatWoot() {
   return [
@@ -64,7 +65,7 @@ export abstract class ChatWootWAHABaseConsumer extends AppConsumer {
   }
 
   protected ErrorHeaderKey(): TKey | null {
-    return TKey.WHATSAPP_ERROR_RECEIVING_MESSAGE;
+    return TKey.WHATSAPP_MESSAGE_RECEIVING_ERROR;
   }
 
   private async ProcessAndReportErrors(job) {
@@ -183,8 +184,15 @@ class MessageReportInfo implements IMessageInfo {
   }
 }
 
+export interface ChatWootMessagePartial {
+  content: string;
+  attachments: SendAttachment[];
+  private?: boolean;
+}
+
 export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
   constructor(
+    protected job: Job,
     protected mappingService: MessageMappingService,
     protected repo: ContactConversationService,
     protected logger: ILogger,
@@ -194,11 +202,11 @@ export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
     protected waha: WAHASelf,
   ) {}
 
-  abstract getContent(payload: Payload): string;
+  protected abstract getMessage(
+    payload: Payload,
+  ): Promise<ChatWootMessagePartial>;
 
   abstract getReplyToWhatsAppID(payload: Payload): string | undefined;
-
-  abstract getAttachments(payload: Payload): Promise<SendAttachment[]>;
 
   async handle(data: WAHAWebhook<Payload>) {
     const payload = data.payload;
@@ -262,7 +270,8 @@ export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
   private async buildChatWootMessage(
     payload: Payload,
   ): Promise<conversation_message_create> {
-    let content: string = this.getContent(payload);
+    const message = await this.getMessage(payload);
+    let content = message.content;
 
     // Format the content if the message from me
     if (payload.fromMe && payload.source === MessageSource.APP) {
@@ -276,7 +285,7 @@ export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
     const chatId = payload.from;
 
     // Add participant name to group messages
-    const manyParticipants = isJidGroup(chatId) || isJidStatusBroadcast(chatId);
+    const manyParticipants = isJidGroup(chatId) || isJidBroadcast(chatId);
     if (!payload.fromMe && manyParticipants) {
       const key = parseMessageIdSerialized(payload.id, true);
       let participant = toCusFormat(key.participant);
@@ -290,11 +299,6 @@ export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
         participant: participant,
       });
     }
-    const attachments: SendAttachment[] = await this.getAttachments(payload);
-    if (!content && attachments.length > 0) {
-      // With no content ChatWoot render the message as an ugly big attachment
-      content = ' ';
-    }
     const replyTo = await this.getReplyToChatWootMessageID(payload).catch(
       (err) => {
         this.logger.error(`Error getting reply to message ID: ${err}`);
@@ -306,8 +310,8 @@ export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
     return {
       content: content,
       message_type: type,
-      private: payload.fromMe,
-      attachments: attachments as any,
+      private: message.private ?? payload.fromMe,
+      attachments: message.attachments as any,
       content_attributes: {
         in_reply_to: replyTo,
       },

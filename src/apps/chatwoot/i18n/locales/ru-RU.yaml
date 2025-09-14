@@ -1,8 +1,9 @@
 # Russian translations for ChatWoot integration
-LOCALE_NAME: '🇷🇺 Русский (Russian)'
-APP_INBOX_CONTACT_NAME: 'WhatsApp Интеграция (WAHA)'
+locale.name: '🇷🇺 Русский (Russian)'
+app.inbox.contact.name: 'WhatsApp Интеграция (WAHA)'
+app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
 
-JOB_ERROR_REPORT: |
+job.report.error: |
   ⚠️ **{{{header}}}**
   {{#attempts.nextDelay}}
   🔄 Повторная попытка через {{attempts.nextDelay}} секунд...
@@ -19,51 +20,52 @@ JOB_ERROR_REPORT: |
   ```
   {{/error}}
 
-JOB_SUCCEEDED_REPORT: |
+job.report.succeeded: |
   ✅ **Успешно**
   Попытка: {{{attempts.current}}} / {{{attempts.max}}}
   Подробности: [{{{details.text}}}]({{{details.url}}})
 
-WHATSAPP_ERROR_SENDING_MESSAGE: Не удалось отправить сообщение в WhatsApp.
-WHATSAPP_ERROR_RECEIVING_MESSAGE: Не удалось получить сообщение из WhatsApp
-WHATSAPP_ERROR_REMOVING_MESSAGE: Не удалось удалить сообщение из WhatsApp
-APP_SCHEDULED_JOB_ERROR: Запланированная задача не выполнена
+whatsapp.message.sending.error: Не удалось отправить сообщение в WhatsApp.
+whatsapp.message.receiving.error: Не удалось получить сообщение из WhatsApp
+whatsapp.message.removing.error: Не удалось удалить сообщение из WhatsApp
+job.scheduled.error.header: Запланированная задача не выполнена
 
-MESSAGE_FROM_WHATSAPP: |
+message.from.whatsapp: |
   {{{text}}}
 
   📱 *Отправлено из WhatsApp*
 
-MESSAGE_FROM_API: |
+message.from.api: |
   {{{text}}}
 
   📱 *Отправлено через API*
 
-MESSAGE_REMOVED_IN_WHATSAPP: |
+message.removed.in.whatsapp: |
   ❌ *Это сообщение было удалено в WhatsApp*
 
-MESSAGE_EDITED_IN_WHATSAPP: |
+message.edited.in.whatsapp: |
   {{{text}}}
 
   ✏️ *Отредактировано в WhatsApp*
 
-WHATSAPP_GROUP_MESSAGE: |
+whatsapp.group.message: |
   {{{text}}}
 
   👥 *{{{participant}}}*
 
-WHATSAPP_REACTION_ADDED: |
+whatsapp.reaction.added: |
   *Реакция* {{{emoji}}}
 
-WHATSAPP_REACTION_REMOVED: |
+whatsapp.reaction.removed: |
   *Реакция удалена*
 
-WHATSAPP_CONTACT_GROUP_SUFFIX: 'Группа'
-WHATSAPP_CONTACT_CHANNEL_SUFFIX: 'Канал'
+whatsapp.contact.group.suffix: 'Группа'
+whatsapp.contact.channel.suffix: 'Канал'
+whatsapp.contact.broadcast.suffix: 'Список рассылки'
 # Aka Stories
-WHATSAPP_CONTACT_STATUS_NAME: 'Статус'
+whatsapp.contact.status.name: 'Статус'
 
-APP_CONNECTED_MESSAGE: |
+app.connected.message: |
   🔗 **ПОДКЛЮЧЕНО: Сессия WhatsApp к ChatWoot Inbox**
 
   ✅ Сессия WhatsApp **{{{name}}}** была успешно подключена к этому ChatWoot Inbox.
@@ -81,7 +83,7 @@ APP_CONNECTED_MESSAGE: |
 
   Давайте начнем! 🚀
 
-APP_DISCONNECTED_MESSAGE: |
+app.disconnected.message: |
   🔌 **ОТКЛЮЧЕНО: Сессия WhatsApp от ChatWoot Inbox**
 
   ❌ Сессия WhatsApp **{{{name}}}** была отключена от этого ChatWoot Inbox.
@@ -90,15 +92,15 @@ APP_DISCONNECTED_MESSAGE: |
 
   Для переподключения, пожалуйста, обратитесь к вашему администратору.
 
-APP_UPDATED_MESSAGE: |
+app.updated.message: |
   🔄 **ОБНОВЛЕНО: Настройки сессии WhatsApp**
 
   ✅ Настройки для сессии WhatsApp **{{{name}}}** были обновлены.
 
-APP_COMMANDS_LIST: |
+app.commands.list: |
   Вы можете управлять **WhatsApp Интеграцией**, отправив одну из следующих команд:
 
-  🖥️ Сессии:
+  🖥️ **Сессия**:
   1. **status** - получить текущий статус сессии.
   2. **restart** - перезапустить сессию - это попытается переподключить ваш аккаунт WhatsApp.
   3. **start** - запустить сессию.
@@ -108,42 +110,47 @@ APP_COMMANDS_LIST: |
   7. **screenshot** - получить скриншот сессии (доступно только в движке **WEBJS**).
   8. **help** - доступные команды.
 
+  {{#commands.server}}
   ⚙️ Сервер:
   - **server status** - получить информацию о версии и статусе сервера.
   - **server reboot** - корректно перезагрузить сервер.
   - **server reboot force** - принудительно перезагрузить сервер.
+  {{/commands.server}}
 
   Отправьте **команду** (без учета регистра) или **номер команды** в этот разговор.
 
-APP_HELP_REMINDER: |
+app.commands.server.disabled: ⛔ **Команды сервера отключены**.
+
+  Пожалуйста, свяжитесь с вашим администратором.
+
   Отправьте **help**, чтобы получить список доступных команд.
 
-APP_SESSION_STATUS_CHANGE: |
+app.help.reminder: |
+  Отправьте **help**, чтобы получить список доступных команд.
+
+app.session.status.change: |
   {{{emoji}}} Сессия "{{{session}}}" переключилась в статус {{{status}}}
 
-APP_SESSION_CURRENT_STATUS: |
+app.session.current.status: |
   {{{emoji}}} Статус сессии **{{{session}}}** - **{{{status}}}**
   **Аккаунт WhatsApp:**
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_DASHBOARD_LINK: |
-  Посетите [WAHA Dashboard]({{{url}}}) для получения дополнительной информации.
-
-APP_SESSION_STATUS_WORKING: |
+app.session.status.working: |
   ✅ Этот ChatWoot Inbox связан с **аккаунтом WhatsApp** и готов отправлять и получать сообщения!
 
   📱 **{{{name}}} ({{{id}}})**
 
-APP_SESSION_STATUS_ERROR: |
+app.session.status.error: |
   ⚠️ **Этот ChatWoot Inbox связан с аккаунтом WhatsApp, но НЕ готов отправлять и получать сообщения!**
 
   Пожалуйста, проверьте статус сессии и попробуйте перезапустить её или выйдите и отсканируйте QR-код снова.
 
-APP_SESSION_SCAN_QR_CODE: |
+app.session.scan.qr.code: |
   ⚠️ **Отсканируйте QR-код на вашем телефоне, чтобы связать аккаунт WhatsApp с этим ChatWoot Inbox!**
 
-APP_SERVER_VERSION_AND_STATUS: |
+app.server.version.and.status: |
   **Версия:**
   ```
   {{{version}}}
@@ -154,16 +161,16 @@ APP_SERVER_VERSION_AND_STATUS: |
   {{{status}}}
   ```
 
-APP_SERVER_REBOOT: |
+app.server.reboot: |
   Сервер корректно перезагружается...
 
-APP_SERVER_REBOOT_FORCE: |
+app.server.reboot.force: |
   Сервер принудительно перезагружается...
 
-APP_LOGOUT_SUCCESS: |
+app.logout.success: |
   ✅ Аккаунт успешно деавторизован!
 
-APP_NEW_VERSION_AVAILABLE: |
+waha.new.version.available: |
   🔄 **Доступна новая версия!**
 
   Текущая версия: **{{{currentVersion}}}**
@@ -171,7 +178,7 @@ APP_NEW_VERSION_AVAILABLE: |
 
   👉 Узнайте, что нового в [**🆕 Списке изменений**]({{{changelogUrl}}})
 
-APP_CORE_VERSION_USED: |
+waha.core.version.used: |
   ❤️ **Поддержите WAHA!**
 
   Вы используете бесплатную версию **WAHA Core**. Если вы находите этот проект полезным, пожалуйста, рассмотрите возможность поддержать его разработку.
@@ -179,3 +186,51 @@ APP_CORE_VERSION_USED: |
   Ваша поддержка - единственный способ, которым мы можем продолжать работать над обновлениями, исправлениями и новыми функциями.
 
   [**🎁 Поддержать нас**]({{{supportUrl}}})
+
+chatwoot.to.whatsapp.message.text: |
+  {{{ content }}}
+
+chatwoot.to.whatsapp.message.media.caption: |
+  {{#singleAttachment}}
+  {{#content}}
+  {{{ content }}}
+  {{/content}}
+  {{/singleAttachment}}
+
+whatsapp.to.chatwoot.message: |
+  {{{payload.body}}}
+
+whatsapp.to.chatwoot.message.contacts: |
+  👤 **Переданные контакты**
+
+  {{#contacts}}
+  🪪 Имя: **{{fullName}}**
+  {{#phoneNumbers}}
+  - 📞 Телефон: **{{.}}**
+  {{/phoneNumbers}}
+
+  {{/contacts}}
+
+whatsapp.to.chatwoot.message.location: |
+  {{#message}}
+  {{#locationMessage}}
+  📍 **Переданное местоположение**
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/locationMessage}}
+
+  {{#liveLocationMessage}}
+  📍📡 **Делится геопозицией в реальном времени**
+  Откройте **WhatsApp**, чтобы увидеть обновления в реальном времени.
+
+  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#caption}}{{caption}}{{/caption}}
+  {{/liveLocationMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.unsupported: |
+  ⚠️ **Этот тип сообщения не поддерживается в ChatWoot.**
+  📱 Пожалуйста, откройте **WhatsApp**, чтобы просмотреть.
+
+  Подробности: [{{{details.text}}}]({{{details.url}}})
