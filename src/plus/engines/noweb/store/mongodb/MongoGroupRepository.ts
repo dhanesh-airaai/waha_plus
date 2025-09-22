@@ -1,4 +1,4 @@
-import { GroupMetadata } from '@adiwajshing/baileys/lib/Types/GroupMetadata';
+import type { GroupMetadata } from '@adiwajshing/baileys/lib/Types/GroupMetadata';
 import { IGroupRepository } from '@waha/core/engines/noweb/store/IGroupRepository';
 
 import { MongoRepository } from './MongoRepository';

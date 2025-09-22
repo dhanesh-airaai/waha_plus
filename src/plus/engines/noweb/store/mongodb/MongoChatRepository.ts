@@ -1,4 +1,4 @@
-import { Chat } from '@adiwajshing/baileys';
+import type { Chat } from '@adiwajshing/baileys';
 import { IChatRepository } from '@waha/core/engines/noweb/store/IChatRepository';
 import { OverviewFilter } from '@waha/structures/chats.dto';
 import { PaginationParams } from '@waha/structures/pagination.dto';

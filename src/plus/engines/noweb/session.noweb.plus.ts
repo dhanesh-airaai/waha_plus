@@ -1,18 +1,11 @@
-import {
-  extractImageThumb,
-  getStream,
-  isJidUser,
-  prepareWAMessageMedia,
-} from '@adiwajshing/baileys';
-import {
+import type {
   MediaGenerationOptions,
   NewsletterFetchedUpdate,
 } from '@adiwajshing/baileys/lib/Types';
-import { isLidUser } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { WhatsappSessionNoWebCore } from '@waha/core/engines/noweb/session.noweb.core';
 import { WAMimeType } from '@waha/core/media/WAMimeType';
-import { toJID } from '@waha/core/utils/jids';
+import { isLidUser, isPnUser, toJID } from '@waha/core/utils/jids';
 import { parseBool, sortObjectByValues } from '@waha/helpers';
 import { NowebStorageFactoryPlus } from '@waha/plus/engines/noweb/store/NowebStorageFactoryPlus';
 import { Ffmpeg } from '@waha/plus/utils/ffmpeg';
@@ -44,6 +37,7 @@ import axiosRetry from 'axios-retry';
 
 import { NowebClient } from './NowebClient';
 import { NowebAuthFactoryPlus } from './store/NowebAuthFactoryPlus';
+import esm from '@waha/vendor/esm';
 
 axiosRetry(axios, { retries: 3 });
 
@@ -71,7 +65,10 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       logger: this.engineLogger,
       upload: this.sock.waUploadToServer,
     };
-    const { imageMessage } = await prepareWAMessageMedia(message, options);
+    const { imageMessage } = await esm.b.prepareWAMessageMedia(
+      message,
+      options,
+    );
     return imageMessage;
   }
 
@@ -123,7 +120,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
    */
   async sendList(request: SendListRequest): Promise<any> {
     const jid = toJID(this.ensureSuffix(request.chatId));
-    if (!isLidUser(jid) && !isJidUser(jid)) {
+    if (!isLidUser(jid) && !isPnUser(jid)) {
       throw new UnprocessableEntityException(
         `List message can only be sent to a direct message chat.`,
       );
@@ -246,11 +243,11 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       const content: Buffer = await this.fileToBuffer(request.preview.image);
       if (!request.linkPreviewHighQuality) {
         // generate built-in thumbnail
-        const thumbnail = await extractImageThumb(content, 192);
+        const thumbnail = await esm.b.extractImageThumb(content, 192);
         urlInfo.jpegThumbnail = thumbnail.buffer;
       } else {
         // upload HQ thumbnail
-        const { imageMessage } = await prepareWAMessageMedia(
+        const { imageMessage } = await esm.b.prepareWAMessageMedia(
           { image: content },
           {
             upload: this.sock.waUploadToServer,
@@ -429,7 +426,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       // @ts-ignore
       if (file.url) {
         file = file as RemoteFile;
-        picture = await getStream({ url: file.url });
+        picture = await esm.b.getStream({ url: file.url });
         // @ts-ignore
       } else if (file.data) {
         file = file as BinaryFile;

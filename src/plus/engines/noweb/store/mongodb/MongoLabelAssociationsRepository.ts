@@ -1,9 +1,7 @@
-import {
-  LabelAssociation,
-  LabelAssociationType,
-} from '@adiwajshing/baileys/lib/Types/LabelAssociation';
+import type { LabelAssociation } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { MongoRepository } from '@waha/plus/engines/noweb/store/mongodb/MongoRepository';
+import { LabelAssociationType } from '@waha/core/engines/noweb/labels/LabelAssociationType';
 
 export class MongoLabelAssociationsRepository
   extends MongoRepository<LabelAssociation>

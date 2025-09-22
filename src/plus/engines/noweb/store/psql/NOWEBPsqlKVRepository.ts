@@ -1,9 +1,9 @@
-import { BufferJSON } from '@adiwajshing/baileys/lib/Utils';
 import {
   convertProtobufToPlainObject,
   replaceLongsWithNumber,
 } from '@waha/core/engines/noweb/utils';
 import { PsqlKVRepository } from '@waha/plus/storage/psql/PsqlKVRepository';
+import esm from '@waha/vendor/esm';
 
 // PostgreSQL TEXT or JSONB columns do not allow null bytes (c-style strings)
 // oxlint-disable-next-line no-control-regex
@@ -19,13 +19,13 @@ export function sanitizeJsonUnicode(str: string): string {
  */
 export class NOWEBPsqlKVRepository<Entity> extends PsqlKVRepository<Entity> {
   protected stringify(data: any): string {
-    let value = JSON.stringify(data, BufferJSON.replacer);
+    let value = JSON.stringify(data, esm.b.BufferJSON.replacer);
     value = sanitizeJsonUnicode(value);
     return value;
   }
 
   protected parse(row: any): any {
-    return JSON.parse(row.data, BufferJSON.reviver);
+    return JSON.parse(row.data, esm.b.BufferJSON.reviver);
   }
 
   protected dump(entity: Entity) {

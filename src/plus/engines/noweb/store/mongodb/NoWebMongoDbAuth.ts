@@ -1,5 +1,4 @@
-import { jidDecode, WAProto } from '@adiwajshing/baileys';
-import { BufferJSON, initAuthCreds } from '@adiwajshing/baileys/lib/Utils';
+import esm from '@waha/vendor/esm';
 import { Collection, Db, Document } from 'mongodb';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -61,7 +60,7 @@ export class NoWebMongoDbAuth {
       { _id: this.session },
       {
         $set: {
-          [key]: JSON.parse(JSON.stringify(data, BufferJSON.replacer)),
+          [key]: JSON.parse(JSON.stringify(data, esm.b.BufferJSON.replacer)),
         },
       },
       { returnDocument: 'after' },
@@ -75,7 +74,7 @@ export class NoWebMongoDbAuth {
       if (data === 'null' || data === 'undefined') return null;
       if (!data) return null;
 
-      return JSON.parse(data, BufferJSON.reviver);
+      return JSON.parse(data, esm.b.BufferJSON.reviver);
     } catch (error) {
       console.error(error);
       return null;
@@ -102,14 +101,14 @@ export class NoWebMongoDbAuth {
 
   isMyMainSession(id: string) {
     // Decode the jid
-    const { user: meId } = jidDecode(this.creds?.me?.id);
+    const { user: meId } = esm.b.jidDecode(this.creds?.me?.id);
     return id == `${meId}.0`;
   }
 
   methods() {
     const creds = this.readData('creds');
     // @ts-ignore:next-line
-    this.creds = creds || (0, initAuthCreds)();
+    this.creds = creds || (0, esm.b.initAuthCreds)();
     return {
       state: {
         creds: this.creds,
@@ -124,7 +123,8 @@ export class NoWebMongoDbAuth {
                 }
                 let value = await this.readData(`${type}-${id}`);
                 if (type === 'app-state-sync-key' && value) {
-                  value = WAProto.Message.AppStateSyncKeyData.fromObject(value);
+                  value =
+                    esm.b.WAProto.Message.AppStateSyncKeyData.create(value);
                 }
                 data[id] = value;
               }),

@@ -1,9 +1,9 @@
-import { BufferJSON } from '@adiwajshing/baileys/lib/Utils';
 import {
   SqlAuthMigrations,
   SqlAuthSchema,
 } from '@waha/plus/engines/noweb/store/psql/schemas';
 import { PsqlKVRepository } from '@waha/plus/storage/psql/PsqlKVRepository';
+import esm from '@waha/vendor/esm';
 import Knex from 'knex';
 
 class AuthData {
@@ -51,10 +51,10 @@ export class PsqlNowebAuthRepository extends PsqlKVRepository<AuthData> {
    * JSON helpers
    */
   protected stringify(data: any): string {
-    return JSON.stringify(data, BufferJSON.replacer);
+    return JSON.stringify(data, esm.b.BufferJSON.replacer);
   }
 
   protected parse(row: any) {
-    return JSON.parse(row.data, BufferJSON.reviver);
+    return JSON.parse(row.data, esm.b.BufferJSON.reviver);
   }
 }

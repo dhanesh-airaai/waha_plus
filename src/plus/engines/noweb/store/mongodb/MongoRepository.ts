@@ -1,12 +1,12 @@
-import { BufferJSON } from '@adiwajshing/baileys/lib/Utils';
 import {
   convertProtobufToPlainObject,
   replaceLongsWithNumber,
 } from '@waha/core/engines/noweb/utils';
 import { Field, Schema } from '@waha/core/storage/Schema';
-import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
+import { PaginationParams } from '@waha/structures/pagination.dto';
 import { MongoPaginator } from '@waha/utils/Paginator';
 import { Collection, Db } from 'mongodb';
+import esm from '@waha/vendor/esm';
 
 /**
  * Key value repository with extra metadata
@@ -19,14 +19,14 @@ export class MongoRepository<Entity> {
   private readonly columns: Field[];
 
   static replace(data: any): any {
-    return JSON.parse(JSON.stringify(data, BufferJSON.replacer));
+    return JSON.parse(JSON.stringify(data, esm.b.BufferJSON.replacer));
   }
 
   static revive(row: any): any {
     if (!row) {
       return null;
     }
-    return JSON.parse(JSON.stringify(row.data), BufferJSON.reviver);
+    return JSON.parse(JSON.stringify(row.data), esm.b.BufferJSON.reviver);
   }
 
   constructor(

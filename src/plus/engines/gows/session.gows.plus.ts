@@ -1,9 +1,3 @@
-import {
-  getAudioDuration,
-  getAudioWaveform,
-  isJidGroup,
-} from '@adiwajshing/baileys';
-import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { Jid } from '@waha/core/engines/const';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
@@ -15,7 +9,12 @@ import {
 import { NotImplementedByEngineError } from '@waha/core/exceptions';
 import { WAMimeType } from '@waha/core/media/WAMimeType';
 import { parseMessageIdSerialized } from '@waha/core/utils/ids';
-import { isJidNewsletter, toJID } from '@waha/core/utils/jids';
+import {
+  isJidGroup,
+  isJidBroadcast,
+  isJidNewsletter,
+  toJID,
+} from '@waha/core/utils/jids';
 import { sortObjectByValues } from '@waha/helpers';
 import { GowsAuthFactoryPlus } from '@waha/plus/engines/gows/store/GowsAuthFactoryPlus';
 import { Ffmpeg } from '@waha/plus/utils/ffmpeg';
@@ -38,16 +37,13 @@ import {
   MessageVoiceRequest,
 } from '@waha/structures/chatting.dto';
 import { SendListRequest } from '@waha/structures/chatting.list.dto';
-import {
-  BinaryFile,
-  RemoteFile,
-  VoiceRemoteFile,
-} from '@waha/structures/files.dto';
+import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import {
   ImageStatus,
   VideoStatus,
   VoiceStatus,
 } from '@waha/structures/status.dto';
+import esm from '@waha/vendor/esm';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { promisify } from 'util';
@@ -212,8 +208,8 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     if (media.type == messages.MediaType.AUDIO) {
       const logger: any = this.loggerBuilder.child({});
       const buffer = Buffer.from(media.content);
-      const waveform = await getAudioWaveform(buffer, logger);
-      const duration = await getAudioDuration(buffer);
+      const waveform = await esm.b.getAudioWaveform(buffer, logger);
+      const duration = await esm.b.getAudioDuration(buffer);
       media.audio = new messages.AudioInfo({
         waveform: waveform,
         duration: duration,

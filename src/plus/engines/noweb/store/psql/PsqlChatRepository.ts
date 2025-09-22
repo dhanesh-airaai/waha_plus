@@ -1,4 +1,4 @@
-import { Chat } from '@adiwajshing/baileys';
+import type { Chat } from '@adiwajshing/baileys';
 import { IChatRepository } from '@waha/core/engines/noweb/store/IChatRepository';
 import { NowebChatSchema } from '@waha/core/engines/noweb/store/schemas';
 import { SqlChatMethods } from '@waha/core/engines/noweb/store/sql/SqlChatMethods';

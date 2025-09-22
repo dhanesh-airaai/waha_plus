@@ -1,5 +1,6 @@
-import makeWASocket, { QueryIds } from '@adiwajshing/baileys';
-import { NewsletterMetadata } from '@adiwajshing/baileys/lib/Types';
+import type makeWASocket from '@adiwajshing/baileys';
+import type { QueryIds } from '@adiwajshing/baileys';
+import type { NewsletterMetadata } from '@adiwajshing/baileys/lib/Types';
 import { toNewsletterMetadata } from '@waha/core/engines/noweb/noweb.newsletter';
 import {
   ChannelPagination,

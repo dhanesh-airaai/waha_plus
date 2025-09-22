@@ -1,5 +1,4 @@
-import { jidDecode, WAProto } from '@adiwajshing/baileys';
-import { initAuthCreds } from '@adiwajshing/baileys/lib/Utils';
+import esm from '@waha/vendor/esm';
 import { PsqlNowebAuthRepository } from '@waha/plus/engines/noweb/store/psql/PsqlAuthRepository';
 import Knex from 'knex';
 
@@ -24,7 +23,7 @@ export class NoWebPsqlAuth {
     await this.repository.init();
     this.creds = await this.repository.getCreds();
     if (!this.creds) {
-      this.creds = initAuthCreds();
+      this.creds = esm.b.initAuthCreds();
     }
   }
 
@@ -43,7 +42,8 @@ export class NoWebPsqlAuth {
                 }
                 let value = await this.repository.getCategory(type, id);
                 if (type === 'app-state-sync-key' && value) {
-                  value = WAProto.Message.AppStateSyncKeyData.fromObject(value);
+                  value =
+                    esm.b.WAProto.Message.AppStateSyncKeyData.create(value);
                 }
                 data[id] = value;
               }),
@@ -83,7 +83,7 @@ export class NoWebPsqlAuth {
 
   isMyMainSession(id: string) {
     // Decode the jid
-    const { user: meId } = jidDecode(this.creds?.me?.id);
+    const { user: meId } = esm.b.jidDecode(this.creds?.me?.id);
     return id == `${meId}.0`;
   }
 }
