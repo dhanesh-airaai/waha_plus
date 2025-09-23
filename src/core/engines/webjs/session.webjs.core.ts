@@ -1,13 +1,9 @@
-import { isJidGroup, isJidStatusBroadcast } from '@adiwajshing/baileys';
 import { UnprocessableEntityException } from '@nestjs/common';
 import {
   getChannelInviteLink,
   WhatsappSession,
 } from '@waha/core/abc/session.abc';
-import {
-  getFromToParticipant,
-  toCusFormat,
-} from '@waha/core/engines/noweb/session.noweb.core';
+import { getFromToParticipant } from '@waha/core/engines/noweb/session.noweb.core';
 import {
   ReceiptEvent,
   TagReceiptNodeToReceiptEvent,
@@ -68,6 +64,7 @@ import {
   CheckNumberStatusQuery,
   EditMessageRequest,
   MessageButtonReply,
+  MessageContactVcardRequest,
   MessageFileRequest,
   MessageForwardRequest,
   MessageImageRequest,
@@ -80,6 +77,7 @@ import {
   SendSeenRequest,
   WANumberExistResult,
 } from '@waha/structures/chatting.dto';
+import { toVcardV3 } from '@waha/core/vcard';
 import {
   ContactQuery,
   ContactRequest,
@@ -149,6 +147,11 @@ import {
 import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
 
 import { WAJSPresenceChatStateType, WebJSPresence } from './types';
+import {
+  isJidGroup,
+  isJidStatusBroadcast,
+  toCusFormat,
+} from '@waha/core/utils/jids';
 
 export interface WebJSConfig {
   webVersion?: string;
@@ -660,6 +663,28 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       linkPreview: request.linkPreview,
     };
     return message.edit(request.text, options);
+  }
+
+  async sendContactVCard(request: MessageContactVcardRequest) {
+    const chatId = this.ensureSuffix(request.chatId);
+    const vcards = request.contacts.map((el) => toVcardV3(el as any));
+    const options = this.getMessageOptions(request);
+
+    // Single vCard: pass raw vcard text as a message body.
+    // WEBJS will detect BEGIN:VCARD when parseVCards=true and send as a contact card.
+    if (vcards.length <= 1) {
+      const vcard = vcards[0] || '';
+      return this.whatsapp.sendMessage(chatId, vcard, options);
+    }
+
+    // Multiple vCards: send as a single multi_vcard message using extra options.
+    const extra = {
+      type: 'multi_vcard',
+      vcardList: vcards.map((v) => ({ vcard: v })),
+      body: null,
+    } as any;
+
+    return this.whatsapp.sendMessage(chatId, '', { ...options, extra });
   }
 
   reply(request: MessageReplyRequest) {
@@ -1239,8 +1264,10 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   protected ChannelMetadataToChannel(metadata: any): Channel {
-    let role = metadata.membershipType.toUpperCase();
+    let role = metadata.membershipType?.toUpperCase();
     if (role === 'VIEWER') {
+      role = ChannelRole.GUEST;
+    } else if (!role) {
       role = ChannelRole.GUEST;
     }
     return {

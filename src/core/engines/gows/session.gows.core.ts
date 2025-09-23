@@ -1,14 +1,4 @@
-import {
-  aggregateMessageKeysNotFromMe,
-  getContentType,
-  getUrlFromDirectPath,
-  isJidGroup,
-  jidNormalizedUser,
-  normalizeMessageContent,
-  proto,
-  WAMessageKey,
-} from '@adiwajshing/baileys';
-import { isJidBroadcast } from '@adiwajshing/baileys/lib/WABinary/jid-utils';
+import type { proto, WAMessageKey } from '@adiwajshing/baileys';
 import * as grpc from '@grpc/grpc-js';
 import { connectivityState } from '@grpc/grpc-js';
 import { UnprocessableEntityException } from '@nestjs/common';
@@ -37,7 +27,6 @@ import { GowsAuthFactoryCore } from '@waha/core/engines/gows/store/GowsAuthFacto
 import {
   extractBody,
   getDestination,
-  toCusFormat,
 } from '@waha/core/engines/noweb/session.noweb.core';
 import { extractMediaContent } from '@waha/core/engines/noweb/utils';
 import {
@@ -48,7 +37,12 @@ import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
 import { ExtractMessageKeysForRead } from '@waha/core/utils/convertors';
 import { parseMessageIdSerialized } from '@waha/core/utils/ids';
-import { toJID } from '@waha/core/utils/jids';
+import {
+  isJidBroadcast,
+  isJidGroup,
+  toCusFormat,
+  toJID,
+} from '@waha/core/utils/jids';
 import {
   Channel,
   ChannelListResult,
@@ -148,6 +142,7 @@ import {
   retry,
   share,
 } from 'rxjs';
+import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { promisify } from 'util';
 
@@ -170,7 +165,7 @@ import {
   isLabelChatAddedEvent,
   isLabelUpsertEvent,
 } from './labels.gows';
-import IMessageKey = proto.IMessageKey;
+import esm from '@waha/vendor/esm';
 
 enum WhatsMeowEvent {
   CONNECTED = 'gows.ConnectedEventData',
@@ -217,6 +212,8 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   protected me: MeInfo | null;
   public session: messages.Session;
   protected presences: any;
+
+  private local$ = new Subject<EnginePayload>();
 
   public constructor(config) {
     super(config);
@@ -304,7 +301,11 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     );
 
     // Retry on error with delay
-    this.all$ = this.stream$.pipe(retry({ delay: 2_000 }), share());
+    // Accept locally re-issued events as well
+    this.all$ = merge(this.stream$, this.local$).pipe(
+      retry({ delay: 2_000 }),
+      share(),
+    );
   }
 
   subscribeEvents() {
@@ -314,9 +315,9 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     events.on(WhatsMeowEvent.CONNECTED, (data) => {
       this.status = WAHASessionStatus.WORKING;
       this.me = {
-        id: toCusFormat(jidNormalizedUser(data.ID)),
+        id: toCusFormat(esm.b.jidNormalizedUser(data.ID)),
         pushName: data.PushName,
-        lid: jidNormalizedUser(data.LID),
+        lid: esm.b.jidNormalizedUser(data.LID),
       };
       // @ts-ignore
       this.me.jid = data.ID;
@@ -390,6 +391,48 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       // add new value
       this.presences.set(Chat, [...filtered, event]);
     });
+
+    //
+    // Fix for "typing" after sending a message
+    // Re-issue a synthetic ChatPresence(PAUSED) to cancel COMPOSING state
+    // Works for both DM and Group chats
+    //
+    events.on(WhatsMeowEvent.MESSAGE, (message: any) => {
+      const chat = message?.Info?.Chat;
+      if (!this.jids.include(chat)) {
+        return;
+      }
+      if (message?.Info?.IsFromMe) {
+        return;
+      }
+      const sender = message?.Info?.Sender || chat;
+      if (!chat || !sender) {
+        return;
+      }
+      const stored: Array<gows.Presence | gows.ChatPresence> =
+        this.presences.get(chat) || [];
+      const composing = stored.find(
+        (presence: any) =>
+          (presence?.Sender === sender || presence?.From === sender) &&
+          presence?.State === gows.ChatPresenceState.COMPOSING,
+      ) as gows.ChatPresence | undefined;
+      if (!composing) {
+        return;
+      }
+      const presence: gows.ChatPresence = {
+        Chat: chat,
+        Sender: sender,
+        IsFromMe: false,
+        IsGroup: !!isJidGroup(chat),
+        State: gows.ChatPresenceState.PAUSED,
+        Media: (composing as any)?.Media ?? gows.ChatPresenceMedia.TEXT,
+      } as any;
+      this.local$.next({
+        event: WhatsMeowEvent.CHAT_PRESENCE,
+        data: presence,
+      } as any);
+    });
+
     events.start();
   }
 
@@ -961,7 +1004,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     if (keys.length === 0) {
       return;
     }
-    const receipts = aggregateMessageKeysNotFromMe(keys);
+    const receipts = esm.b.aggregateMessageKeysNotFromMe(keys);
     for (const receipt of receipts) {
       if (receipt.messageIds.length === 0) {
         return;
@@ -1403,11 +1446,11 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       (newsletter.role?.toUpperCase() as ChannelRole) || ChannelRole.GUEST;
     let picture = newsletter.picture;
     if (picture.startsWith('/')) {
-      picture = getUrlFromDirectPath(picture);
+      picture = esm.b.getUrlFromDirectPath(picture);
     }
     let preview = newsletter.preview;
     if (preview.startsWith('/')) {
-      preview = getUrlFromDirectPath(preview);
+      preview = esm.b.getUrlFromDirectPath(preview);
     }
     return {
       id: newsletter.id,
@@ -1913,8 +1956,8 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     // Ignore protocol messages
     if (message.Message.protocolMessage) return;
 
-    const normalizedContent = normalizeMessageContent(message.Message);
-    const contentType = getContentType(normalizedContent);
+    const normalizedContent = esm.b.normalizeMessageContent(message.Message);
+    const contentType = esm.b.getContentType(normalizedContent);
     // Ignore device sent message
     if (contentType == 'deviceSentMessage') {
       return;
@@ -2001,13 +2044,13 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   private toPollVotePayload(event: any): PollVotePayload {
     // Extract event creation message key from the message
     const creationKey = event.Message?.pollUpdateMessage.pollCreationMessageKey;
-    const pollKey: IMessageKey = {
+    const pollKey: proto.IMessageKey = {
       remoteJid: creationKey.remoteJID,
       fromMe: creationKey.fromMe,
       id: creationKey.ID,
       participant: creationKey.participant,
     };
-    const voteKey: IMessageKey = {
+    const voteKey: proto.IMessageKey = {
       id: event.Info.ID,
       remoteJid: event.Info.Chat,
       participant: event.IsGroup ? event.Info.Sender : null,
@@ -2074,7 +2117,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   protected extractReplyTo(message): ReplyToMessage | null {
-    const msgType = getContentType(message);
+    const msgType = esm.b.getContentType(message);
     const contextInfo = message[msgType]?.contextInfo;
     if (!contextInfo) {
       return null;
@@ -2334,10 +2377,10 @@ export function getMessageIdFromSerialized(serialized: string): string | null {
  */
 
 function fixPollCreationKey(
-  vote: IMessageKey,
-  poll: IMessageKey,
+  vote: proto.IMessageKey,
+  poll: proto.IMessageKey,
   me: MeInfo,
-): IMessageKey {
+): proto.IMessageKey {
   // If the vote is from me, the pollCreationKey is already in my perspective
   if (vote?.fromMe) {
     return poll;

@@ -11,7 +11,7 @@ import makeWASocket, {
   getContentType,
   getKeyAuthor,
   isJidGroup,
-  isJidUser,
+  isPnUser,
   isRealMessage,
   jidNormalizedUser,
   makeCacheableSignalKeyStore,
@@ -24,6 +24,7 @@ import makeWASocket, {
   WAMessageKey,
   WAMessageUpdate,
 } from '@adiwajshing/baileys';
+import type { WABrowserDescription } from '@adiwajshing/baileys';
 import { WACallEvent } from '@adiwajshing/baileys/lib/Types/Call';
 import { BaileysEventMap } from '@adiwajshing/baileys/lib/Types/Events';
 import { GroupMetadata } from '@adiwajshing/baileys/lib/Types/GroupMetadata';
@@ -308,9 +309,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
   getSocketConfig(agent, state): Partial<SocketConfig> {
     const fullSyncEnabled = this.sessionConfig?.noweb?.store?.fullSync || false;
-    const browser = fullSyncEnabled
-      ? Browsers.ubuntu('Desktop')
-      : Browsers.ubuntu('Chrome');
+    const browser = ['Ubuntu', 'Chrome', '20.0.04'] as WABrowserDescription;
     let markOnlineOnConnect = this.sessionConfig?.noweb?.markOnline;
     if (markOnlineOnConnect == undefined) {
       markOnlineOnConnect = true;
@@ -410,9 +409,9 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     await this.ensureStore();
     this.sock = await this.makeSocket();
 
+    this.fixMessages();
     this.issueMessageUpdateOnEdits();
     this.issueMessageUpdateOnPoll();
-    this.fixMessageUpsertStatus();
     this.issuePresenceUpdateOnMessageUpsert();
     if (this.isDebugEnabled()) {
       this.listenEngineEventsInDebugMode();
@@ -439,7 +438,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     key: WAMessageKey,
   ): Promise<WAMessageContent | undefined> {
     if (!this.store) {
-      return proto.Message.fromObject({});
+      return proto.Message.create({});
     }
     const msg = await this.store.loadMessage(key.remoteJid, key.id);
     return msg?.message || undefined;
@@ -586,12 +585,16 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     await this.store?.close();
   }
 
-  private fixMessageUpsertStatus() {
-    // If no status - set it to WAMessageAck.DEVICE
+  private fixMessages() {
     this.sock.ev.on('messages.upsert', ({ messages }) => {
       for (const message of messages) {
-        if (message.status == null) {
-          message.status = AckToStatus(WAMessageAck.DEVICE);
+        // If no status - set it to WAMessageAck.DEVICE
+        message.status = message.status ?? AckToStatus(WAMessageAck.DEVICE);
+
+        // Fix fromMe in @lid addressed groups
+        // https://github.com/devlikeapro/waha/issues/1350
+        if (message.key.participant === this.getSessionMeInfo()?.lid) {
+          message.key.fromMe = true;
         }
       }
     });
@@ -737,7 +740,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     return {
       id: toCusFormat(meId),
       pushName: me.name,
-      lid: me.lid,
+      lid: jidNormalizedUser(me.lid),
     };
   }
 
@@ -2141,7 +2144,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
 
         this.logger.debug({ jid: update.id }, 'Profile picture updated');
         const url = await this.refreshProfilePicture(update.id);
-        if (isJidUser(update.id)) {
+        if (isPnUser(update.id) || isLidUser(update.id)) {
           // update 123@c.us and 123 profiles as well
           const cus = toCusFormat(update.id);
           this.profilePictures.set(cus, url);
@@ -2577,11 +2580,16 @@ export class NOWEBEngineMediaProcessor implements IMediaEngineProcessor<any> {
 
   async getMediaBuffer(message: any): Promise<Buffer | null> {
     const content = extractMediaContent(message.message);
+    const url = content.url;
     // Fix Stickers
     // https://github.com/devlikeapro/waha/issues/504
-    const url = content.url;
+    // Set it to null so the engine handles it right
     if (!hasPath(url)) {
-      // Set it to null so the engine handles it right
+      content.url = null;
+    }
+    // Fix Newsletter
+    // directPath has the unencrypted path
+    if (isJidNewsletter(message.key.remoteJid) && content.directPath) {
       content.url = null;
     }
 
@@ -2594,8 +2602,7 @@ export class NOWEBEngineMediaProcessor implements IMediaEngineProcessor<any> {
         reuploadRequest: this.session.sock.updateMediaMessage,
       },
     ).finally(() => {
-      // Fix Stickers - set url back, just to have it in the response
-      // https://github.com/devlikeapro/waha/issues/504
+      // Set url back in case we removed it
       content.url = url;
     })) as Buffer;
   }
