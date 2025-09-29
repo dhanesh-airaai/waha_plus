@@ -13,13 +13,14 @@ import { isJidCusFormat } from '@waha/utils/wa';
 import * as lodash from 'lodash';
 
 import { AttributeKey } from '../const';
+import { E164Parser } from '@waha/core/utils/PhoneJidNormalizer';
 
 export interface ContactResponse {
   data: generic_id & contact;
   sourceId: string;
 }
 
-export class ContactAPI {
+export class ContactService {
   constructor(
     private config: ChatWootAPIConfig,
     private accountAPI: ChatwootClient,
@@ -64,8 +65,8 @@ export class ContactAPI {
 
     if (isJidCusFormat(chatId)) {
       // Search by phone
-      let phone_number = chatId.split('@')[0];
-      phone_number = phone_number.replace('+', '');
+      const phoneNumberE164 = E164Parser.fromJid(chatId);
+      const phone_number = phoneNumberE164.replace('+', '');
       payload[payload.length - 1].query_operator = 'OR';
       payload.push({
         attribute_key: 'phone_number',
@@ -96,18 +97,22 @@ export class ContactAPI {
     };
   }
 
-  public updateCustomAttributes(
+  public async upsertCustomAttributes(
     contact: generic_id & contact,
     attributes: any,
-  ) {
+  ): Promise<boolean> {
+    if (lodash.isEqual(attributes, contact.custom_attributes)) {
+      return false;
+    }
     const update: contact_update = {
       custom_attributes: { ...contact.custom_attributes, ...attributes },
     };
-    return this.accountAPI.contacts.update({
+    await this.accountAPI.contacts.update({
       id: contact.id,
       accountId: this.config.accountId,
       data: update,
     });
+    return true;
   }
 
   public async create(
@@ -142,7 +147,7 @@ export class ContactAPI {
       })
       .catch((e) => {
         this.logger.warn(
-          'Error updating avatar_url for contact.id: ' + contactId,
+          `Error updating avatar_url for contact.id: ${contactId}`,
         );
         this.logger.warn(e);
       });
