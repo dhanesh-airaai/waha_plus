@@ -252,7 +252,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
           {
             upload: this.sock.waUploadToServer,
             mediaTypeOverride: 'thumbnail-link',
-            options: { timeout: 10_000 },
+            options: { signal: AbortSignal.timeout(10_000) },
           },
         );
         urlInfo.jpegThumbnail = imageMessage?.jpegThumbnail
