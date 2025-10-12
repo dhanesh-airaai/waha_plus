@@ -1,7 +1,27 @@
 # Ukrainian translations for ChatWoot integration
 locale.name: '🇺🇦 Українська (Ukrainian)'
+
+# Базовий код локалі - має бути чинною локаллю BCP 47
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA використовує його для форматування чисел, валют і дати/часу
+locale.base: 'uk-UA'
+
 app.inbox.contact.name: 'Інтеграція WhatsApp (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# "параметри" з date.toLocaleString
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: uk-UA
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Europe/Kyiv'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **Надіслана локація**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Адреса:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Вебсайт:** {{url}}
+  {{/url}}
+
+  🔗 **Переглянути на карті:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **Надсилання геолокації в реальному часі**
   Відкрийте **WhatsApp**, щоб побачити оновлення в реальному часі.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Адреса:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Вебсайт:** {{url}}
+  {{/url}}
+
+  🔗 **Переглянути на карті:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **Опитування**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **Подія**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **Місце:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **Початок:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **Завершення:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **Посилання для приєднання:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - Копіювати та Вставити**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **Ключ PIX:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **Тип:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **Сума:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **Референс:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX Копіювати та Вставити надіслано**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **Цей тип повідомлення не підтримується в ChatWoot.**
   📱 Будь ласка, відкрийте **WhatsApp**, щоб переглянути.
 
   Подробиці: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **РЕКЛАМА FACEBOOK**
+
+  **Заголовок:** {{{adData.title}}}
+
+  **Опис:**
+  {{{adData.body}}}
+
+  **Посилання на рекламу:** [Переглянути у Facebook]({{{adData.sourceUrl}}})
+  **Ідентифікатор реклами:** {{{adData.sourceId}}}
+
+  ---
+  💬 **Повідомлення клієнта:**
+  {{{payload.body}}}

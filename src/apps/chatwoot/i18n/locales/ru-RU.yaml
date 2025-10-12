@@ -1,7 +1,27 @@
 # Russian translations for ChatWoot integration
 locale.name: '🇷🇺 Русский (Russian)'
+
+# Базовый код локали - должен быть корректной локалью BCP 47
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA использует его для форматирования чисел, валют и даты/времени
+locale.base: 'ru-RU'
+
 app.inbox.contact.name: 'WhatsApp Интеграция (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# "параметры" из date.toLocaleString
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: ru-RU
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Europe/Moscow'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **Переданное местоположение**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Адрес:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Сайт:** {{url}}
+  {{/url}}
+
+  🔗 **Открыть на карте:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **Делится геопозицией в реальном времени**
   Откройте **WhatsApp**, чтобы увидеть обновления в реальном времени.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Адрес:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Сайт:** {{url}}
+  {{/url}}
+
+  🔗 **Открыть на карте:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **Опрос**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **Событие**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **Место:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **Начало:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **Окончание:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **Ссылка для участия:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - Копировать и вставить**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **Ключ PIX:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **Тип:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **Сумма:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **Референс:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX Копировать и вставить отправлен**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **Этот тип сообщения не поддерживается в ChatWoot.**
   📱 Пожалуйста, откройте **WhatsApp**, чтобы просмотреть.
 
   Подробности: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **РЕКЛАМА FACEBOOK**
+
+  **Заголовок:** {{{adData.title}}}
+
+  **Описание:**
+  {{{adData.body}}}
+
+  **Ссылка на объявление:** [Посмотреть в Facebook]({{{adData.sourceUrl}}})
+  **Идентификатор объявления:** {{{adData.sourceId}}}
+
+  ---
+  💬 **Сообщение клиента:**
+  {{{payload.body}}}

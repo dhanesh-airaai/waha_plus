@@ -1,7 +1,27 @@
 # Arabic translations for ChatWoot integration
 locale.name: '🇦🇪 العربية (Arabic)'
+
+# رمز اللغة الأساسي - يجب أن يكون محليًا صالحًا وفق BCP 47
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# تستخدمه WAHA لعرض الأرقام والعملات والتاريخ/الوقت
+locale.base: 'ar-AE'
+
 app.inbox.contact.name: 'تكامل واتساب (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# "options" من date.toLocaleString
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: ar-AE
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Asia/Dubai'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **الموقع المشترك**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **العنوان:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **الموقع الإلكتروني:** {{url}}
+  {{/url}}
+
+  🔗 **عرض على الخريطة:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **مشاركة الموقع المباشر**
   افتح **WhatsApp** لعرض التحديثات اللحظية.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **العنوان:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **الموقع الإلكتروني:** {{url}}
+  {{/url}}
+
+  🔗 **عرض على الخريطة:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **استطلاع**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **حدث**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **الموقع:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **البدء:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **الانتهاء:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **رابط الانضمام:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - نسخ ولصق**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **مفتاح PIX:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **النوع:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **المبلغ:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **المرجع:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **تم إرسال PIX نسخ ولصق**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **هذا النوع من الرسائل غير مدعوم في ChatWoot.**
   📱 يرجى فتح **WhatsApp** لعرضه.
 
   التفاصيل: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **إعلان فيسبوك**
+
+  **العنوان:** {{{adData.title}}}
+
+  **الوصف:**
+  {{{adData.body}}}
+
+  **رابط الإعلان:** [عرض على فيسبوك]({{{adData.sourceUrl}}})
+  **معرّف الإعلان:** {{{adData.sourceId}}}
+
+  ---
+  💬 **رسالة العميل:**
+  {{{payload.body}}}

@@ -1,7 +1,27 @@
 # Hebrew translations for ChatWoot integration
 locale.name: '🇮🇱 עברית (Hebrew)'
+
+# קוד הלוקאל הבסיסי - חייב להיות לוקאל תקין לפי BCP 47
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA משתמש בכך להצגת מספרים, מטבע ותאריך/שעה
+locale.base: 'he-IL'
+
 app.inbox.contact.name: 'אינטגרציית וואטסאפ (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# "אפשרויות" של date.toLocaleString
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: he-IL
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Asia/Jerusalem'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **מיקום משותף**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **כתובת:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **אתר אינטרנט:** {{url}}
+  {{/url}}
+
+  🔗 **הצג במפה:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **משתף מיקום חי**
   פתח/י את **WhatsApp** כדי לראות עדכונים בזמן אמת.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **כתובת:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **אתר אינטרנט:** {{url}}
+  {{/url}}
+
+  🔗 **הצג במפה:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **סקר**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **אירוע**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **מיקום:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **התחלה:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **סיום:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **קישור הצטרפות:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - העתק והדבק**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **מפתח PIX:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **סוג:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **סכום:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **אסמכתא:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX העתק והדבק נשלח**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **סוג הודעה זה אינו נתמך ב-ChatWoot.**
   📱 אנא פתח/י את **WhatsApp** כדי לצפות בזה.
 
   פרטים: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **מודעת פייסבוק**
+
+  **כותרת:** {{{adData.title}}}
+
+  **תיאור:**
+  {{{adData.body}}}
+
+  **קישור למודעה:** [לצפייה בפייסבוק]({{{adData.sourceUrl}}})
+  **מזהה המודעה:** {{{adData.sourceId}}}
+
+  ---
+  💬 **הודעת הלקוח:**
+  {{{payload.body}}}

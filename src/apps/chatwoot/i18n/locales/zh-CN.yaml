@@ -1,7 +1,27 @@
 # Simplified Chinese translations for ChatWoot integration
 locale.name: '🇨🇳 中文（Simplified Chinese）'
+
+# 基础语言代码 - 必须是有效的 BCP 47 语言区域
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA 使用它来格式化数字、货币和日期时间。
+locale.base: 'zh-CN'
+
 app.inbox.contact.name: 'WhatsApp 集成（WAHA）'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# date.toLocaleString 的 "options"
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: zh-CN
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Asia/Shanghai'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -218,7 +238,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **共享位置**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **地址：** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **网站：** {{url}}
+  {{/url}}
+
+  🔗 **在地图上查看：** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -226,13 +258,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **正在共享实时位置**
   打开 **WhatsApp** 查看实时更新。
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **地址：** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **网站：** {{url}}
+  {{/url}}
+
+  🔗 **在地图上查看：** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **投票**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **活动**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **地点：** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **开始时间：** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **结束时间：** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **加入链接：** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - 复制粘贴**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **PIX 密钥：** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **类型：** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **金额：** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **参考：** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX 复制粘贴已发送**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **ChatWoot 不支持此消息类型。**
   📱 请打开 **WhatsApp** 查看。
 
   详情: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **Facebook 广告**
+
+  **标题:** {{{adData.title}}}
+
+  **描述:**
+  {{{adData.body}}}
+
+  **广告链接:** [在 Facebook 查看]({{{adData.sourceUrl}}})
+  **广告 ID:** {{{adData.sourceId}}}
+
+  ---
+  💬 **客户消息:**
+  {{{payload.body}}}

@@ -1,7 +1,27 @@
 # Spanish translations for ChatWoot integration
 locale.name: '🇪🇸 Español (Spanish)'
+
+# Código de locale base - debe ser un locale BCP 47 válido
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA lo utiliza para formatear números, moneda y fecha/hora
+locale.base: 'es-ES'
+
 app.inbox.contact.name: 'Integración de WhatsApp (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# "opciones" de date.toLocaleString
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: es-ES
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Europe/Madrid'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -219,7 +239,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **Ubicación compartida**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Dirección:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Sitio web:** {{url}}
+  {{/url}}
+
+  🔗 **Ver en el mapa:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -227,13 +259,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **Compartiendo ubicación en tiempo real**
   Abre **WhatsApp** para ver las actualizaciones en tiempo real.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Dirección:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Sitio web:** {{url}}
+  {{/url}}
+
+  🔗 **Ver en el mapa:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **Encuesta**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **Evento**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **Ubicación:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **Inicio:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **Fin:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **Enlace para unirse:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - Copiar y Pegar**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **Clave PIX:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **Tipo:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **Importe:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **Referencia:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX Copiar y Pegar enviado**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **Este tipo de mensaje no es compatible con ChatWoot.**
   📱 Por favor, abre **WhatsApp** para verlo.
 
   Detalles: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **ANUNCIO DE FACEBOOK**
+
+  **Título:** {{{adData.title}}}
+
+  **Descripción:**
+  {{{adData.body}}}
+
+  **Enlace del anuncio:** [Ver en Facebook]({{{adData.sourceUrl}}})
+  **ID del anuncio:** {{{adData.sourceId}}}
+
+  ---
+  💬 **Mensaje del cliente:**
+  {{{payload.body}}}

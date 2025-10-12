@@ -43,6 +43,7 @@ import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import { Agent as HttpsAgent } from 'https';
 import * as fs from 'fs';
 import * as lodash from 'lodash';
 import * as NodeCache from 'node-cache';
@@ -53,7 +54,6 @@ import {
   delay,
   filter,
   of,
-  pairwise,
   retry,
   scan,
   share,
@@ -1076,11 +1076,24 @@ export abstract class WhatsappSession {
   /**
    * Fetches the content from the specified URL and returns it as a Buffer.
    */
-  public async fetch(url: string): Promise<Buffer> {
-    return axios.get(url, { responseType: 'arraybuffer' }).then((res) => {
+  public fetch(url: string): Promise<Buffer> {
+    return fetchBuffer(url);
+  }
+}
+
+const InsecureHttpsAgent = new HttpsAgent({
+  rejectUnauthorized: false,
+});
+
+export async function fetchBuffer(url: string): Promise<Buffer> {
+  return axios
+    .get(url, {
+      responseType: 'arraybuffer',
+      httpsAgent: InsecureHttpsAgent,
+    })
+    .then((res) => {
       return Buffer.from(res.data);
     });
-  }
 }
 
 export function getGroupInviteLink(code: string) {

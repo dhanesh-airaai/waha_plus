@@ -698,7 +698,7 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     this.sock.ev.on('messages.upsert', ({ messages }) => {
       const meId = this.sock?.authState?.creds?.me?.id;
       for (const message of messages) {
-        if (!isRealMessage(message, meId)) {
+        if (!isRealMessage(message)) {
           continue;
         }
         if (message.key.fromMe) {
@@ -829,7 +829,8 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
   async checkNumberStatus(
     request: CheckNumberStatusQuery,
   ): Promise<WANumberExistResult> {
-    const phone = request.phone.split('@')[0];
+    let phone = request.phone.split('@')[0];
+    phone = phone.replace(/\+/g, '');
     const [result] = await this.sock.onWhatsApp(phone);
     if (!result || !result.exists) {
       return { numberExists: false };
@@ -2212,6 +2213,12 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
     if (
       message.message?.protocolMessage?.type ===
       proto.Message.ProtocolMessage.Type.EPHEMERAL_SYNC_RESPONSE
+    )
+      return;
+    if (
+      message.message?.protocolMessage?.type ===
+      proto.Message.ProtocolMessage.Type
+        .PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE
     )
       return;
 

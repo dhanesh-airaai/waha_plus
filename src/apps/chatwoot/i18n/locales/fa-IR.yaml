@@ -1,7 +1,27 @@
 # Persian translations for ChatWoot integration
 locale.name: '🇮🇷 فارسی (Persian)'
+
+# کد محلی پایه - باید یک محلی معتبر BCP 47 باشد
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA از آن برای نمایش اعداد، ارز و تاریخ/زمان استفاده می‌کند
+locale.base: 'fa-IR'
+
 app.inbox.contact.name: 'ادغام واتساپ (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# گزینه‌های "options" از date.toLocaleString
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: fa-IR
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Asia/Tehran'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **موقعیت مکانی به‌اشتراک‌گذاشته‌شده**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **آدرس:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **وب‌سایت:** {{url}}
+  {{/url}}
+
+  🔗 **مشاهده روی نقشه:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **اشتراک‌گذاری موقعیت مکانی زنده**
   برای دیدن به‌روزرسانی‌های لحظه‌ای **WhatsApp** را باز کنید.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **آدرس:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **وب‌سایت:** {{url}}
+  {{/url}}
+
+  🔗 **مشاهده روی نقشه:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **نظرسنجی**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **رویداد**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **مکان:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **شروع:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **پایان:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **لینک پیوستن:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - کپی و چسباندن**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **کلید PIX:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **نوع:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **مبلغ:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **شناسه مرجع:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX کپی و چسباندن ارسال شد**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **این نوع پیام در ChatWoot پشتیبانی نمی‌شود.**
   📱 لطفاً برای مشاهده آن **WhatsApp** را باز کنید.
 
   جزئیات: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **آگهی فیس‌بوک**
+
+  **عنوان:** {{{adData.title}}}
+
+  **توضیحات:**
+  {{{adData.body}}}
+
+  **لینک آگهی:** [مشاهده در فیس‌بوک]({{{adData.sourceUrl}}})
+  **شناسه آگهی:** {{{adData.sourceId}}}
+
+  ---
+  💬 **پیام مشتری:**
+  {{{payload.body}}}

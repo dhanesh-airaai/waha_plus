@@ -1,7 +1,27 @@
 # Bengali translations for ChatWoot integration
 locale.name: '🇧🇩 বাংলা (Bengali)'
+
+# বেস লোকেল কোড - এটি একটি বৈধ BCP 47 লোকেল হতে হবে
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA এটি সংখ্যা, মুদ্রা এবং তারিখ/সময়ের ফরম্যাটিংয়ে ব্যবহার করে।
+locale.base: 'bn-BD'
+
 app.inbox.contact.name: 'হোয়াটসঅ্যাপ ইন্টিগ্রেশন (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# date.toLocaleString এর "options"
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: bn-BD
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Asia/Dhaka'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **শেয়ার করা লোকেশন**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **ঠিকানা:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **ওয়েবসাইট:** {{url}}
+  {{/url}}
+
+  🔗 **মানচিত্রে দেখুন:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **লাইভ লোকেশন শেয়ার করা হচ্ছে**
   রিয়েল-টাইম আপডেট দেখতে **WhatsApp** খুলুন।
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **ঠিকানা:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **ওয়েবসাইট:** {{url}}
+  {{/url}}
+
+  🔗 **মানচিত্রে দেখুন:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **জরিপ**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **ইভেন্ট**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **স্থান:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **শুরুর সময়:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **শেষের সময়:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **যোগদানের লিঙ্ক:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - কপি এবং পেস্ট**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **PIX কী:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **ধরন:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **পরিমাণ:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **রেফারেন্স:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX কপি এবং পেস্ট পাঠানো হয়েছে**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **এই ধরনের বার্তা ChatWoot-এ সমর্থিত নয়।**
   📱 এটি দেখতে অনুগ্রহ করে **WhatsApp** খুলুন।
 
   বিস্তারিত: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **ফেসবুক বিজ্ঞাপন**
+
+  **শিরোনাম:** {{{adData.title}}}
+
+  **বর্ণনা:**
+  {{{adData.body}}}
+
+  **বিজ্ঞাপনের লিংক:** [ফেসবুকে দেখুন]({{{adData.sourceUrl}}})
+  **বিজ্ঞাপনের আইডি:** {{{adData.sourceId}}}
+
+  ---
+  💬 **গ্রাহকের বার্তা:**
+  {{{payload.body}}}

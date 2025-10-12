@@ -1,7 +1,27 @@
 # Turkish translations for ChatWoot integration
 locale.name: '🇹🇷 Türkçe (Turkish)'
+
+# Temel yerel kodu - geçerli bir BCP 47 yerel kodu olmalı
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA bunu sayı, para birimi ve tarih/saat gösterimi için kullanır
+locale.base: 'tr-TR'
+
 app.inbox.contact.name: 'WhatsApp Entegrasyonu (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# date.toLocaleString için "options"
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: tr-TR
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Europe/Istanbul'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **Paylaşılan Konum**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Adres:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Web sitesi:** {{url}}
+  {{/url}}
+
+  🔗 **Haritada görüntüle:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **Canlı Konum Paylaşılıyor**
   Gerçek zamanlı güncellemeleri görmek için **WhatsApp’ı** açın.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Adres:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Web sitesi:** {{url}}
+  {{/url}}
+
+  🔗 **Haritada görüntüle:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **Anket**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **Etkinlik**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **Konum:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **Başlangıç:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **Bitiş:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **Katılma bağlantısı:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - Kopyala ve Yapıştır**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **PIX Anahtarı:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **Tür:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **Tutar:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **Referans:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX Kopyala ve Yapıştır gönderildi**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **Bu mesaj türü ChatWoot’ta desteklenmiyor.**
   📱 Görüntülemek için lütfen **WhatsApp’ı** açın.
 
   Ayrıntılar: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **FACEBOOK İLANI**
+
+  **Başlık:** {{{adData.title}}}
+
+  **Açıklama:**
+  {{{adData.body}}}
+
+  **İlan Bağlantısı:** [Facebook’ta Görüntüle]({{{adData.sourceUrl}}})
+  **İlan Kimliği:** {{{adData.sourceId}}}
+
+  ---
+  💬 **Müşteri Mesajı:**
+  {{{payload.body}}}

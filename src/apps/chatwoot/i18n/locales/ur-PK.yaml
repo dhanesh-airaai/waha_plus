@@ -1,7 +1,27 @@
 # Urdu translations for ChatWoot integration
 locale.name: '🇵🇰 اردو (Urdu)'
+
+# بنیادی لوکل کوڈ - یہ ایک معتبر BCP 47 لوکل ہونا چاہیے
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA اسے نمبرز، کرنسی اور تاریخ/وقت کی نمائندگی کے لیے استعمال کرتا ہے۔
+locale.base: 'ur-PK'
+
 app.inbox.contact.name: 'واٹس ایپ انٹیگریشن (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# date.toLocaleString کی "options"
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: ur-PK
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Asia/Karachi'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **شیئر کی گئی لوکیشن**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **پتہ:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **ویب سائٹ:** {{url}}
+  {{/url}}
+
+  🔗 **نقشے پر دیکھیں:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **لائیو لوکیشن شیئر کی جا رہی ہے**
   حقیقی وقت کی تازہ کاریوں کے لیے **WhatsApp** کھولیں۔
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **پتہ:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **ویب سائٹ:** {{url}}
+  {{/url}}
+
+  🔗 **نقشے پر دیکھیں:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **رائے شماری**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **ایونٹ**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **مقام:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **آغاز:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **اختتام:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **شمولیت کا لنک:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - کاپی اور پیسٹ**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **PIX کلید:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **قسم:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **رقم:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **حوالہ:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX کاپی اور پیسٹ بھیج دیا گیا**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **ChatWoot میں اس قسم کا پیغام معاونت یافتہ نہیں ہے۔**
   📱 اسے دیکھنے کے لیے براہ کرم **WhatsApp** کھولیں۔
 
   تفصیلات: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **فیس بک اشتہار**
+
+  **عنوان:** {{{adData.title}}}
+
+  **تفصیل:**
+  {{{adData.body}}}
+
+  **اشتہار کا لنک:** [فیس بک پر دیکھیں]({{{adData.sourceUrl}}})
+  **اشتہار کا شناختی نمبر:** {{{adData.sourceId}}}
+
+  ---
+  💬 **گاہک کا پیغام:**
+  {{{payload.body}}}

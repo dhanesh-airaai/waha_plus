@@ -1,7 +1,27 @@
 # Indonesian translations for ChatWoot integration
 locale.name: '🇮🇩 Bahasa Indonesia (Indonesian)'
+
+# Kode locale dasar - harus berupa locale BCP 47 yang valid
+# https://en.wikipedia.org/wiki/IETF_language_tag
+# WAHA menggunakannya untuk format angka, mata uang, dan tanggal/waktu
+locale.base: 'id-ID'
+
 app.inbox.contact.name: 'Integrasi WhatsApp (WAHA)'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
+
+# "opsi" dari date.toLocaleString
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+datetime:
+  locales: id-ID
+  day: 2-digit
+  month: 2-digit
+  year: numeric
+  hour: 2-digit
+  minute: 2-digit
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
+  timeZoneName: shortGeneric
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # timeZone: 'Asia/Jakarta'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -216,7 +236,19 @@ whatsapp.to.chatwoot.message.location: |-
   {{#locationMessage}}
   📍 **Lokasi yang dibagikan**
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Alamat:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Situs web:** {{url}}
+  {{/url}}
+
+  🔗 **Lihat di peta:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/locationMessage}}
 
@@ -224,13 +256,99 @@ whatsapp.to.chatwoot.message.location: |-
   📍📡 **Berbagi Lokasi Langsung**
   Buka **WhatsApp** untuk melihat pembaruan waktu nyata.
 
-  https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
+  {{#name}}
+  **{{name}}**
+  {{/name}}
+
+  {{#address}}
+  📍 **Alamat:** {{address}}
+  {{/address}}
+
+  {{#url}}
+  🌐 **Situs web:** {{url}}
+  {{/url}}
+
+  🔗 **Lihat di peta:** https://www.google.com/maps?q={{degreesLatitude}},{{degreesLongitude}}
   {{#caption}}{{caption}}{{/caption}}
   {{/liveLocationMessage}}
   {{/message}}
+
+whatsapp.to.chatwoot.message.poll: |-
+  {{#poll}}
+  📊 **Jajak Pendapat**
+
+  **{{name}}**
+  {{#options}}
+  - {{optionName}}
+  {{/options}}
+  {{/poll}}
+
+whatsapp.to.chatwoot.message.event: |-
+  {{#message}}
+  {{#eventMessage}}
+  📅 **Acara**
+
+  **{{name}}**
+  {{#description}}
+  {{description}}
+  {{/description}}
+
+  {{#location.name}}
+  📍 **Lokasi:** {{location.name}}
+  {{/location.name}}
+  {{#startTime}}
+  🕐 **Mulai:** {{startTime}}
+  {{/startTime}}
+  {{#endTime}}
+  🕐 **Selesai:** {{endTime}}
+  {{/endTime}}
+  {{#joinLink}}
+  🔗 **Tautan bergabung:** [{{joinLink}}]({{joinLink}})
+  {{/joinLink}}
+  {{/eventMessage}}
+  {{/message}}
+
+whatsapp.to.chatwoot.message.pix: |-
+  💳 **PIX - Salin dan Tempel**
+
+  {{#pixData}}
+  {{#merchantName}}
+  **{{merchantName}}**
+  {{/merchantName}}
+
+  {{#key}}
+  **Kunci PIX:** {{key}}
+  {{/key}}
+  {{#keyType}}
+  **Jenis:** {{keyType}}
+  {{/keyType}}
+  {{#totalAmount}}
+  **Jumlah:** {{totalAmountFormatted}}
+  {{/totalAmount}}
+  {{#referenceId}}
+  **Referensi:** {{referenceId}}
+  {{/referenceId}}
+
+  💳 **PIX Salin dan Tempel terkirim**
+  {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
   ⚠️ **Jenis pesan ini tidak didukung di ChatWoot.**
   📱 Silakan buka **WhatsApp** untuk melihatnya.
 
   Detail: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.facebook.ad: |-
+  📢 **IKLAN FACEBOOK**
+
+  **Judul:** {{{adData.title}}}
+
+  **Deskripsi:**
+  {{{adData.body}}}
+
+  **Tautan Iklan:** [Lihat di Facebook]({{{adData.sourceUrl}}})
+  **ID Iklan:** {{{adData.sourceId}}}
+
+  ---
+  💬 **Pesan Pelanggan:**
+  {{{payload.body}}}
