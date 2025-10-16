@@ -7,7 +7,7 @@ __metadata:
 
 "@adiwajshing/baileys@github:devlikeapro/Baileys#fork-master-2025-10-10":
   version: 7.0.0-rc.5
-  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=dad2730017ab6a24a48d3010796e8338928d0f43"
+  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=dc9b6b7589ba1d71ec85cff4a789b5709a60a714"
   dependencies:
     "@cacheable/node-cache": ^1.4.0
     "@hapi/boom": ^9.1.3
@@ -31,7 +31,7 @@ __metadata:
       optional: true
     link-preview-js:
       optional: true
-  checksum: 453dc477eee6c8df1d9aaaddcebfc5ce8b1cca72e958c6d7b742d0ef4afa3fcf1c6db06aba331d7a99596e64499af8e6ade81de0feadb4369fc567e74ddf7fa9
+  checksum: d79aca449353f170374e6647efe09a2e871219e0af176d62796f68860ad619ce715736380250521e304d3ca28c5af4baa397ee0a8875468f8c7ad026e95028b6
   languageName: node
   linkType: hard
 
@@ -8536,13 +8536,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libsignal@github:devlikeapro/libsignal-node#fork-master":
+"libsignal@git+https://github.com/whiskeysockets/libsignal-node":
   version: 2.0.1
-  resolution: "libsignal@https://github.com/devlikeapro/libsignal-node.git#commit=83bc9236ee3d96ae1747cf3ca2e505b10cf97250"
+  resolution: "libsignal@https://github.com/whiskeysockets/libsignal-node.git#commit=e81ecfc32eb74951d789ab37f7e341ab66d5fff1"
   dependencies:
     curve25519-js: ^0.0.4
     protobufjs: 6.8.8
-  checksum: 3ee39bc7cbd123fa2c1f84ff53ab4e3dacfb5a00d10944960fd72156b24a5eb5af1fa5ca31b9f25b26aab107c712d8c295c85b0bed26ad6eba6d0e3f26f38927
+  checksum: bf7a7b93000c826958d3ba6de72545675d39579a7befff56e3db561d985267e402fdf485127f6f4b1c12855a99966867f28517123fbb4b882d7ef39e83057c3d
+  languageName: node
+  linkType: hard
+
+"libsignal@github:WhiskeySockets/libsignal-node#master":
+  version: 2.0.1
+  resolution: "libsignal@https://github.com/WhiskeySockets/libsignal-node.git#commit=e81ecfc32eb74951d789ab37f7e341ab66d5fff1"
+  dependencies:
+    curve25519-js: ^0.0.4
+    protobufjs: 6.8.8
+  checksum: bf7a7b93000c826958d3ba6de72545675d39579a7befff56e3db561d985267e402fdf485127f6f4b1c12855a99966867f28517123fbb4b882d7ef39e83057c3d
   languageName: node
   linkType: hard
 
@@ -12327,6 +12337,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici@npm:^7.16.0":
+  version: 7.16.0
+  resolution: "undici@npm:7.16.0"
+  checksum: dca60e323e44c2d408e0d1f5eb540632ad4e75631d5b6fcd7791876bab54e0e263a66e5606eaa717d436b2db5988c2f4af912dfa221ce53e3fc7fcb7d224c9cd
+  languageName: node
+  linkType: hard
+
 "unicorn-magic@npm:^0.3.0":
   version: 0.3.0
   resolution: "unicorn-magic@npm:0.3.0"
@@ -12558,7 +12575,7 @@ __metadata:
     joi: ^17.13.3
     knex: ^3.1.0
     libphonenumber-js: ^1.10.36
-    libsignal: "github:devlikeapro/libsignal-node#fork-master"
+    libsignal: "github:WhiskeySockets/libsignal-node#master"
     link-preview-js: ^3.0.4
     lodash: ^4.17.21
     long: ^5.3.2
@@ -12593,6 +12610,7 @@ __metadata:
     tsconfig-paths: ^4.1.0
     typescript: 5.9.2
     ulid: ^2.3.0
+    undici: ^7.16.0
     whatsapp-web.js: "github:devlikeapro/whatsapp-web.js#fork-main-2025-09-10"
     write-file-atomic: ^6.0.0
     yaml: ^2.7.1

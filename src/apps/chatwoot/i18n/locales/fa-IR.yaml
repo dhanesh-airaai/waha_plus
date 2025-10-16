@@ -6,7 +6,7 @@ locale.name: '🇮🇷 فارسی (Persian)'
 # WAHA از آن برای نمایش اعداد، ارز و تاریخ/زمان استفاده می‌کند
 locale.base: 'fa-IR'
 
-app.inbox.contact.name: 'ادغام واتساپ (WAHA)'
+app.inbox.contact.name: 'ادغام واتساپ'
 app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/waha/core/logo.png'
 
 # گزینه‌های "options" از date.toLocaleString
@@ -282,6 +282,34 @@ whatsapp.to.chatwoot.message.poll: |-
   - {{optionName}}
   {{/options}}
   {{/poll}}
+
+whatsapp.to.chatwoot.message.list: |-
+  {{#message.listMessage}}
+  {{#title}}
+  *{{{title}}}*
+  {{/title}}
+  {{#description}}
+  {{{description}}}
+  {{/description}}
+  {{#footerText}}
+  {{{footerText}}}
+  {{/footerText}}
+
+  {{#buttonText}}
+  {{{buttonText}}}
+  {{/buttonText}}
+  {{#sections}}
+  {{#title}}
+  {{{title}}}:
+  {{/title}}
+  {{#rows}}
+  {{#title}}
+  - {{{title}}}
+  {{/title}}
+  {{/rows}}
+
+  {{/sections}}
+  {{/message.listMessage}}
 
 whatsapp.to.chatwoot.message.event: |-
   {{#message}}
