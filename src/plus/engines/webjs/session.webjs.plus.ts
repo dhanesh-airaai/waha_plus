@@ -139,7 +139,10 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
 
   async sendVoice(request) {
     const media = await this.fileToMedia(request.file);
-    media.mimetype = WAMimeType.VOICE;
+    if (request.convert) {
+      await this.convertVoice(media);
+    }
+    media.mimetype = request.file.mimetype || WAMimeType.VOICE;
     let options = this.getMessageOptions(request);
     options = {
       ...options,
@@ -180,6 +183,15 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     media.filesize = null;
   }
 
+  private async convertVoice(media: MessageMedia) {
+    let content: Buffer<ArrayBufferLike> = Buffer.from(media.data, 'base64');
+    content = await this.mediaConverter.voice(content);
+    media.data = content.toString('base64');
+    media.mimetype = WAMimeType.VOICE;
+    media.filename = null;
+    media.filesize = null;
+  }
+
   async sendButtonsReply(request: MessageButtonReply) {
     const options = this.getMessageOptions(request);
     const extra: any = {
@@ -215,7 +227,10 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   public async sendVoiceStatus(status: VoiceStatus) {
     this.checkStatusRequest(status);
     const media = await this.fileToMedia(status.file);
-    media.mimetype = WAMimeType.VOICE;
+    if (status.convert) {
+      await this.convertVoice(media);
+    }
+    media.mimetype = status.file.mimetype || WAMimeType.VOICE;
     const options = {
       sendAudioAsVoice: true,
     };
