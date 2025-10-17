@@ -3,6 +3,23 @@ import { spawn } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Logger } from 'pino';
+import { IMediaConverter } from '@waha/core/media/IConverter';
+
+function IsMP3(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 3) return false;
+
+  // ID3 header: 0x49 0x44 0x33 = 'I', 'D', '3'
+  const b0 = buffer[0]; // 0x49
+  const b1 = buffer[1]; // 0x44
+  const b2 = buffer[2]; // 0x33
+
+  const isID3 = b0 === 0x49 && b1 === 0x44 && b2 === 0x33;
+
+  // MPEG frame sync (frame starts with 0xFF Ex, e.g. FB, F3, F2)
+  const isMPEGFrame = buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0;
+
+  return isID3 || isMPEGFrame;
+}
 
 class FfmpegCommandBuilder {
   private readonly parts: string[] = [];
@@ -41,15 +58,21 @@ class FfmpegCommandBuilder {
   }
 }
 
-class Ffmpeg {
+class Ffmpeg implements IMediaConverter {
   private WhatsAppVoice = new FfmpegCommandBuilder(
-    'ffmpeg -i input.mp3 -c:a libopus -b:a 32k -ar 48000 -ac 1 output.opus',
-    'input.mp3',
+    'ffmpeg -hide_banner -loglevel error -nostdin -i input.wav -c:a libopus -b:a 32k -ar 48000 -ac 1 output.opus',
+    'input.wav',
     'output.opus',
   );
 
+  private MP3toWAV = new FfmpegCommandBuilder(
+    'ffmpeg -hide_banner -loglevel error -nostdin -y -i input.mp3 -vn -sn -dn -map 0:a:0 -map_metadata -1 -ac 1 -ar 48000 -c:a pcm_s16le output.wav',
+    'input.mp3',
+    'output.wav',
+  );
+
   private WhatsAppVideo = new FfmpegCommandBuilder(
-    'ffmpeg -i input.mp4 -c:v libx264 -map 0 -movflags +faststart output.mp4',
+    'ffmpeg -hide_banner -loglevel error -nostdin -i input.mp4 -c:v libx264 -map 0 -movflags +faststart output.mp4',
     'input.mp4',
     'output.mp4',
   );
@@ -119,6 +142,12 @@ class Ffmpeg {
    * @returns Processed audio buffer or original buffer if processing fails
    */
   public async voice(content: Buffer): Promise<Buffer> {
+    if (IsMP3(content)) {
+      // mp3 to wav to clean up the metadata
+      // https://github.com/devlikeapro/waha/issues/1393
+      content = await this.process(this.MP3toWAV, content);
+    }
+    // whatever to opus
     return this.process(this.WhatsAppVoice, content);
   }
 
