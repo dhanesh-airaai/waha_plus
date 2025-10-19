@@ -150,7 +150,7 @@ export class SessionConfig {
   })
   @IsDynamicObject()
   @IsOptional()
-  metadata?: Map<string, string>;
+  metadata?: Record<string, string>;
 
   @ApiProperty({
     example: null,
@@ -224,6 +224,12 @@ export class MeInfo {
     example: '123123@lid',
   })
   lid?: string;
+
+  @ApiProperty({
+    example: '123123:123@s.whatsapp.net',
+    description: 'Your id with device number',
+  })
+  jid?: string;
 
   pushName: string;
 }
