@@ -45,6 +45,9 @@ export class MongoMessagesRepository
   }
 
   async getByJidById(jid: string, id: string): Promise<any> {
+    if (jid === ALL_JID) {
+      return this.getBy({ id: id });
+    }
     return this.getBy({ jid: jid, id: id });
   }
 
