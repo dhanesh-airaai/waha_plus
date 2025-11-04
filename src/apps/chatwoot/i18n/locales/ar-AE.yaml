@@ -1,4 +1,4 @@
-# Arabic translations for ChatWoot integration
+# Arabic translations for WhatsApp inbox integration
 locale.name: '🇦🇪 العربية (Arabic)'
 
 # رمز اللغة الأساسي - يجب أن يكون محليًا صالحًا وفق BCP 47
@@ -12,16 +12,21 @@ app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/wah
 # "options" من date.toLocaleString
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
 datetime:
+  weekday: short
   locales: ar-AE
   day: 2-digit
-  month: 2-digit
+  month: short
   year: numeric
   hour: 2-digit
   minute: 2-digit
+  hour12: true
   # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
-  timeZoneName: shortGeneric
+  timeZoneName: short
   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   # timeZone: 'Asia/Dubai'
+
+Today: 'اليوم'
+Yesterday: 'أمس'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -51,14 +56,14 @@ whatsapp.message.removing.error: تعذر إزالة رسالة من واتسا�
 job.scheduled.error.header: فشل تنفيذ المهمة المجدولة
 
 message.from.whatsapp: |-
-  {{{text}}}
+  *📱 أرسلت من واتساب*
 
-  📱 *أرسلت من واتساب*
+  {{{text}}}
 
 message.from.api: |-
-  {{{text}}}
+  *📱 أرسلت عبر API*
 
-  📱 *أرسلت عبر API*
+  {{{text}}}
 
 message.removed.in.whatsapp: |-
   ❌ *تم حذف هذه الرسالة في واتساب*
@@ -86,11 +91,11 @@ whatsapp.contact.broadcast.suffix: 'قائمة البث'
 whatsapp.contact.status.name: 'الحالة'
 
 app.connected.message: |-
-  🔗 **متصل: جلسة واتساب إلى صندوق وارد ChatWoot**
+  🔗 **متصل: جلسة واتساب إلى صندوق الوارد**
 
-  ✅ تم توصيل جلسة واتساب **{{{name}}}** بنجاح بصندوق وارد ChatWoot هذا.
+  ✅ تم توصيل جلسة واتساب **{{{name}}}** بنجاح بهذا الصندوق الوارد.
 
-  صندوق الوارد هذا مرتبط الآن بـ **حساب واتساب** الخاص بك. يمكنك إرسال واستقبال الرسائل مباشرة من هنا — تمامًا مثل استخدام واتساب، ولكن داخل ChatWoot.
+  صندوق الوارد هذا مرتبط الآن بـ **حساب واتساب** الخاص بك. يمكنك إرسال واستقبال الرسائل مباشرة من هنا — تمامًا مثل استخدام واتساب، ولكن داخل مساحة العمل.
 
   يمكنك أيضًا إدارة جلسة واتساب المرتبطة بصندوق الوارد هذا. لعرض الإجراءات المتاحة، أرسل **help** إلى هذه المحادثة.
 
@@ -104,9 +109,9 @@ app.connected.message: |-
   لنبدأ! 🚀
 
 app.disconnected.message: |-
-  🔌 **غير متصل: جلسة واتساب من صندوق وارد ChatWoot**
+  🔌 **غير متصل: جلسة واتساب من صندوق الوارد**
 
-  ❌ تم قطع اتصال جلسة واتساب **{{{name}}}** من صندوق وارد ChatWoot هذا.
+  ❌ تم قطع اتصال جلسة واتساب **{{{name}}}** من هذا الصندوق الوارد.
 
   لن تتمكن بعد الآن من إرسال أو استقبال رسائل من واتساب.
 
@@ -117,33 +122,155 @@ app.updated.message: |-
 
   ✅ تم تحديث إعدادات جلسة واتساب **{{{name}}}**.
 
-app.commands.list: |-
-  يمكنك إدارة **تكامل واتساب** عن طريق إرسال أحد الأوامر التالية:
+cli.usage.arguments: |-
+  [الإجراء]
 
-  🖥️ **الجلسة**:
-  1. **status** - الحصول على حالة الجلسة الحالية.
-  2. **restart** - إعادة تشغيل الجلسة - سيحاول هذا إعادة توصيل حساب واتساب الخاص بك.
-  3. **start** - بدء الجلسة.
-  4. **stop** - إيقاف الجلسة.
-  5. **logout** - تسجيل الخروج من الجلسة، حتى تتمكن من مسح رمز QR وإصلاح الجلسة.
-  6. **qr** - الحصول على رمز QR للجلسة.
-  7. **screenshot** - الحصول على لقطة شاشة للجلسة (متاح فقط في محرك **WEBJS**).
-  8. **help** - الأوامر المتاحة.
+cli.usage.command: |-
+  [الأمر]
 
-  {{#commands.server}}
-  ⚙️ الخادم:
-  - **server status** - الحصول على معلومات إصدار الخادم وحالته.
-  - **server reboot** - إعادة تشغيل الخادم بسلاسة.
-  - **server reboot force** - إعادة تشغيل الخادم بالقوة.
-  {{/commands.server}}
+cli.usage.options: |-
+  [الخيارات]
 
-  أرسل **أمرًا** (غير حساس لحالة الأحرف) أو **رقم أمر** إلى هذه المحادثة.
+cli.cmd.disabled: ⛔ **تم تعطيل الأمر `{{command}}`**.
 
-app.commands.server.disabled: ⛔ **تم تعطيل أوامر الخادم**.
-
-  يرجى التواصل مع مسؤول النظام لديك.
+  يرجى الاتصال بالمسؤول الخاص بك.
 
   أرسل **help** للحصول على قائمة الأوامر المتاحة.
+
+cli.cmd.root.description: |-
+  أدِر **تكامل واتساب** الخاص بك!
+
+cli.cmd.root.sub.session: |-
+  🖥️ **الجلسة**:
+
+cli.cmd.root.sub.server: |-
+  🖥️ **الخادم**:
+
+cli.cmd.root.sub.sync: |-
+  🔄️ **المزامنة**:
+
+cli.cmd.session.status.description: |-
+  اطّلع على حالة الجلسة الحالية.
+
+cli.cmd.session.restart.description: |-
+  أعد تشغيل الجلسة.
+
+cli.cmd.session.start.description: |-
+  ابدأ الجلسة.
+
+cli.cmd.session.stop.description: |-
+  أوقف الجلسة.
+
+cli.cmd.session.logout.description: |-
+  سجّل الخروج من الجلسة لمسح رمز QR جديد واستعادة الاتصال.
+
+cli.cmd.session.qr.description: |-
+  اعرض رمز QR الخاص بالجلسة.
+
+cli.cmd.session.screenshot.description: |-
+  التقط لقطة شاشة للجلسة (متاح فقط مع محرك **WEBJS**).
+
+cli.cmd.contacts.summary: |-
+  اسحب جهات اتصال واتساب.
+
+cli.cmd.contacts.description: |-
+  👤 شغِّل `contacts pull` لبدء المزامنة أو `contacts status` لمتابعة التقدم.
+
+cli.cmd.contacts.action.description: |-
+  استخدم `start` لبدء سحب جهات الاتصال أو `status` لمراجعة المهمة النشطة.
+
+cli.cmd.contacts.pull.description: |-
+  ابدأ بسحب جهات اتصال واتساب إلى الصندوق الوارد.
+
+cli.cmd.contacts.pull.option.batch: |-
+  عدد جهات الاتصال التي يتم سحبها في كل دفعة.
+
+cli.cmd.contacts.pull.option.delay-contact: |-
+  التأخير بين مزامنة كل جهة اتصال لتجنّب حدود معدل سحب الصور.
+
+cli.cmd.contacts.pull.option.delay-batch: |-
+  التأخير بين دفعات جهات الاتصال.
+
+cli.cmd.contacts.pull.option.avatar: |-
+  اختر كيفية سحب الصور الرمزية: `skip` أو `if-missing` أو `update`.
+
+cli.cmd.contacts.pull.option.groups: |-
+  قم بتضمين جهات اتصال مجموعات واتساب في المزامنة.
+
+cli.cmd.contacts.pull.option.no-attributes: |-
+  لا تسحب سمات جهة الاتصال إذا كانت موجودة بالفعل (هذا يسرّع العملية).
+
+cli.cmd.contacts.pull.already-running: |-
+  ⏳ مهمة **سحب جهات الاتصال** تعمل بالفعل. انتظر حتى تنتهي أو أوقفها قبل بدء واحدة جديدة.
+
+  أرسل `contacts status` للاطلاع على التفاصيل.
+
+cli.cmd.options.job.attempts: |-
+  عدد مرات إعادة محاولة المهمة قبل اعتبارها فاشلة.
+
+cli.cmd.options.job.timeout: |-
+  الحد الأقصى لمدة تشغيل المهمة قبل إعادة المحاولة (يدعم قيمًا مثل `30s` أو `5m` أو `1h`).
+
+cli.cmd.contacts.status.description: |-
+  اعرض حالة مهمة السحب الحالية.
+
+cli.cmd.contacts.status.not-found: |-
+  ℹ️ لم يتم العثور على مهمة **سحب جهات الاتصال** نشطة. ابدأ واحدة باستخدام `contacts pull`.
+
+cli.cmd.server.description: |-
+  أدِر الخادم.
+
+cli.cmd.server.status.description: |-
+  اعرض إصدار الخادم وحالته.
+
+cli.cmd.server.reboot.description: |-
+  أعد تشغيل الخادم.
+
+cli.cmd.server.reboot.option.force: |-
+  فرض إعادة تشغيل فورية.
+
+cli.help.usage.title: |-
+  طريقة الاستخدام: أرسل أمراً إلى المحادثة بالشكل التالي:
+
+cli.help.commands.defaultGroup: |-
+  **الأوامر:**
+
+cli.help.arguments.title: |-
+  **المعاملات:**
+
+cli.help.options.defaultGroup: |-
+  **الخيارات:**
+
+cli.help.globalOptions.title: |-
+  **الخيارات العامة:**
+
+task.contacts.status: |-
+  👤 سحب جهات الاتصال: **{{state}}**
+  - ✅ الناجحة: {{{progress.ok}}} جهة اتصال
+  - ⚪ تم تخطيها: {{{progress.skipped}}} جهة اتصال
+  - ⚠️ الأخطاء: {{{progress.errors}}} جهة اتصال
+
+  {{#job}}
+  ⌛ الجدول الزمني:
+  - في قائمة الانتظار: {{{timestamp}}}
+  {{#processedOn}}
+  - وقت البدء: {{{processedOn}}}
+  {{/processedOn}}
+  {{#finishedOn}}
+  - وقت الانتهاء: {{{finishedOn}}}
+  {{/finishedOn}}
+  {{/job}}
+
+  {{#error}}
+  التفاصيل:
+  [{{{details.text}}}]({{{details.url}}})
+  {{/error}}
+
+task.contacts.started: |-
+  جارٍ سحب جهات الاتصال...
+
+task.contacts.progress: |-
+  سحب جهات الاتصال: ✅ {{progress.ok}}، ⚪ {{progress.skipped}}، ⚠️ {{progress.errors}}
 
 app.help.reminder: |-
   أرسل **help** للحصول على قائمة الأوامر المتاحة.
@@ -158,17 +285,17 @@ app.session.current.status: |-
   📱 **{{{name}}} ({{{id}}})**
 
 app.session.status.working: |-
-  ✅ صندوق وارد ChatWoot هذا مرتبط بـ **حساب واتساب** وجاهز لإرسال واستقبال الرسائل!
+  ✅ هذا الصندوق الوارد مرتبط بـ **حساب واتساب** وجاهز لإرسال واستقبال الرسائل!
 
   📱 **{{{name}}} ({{{id}}})**
 
 app.session.status.error: |-
-  ⚠️ **صندوق وارد ChatWoot هذا مرتبط بحساب واتساب ولكنه غير جاهز لإرسال واستقبال الرسائل!**
+  ⚠️ **هذا الصندوق الوارد مرتبط بحساب واتساب ولكنه غير جاهز لإرسال واستقبال الرسائل!**
 
   يرجى التحقق من حالة الجلسة ومحاولة إعادة تشغيلها أو تسجيل الخروج ومسح رمز QR مرة أخرى.
 
 app.session.scan.qr.code: |-
-  ⚠️ **امسح رمز QR على هاتفك لربط حساب واتساب بصندوق وارد ChatWoot هذا!**
+  ⚠️ **امسح رمز QR على هاتفك لربط حساب واتساب بهذا الصندوق الوارد!**
 
 app.server.version.and.status: |-
   **الإصدار:**
@@ -361,10 +488,25 @@ whatsapp.to.chatwoot.message.pix: |-
   {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
-  ⚠️ **هذا النوع من الرسائل غير مدعوم في ChatWoot.**
+  ⚠️ **هذا النوع من الرسائل غير مدعوم في هذا الصندوق الوارد.**
   📱 يرجى فتح **WhatsApp** لعرضه.
 
   التفاصيل: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.album: |-
+  📷 **تم استلام رسالة ألبوم**
+
+  {{#totalCount}}
+  تم استلام ألبوم يحتوي على **{{totalCount}}** ملف وسائط.
+  {{#expectedImageCount}}
+  📸 صور: **{{expectedImageCount}}**
+  {{/expectedImageCount}}
+  {{#expectedVideoCount}}
+  🎥 فيديوهات: **{{expectedVideoCount}}**
+  {{/expectedVideoCount}}
+
+  سيتم تسليم ملفات الوسائط في الرسائل التالية.
+  {{/totalCount}}
 
 whatsapp.to.chatwoot.message.facebook.ad: |-
   📢 **إعلان فيسبوك**
@@ -380,3 +522,138 @@ whatsapp.to.chatwoot.message.facebook.ad: |-
   ---
   💬 **رسالة العميل:**
   {{{payload.body}}}
+whatsapp.history.message.wrapper: |-
+  {{{content}}}
+  `{{#history}}📥{{/history}}🗓️ {{{timestamp}}}`
+
+UNKNOWN: غير معروف
+ERROR: خطأ
+PENDING: جارٍ الإرسال
+SERVER: الخادم
+DEVICE: الجهاز
+READ: مقروء
+PLAYED: مُشغَّل
+whatsapp.to.chatwoot.message.has.media.no.media: |-
+  {{#content}}
+  {{{content}}}
+
+  {{/content}}
+  🖼️⚠️ **تحتوي الرسالة على وسائط ولكن تعذّر تنزيلها**
+  📱 يرجى فتح **واتساب** للاطلاع عليها.
+
+  {{^content}}
+  التفاصيل: [{{{details.text}}}]({{{details.url}}})
+  {{/content}}
+cli.cmd.root.sub.queue: '🧩 **قائمة الانتظار**:'
+cli.cmd.messages.summary: سحب رسائل واتساب.
+cli.cmd.messages.description:
+  💬 نفّذ `messages pull` لبدء مزامنة الرسائل أو `messages status` لمتابعة
+  التقدم.
+cli.cmd.messages.action.description:
+  '`pull` لبدء سحب الرسائل أو `status` لمراجعة المهمة النشطة.'
+cli.cmd.messages.pull.option.chat: حصر السحب على معرّف دردشة واتساب محدد.
+cli.cmd.messages.pull.option.force:
+  إجبار صندوق الوارد على إنشاء الرسائل حتى لو كانت رسالة واتساب موجودة بالفعل في
+  مخطط المحادثة.
+cli.cmd.messages.pull.option.batch: عدد الرسائل التي يتم سحبها في كل دفعة.
+cli.cmd.messages.pull.option.progress:
+  الإبلاغ عن التقدم كل عدد N من الرسائل. القيمة 0 لتعطيل التقارير.
+cli.cmd.messages.pull.option.no-dm: تخطي الرسائل الخاصة أثناء سحب السجل.
+cli.cmd.messages.pull.option.groups: تضمين مجموعات واتساب أثناء سحب السجل.
+cli.cmd.messages.pull.option.channels: تضمين قنوات واتساب أثناء سحب السجل.
+cli.cmd.messages.pull.option.status: تضمين حالات واتساب أثناء سحب السجل.
+cli.cmd.messages.pull.option.broadcast: تضمين قوائم البث أثناء سحب السجل.
+cli.cmd.messages.pull.option.media:
+  تنزيل المرفقات (صور، فيديوهات، ملفات) أثناء سحب السجل.
+cli.cmd.messages.pull.option.pause:
+  وضع مهمة سحب الرسائل في قائمة الانتظار وهي متوقفة مؤقتًا وإيقاف معالجة رسائل
+  واتساب الجديدة حتى تكتمل.
+cli.cmd.messages.pull.option.resolve-conversations:
+  وضع علامة على المحادثات كمحلولة بعد معالجة كل رسائل السجل.
+cli.cmd.messages.pull.error.pause-no-queue:
+  ⛔ لا يمكن استخدام `--pause` لأن أمر **queue** معطَّل في هذا التكوين.
+cli.cmd.queue.description: إدارة قوائم الانتظار.
+cli.cmd.queue.summary: تنفيذ إجراءات على قوائم الانتظار.
+cli.cmd.queue.action.description: اختر إجراءً.
+cli.cmd.queue.status.description: عرض حالة قائمة الانتظار.
+cli.cmd.queue.argument.name:
+  'اسم قائمة الانتظار: `inbox` أو `whatsapp` (اختياري).'
+cli.cmd.queue.start.description: بدء قائمة الانتظار بالاسم.
+cli.cmd.queue.stop.description: إيقاف قائمة الانتظار بالاسم.
+cli.cmd.queue.paused:
+  ⚪🧩 تم إيقاف قوائم الانتظار مؤقتًا. أرسل `queue status` للتحقق من الحالة.
+cli.cmd.queue.resumed:
+  🟢🧩 تم استئناف قوائم الانتظار. أرسل `queue status` للتحقق من الحالة.
+cli.cmd.queue.status.result: >-
+  📊 حالة قائمة الانتظار:
+
+  {{#queues}}
+
+  - **{{name}}**: {{#locked}}🔒{{/locked}}{{#paused}}⚪ متوقفة
+  مؤقتًا{{/paused}}{{^paused}}🟢 تعمل{{/paused}}
+
+  {{/queues}}
+cli.cmd.messages.pull.option.timeout-media:
+  تحديد مدة محاولة تنزيل الوسائط لكل رسالة.
+cli.cmd.messages.pull.argument.end:
+  تحديد نقطة نهاية نافذة السحب؛ على سبيل المثال، `2d` يعني التوقف قبل يومين.
+cli.cmd.messages.pull.argument.start:
+  تحديد نقطة بداية نافذة السحب؛ على سبيل المثال، `1d` يبدأ قبل يوم واحد (القيمة
+  الافتراضية `0d` أي الآن).
+cli.cmd.messages.pull.already-running: >-
+  ⏳ مهمة **Pull Messages** تعمل بالفعل لـ **{{{chat}}}**. انتظر حتى تنتهي أو
+  أوقفها قبل بدء مهمة جديدة.
+
+
+  أرسل `messages status` للحصول على التفاصيل.
+cli.cmd.messages.status.not-found:
+  ℹ️ لم يتم العثور على مهمة **Pull Messages** نشطة. ابدأ واحدة باستخدام
+  `messages pull`.
+cli.cmd.messages.pull.no-chats-found:
+  لم يتم العثور على دردشات واتساب للسحب خلال هذه الفترة.
+cli.cmd.contacts.pull.option.progress:
+  الإبلاغ عن التقدم كل عدد N من جهات الاتصال. القيمة 0 لتعطيل التقارير.
+cli.cmd.contacts.pull.option.lids:
+  تضمين جهات اتصال واتساب LID (مجهولة) في المزامنة.
+task.contacts.completed:
+  👤✅ تم إنهاء جهات الاتصال → 🆕 {{progress.created}}، 🔄 {{progress.updated}}،
+  ⚪ {{progress.skipped}}، 🔴 {{progress.errors}}، 🖼️
+  {{progress.avatar.updated}}
+task.messages.started: ⏳ جارٍ سحب الرسائل 💬 {{{chat}}} ⏱️ {{{period}}}...
+task.messages.details:
+  أرسل "{{{prefix}}}messages status" للاطلاع على المزيد من التفاصيل.
+task.messages.progress:
+  '⏳ رسائل {{{chat}}}: 🆕 {{progress.ok}}، 🟢 {{progress.exists}}، ⚪
+  {{progress.ignored}}، 🔴 {{progress.errors}}{{#messages.last}} | 📅
+  {{{messages.last}}}{{/messages.last}}'
+task.messages.completed:
+  ✅ رسائل {{{chat}}} خلال {{{period}}} → 🆕 {{progress.ok}}، 🟢
+  {{progress.exists}}، ⚪ {{progress.ignored}}، 🔴 {{progress.errors}}
+task.messages.status: |-
+  رسائل **{{{chat}}}** خلال الفترة ⏱️ **{{{period}}}**. ⚙️ حالة المهمة: **{{state}}**.
+
+  🗨️ الرسائل:
+  - 🆕 تم الإنشاء: **{{{progress.ok}}}**
+  - 🟢 موجودة مسبقًا: {{{progress.exists}}}
+  - ⚪ تم تجاهلها: {{{progress.ignored}}}
+  - 🔴 أخطاء: {{{progress.errors}}}
+  {{#messages.first}}
+  - 🗓️ الأقدم: **{{{messages.first}}}**
+  {{/messages.first}}
+  {{#messages.last}}
+  - 🗓️ الأحدث: **{{{messages.last}}}**
+  {{/messages.last}}
+
+  💬 دردشات واتساب:
+  - 🆕 رسائل جديدة في **{{{chats}}}** دردشات
+  {{#options.resolveConversations}}
+
+  🗣️ المحادثات:
+  - 🟢 تم حلها: **{{{progress.conversationResolve.success}}}**
+  {{#progress.conversationResolve.error}}
+  - 🔴 أخطاء: **{{{progress.conversationResolve.error}}}**
+  {{/progress.conversationResolve.error}}
+  {{/options.resolveConversations}}
+
+  التفاصيل: 
+  [{{{details.text}}}]({{{details.url}}})

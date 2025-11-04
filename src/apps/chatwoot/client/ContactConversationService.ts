@@ -3,7 +3,10 @@ import ChatwootClient, {
   public_contact_create_update_payload,
 } from '@figuro/chatwoot-sdk';
 import { ILogger } from '@waha/apps/app_sdk/ILogger';
-import { ContactService } from '@waha/apps/chatwoot/client/ContactService';
+import {
+  AvatarUpdateMode,
+  ContactService,
+} from '@waha/apps/chatwoot/client/ContactService';
 import { Conversation } from '@waha/apps/chatwoot/client/Conversation';
 import {
   ContactIds,
@@ -40,7 +43,7 @@ export class ContactConversationService {
     this.cache = CacheForConfig(config);
   }
 
-  private async upsertByContactInfo(
+  public async upsertByContactInfo(
     contactInfo: ContactInfo,
   ): Promise<ContactIds> {
     const chatId = contactInfo.ChatId();
@@ -50,55 +53,42 @@ export class ContactConversationService {
       return this.cache.get(chatId);
     }
 
-    //
-    // Find or create contact
-    //
-    let contact = await this.contactService.searchByAnyID(chatId);
-    if (!contact) {
-      const request = await contactInfo.PublicContactCreate();
-      contact = await this.contactService.create(chatId, request);
-    }
+    let [cwContact, created] =
+      await this.contactService.findOrCreateContact(contactInfo);
 
     // Update custom attributes - always
-    const attributes = await contactInfo.Attributes();
-    this.logger.info(
-      `Updating if required contact custom attributes for chat.id: ${chatId}, contact.id: ${contact.data.id}`,
+    this.logger.debug(
+      `Updating if required contact custom attributes for chat.id: ${chatId}, contact.id: ${cwContact.data.id}`,
     );
-    await this.contactService.upsertCustomAttributes(contact.data, attributes);
-
-    // Update Avatar if nothing, but keep the original one if any
-    if (!contact.data.thumbnail) {
-      const avatarUrl = await contactInfo.AvatarUrl().catch((err) => {
-        this.logger.warn(
-          `Error getting avatar for chat.id from WhatsApp: ${chatId}`,
-        );
-        this.logger.warn(err);
-        return null;
-      });
-      if (avatarUrl) {
-        this.contactService.updateAvatarUrlSafe(contact.data.id, avatarUrl);
-      }
-    }
-
-    this.logger.info(
-      `Using contact for chat.id: ${chatId}, contact.id: ${contact.data.id}, contact.sourceId: ${contact.sourceId}`,
+    const attributes = await contactInfo.Attributes();
+    await this.contactService.upsertCustomAttributes(
+      cwContact.data,
+      attributes,
+    );
+    await this.contactService.updateAvatar(
+      cwContact,
+      contactInfo,
+      AvatarUpdateMode.IF_MISSING,
+    );
+    this.logger.debug(
+      `Using contact for chat.id: ${chatId}, contact.id: ${cwContact.data.id}, contact.sourceId: ${cwContact.sourceId}`,
     );
 
     //
     // Get or create a conversation for this inbox
     //
     const conversation = await this.conversationService.upsert({
-      id: contact.data.id,
-      sourceId: contact.sourceId,
+      id: cwContact.data.id,
+      sourceId: cwContact.sourceId,
     });
-    this.logger.info(
-      `Using conversation for chat.id: ${chatId}, conversation.id: ${conversation.id}, contact.id: ${contact.sourceId}`,
+    this.logger.debug(
+      `Using conversation for chat.id: ${chatId}, conversation.id: ${conversation.id}, contact.id: ${cwContact.sourceId}`,
     );
 
     // Save to cache
     const ids = {
       id: conversation.id,
-      sourceId: contact.sourceId,
+      sourceId: cwContact.sourceId,
     };
     this.cache.set(chatId, ids);
     return ids;
@@ -145,7 +135,7 @@ export class ContactConversationService {
   }
 
   public ResetCache(chatIds: Array<string>) {
-    this.logger.info(`Resetting cache chat ids: ${chatIds.join(', ')}`);
+    this.logger.debug(`Resetting cache chat ids: ${chatIds.join(', ')}`);
     for (const chatId of chatIds) {
       this.cache.delete(chatId);
     }
@@ -158,7 +148,7 @@ export class ContactConversationService {
       }
       const current = this.cache.get(chatId);
       if (current.id !== contactId) {
-        this.logger.info(
+        this.logger.debug(
           `Resetting cache for chat id: ${chatId}, value changed from ${current} to ${contactId}`,
         );
         this.cache.delete(chatId);

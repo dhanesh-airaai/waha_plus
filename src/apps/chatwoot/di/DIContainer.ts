@@ -15,7 +15,7 @@ import {
 } from '@waha/apps/chatwoot/dto/config.dto';
 import { ChatWootErrorReporter } from '@waha/apps/chatwoot/error/ChatWootErrorReporter';
 import { Locale } from '@waha/apps/chatwoot/i18n/locale';
-import { WAHASelf } from '@waha/apps/chatwoot/session/WAHASelf';
+import { WAHASelf } from '@waha/apps/app_sdk/waha/WAHASelf';
 import {
   ChatwootMessageRepository,
   MessageMappingRepository,
@@ -109,7 +109,7 @@ export class DIContainer {
    * @returns ContactService instance
    */
   @CacheSync()
-  private ContactService(): ContactService {
+  public ContactService(): ContactService {
     return new ContactService(
       this.config,
       this.AccountAPI(),
@@ -133,7 +133,7 @@ export class DIContainer {
    * @returns ConversationService instance
    */
   @CacheSync()
-  private ConversationService(): ConversationService {
+  public ConversationService(): ConversationService {
     return new ConversationService(
       this.config,
       this.AccountAPI(),
@@ -212,6 +212,7 @@ export class DIContainer {
       linkPreview: LinkPreview.OFF,
       commands: {
         server: true,
+        queue: false,
       },
       conversations: {
         sort: ConversationSort.created_newest,

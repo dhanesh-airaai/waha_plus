@@ -4,7 +4,6 @@ import { HasBeenRetried } from '@waha/apps/app_sdk/JobUtils';
 import { MessageType } from '@waha/apps/chatwoot/client/types';
 import { ScheduledData } from '@waha/apps/chatwoot/consumers/types';
 import { DIContainer } from '@waha/apps/chatwoot/di/DIContainer';
-import { ChatWootAppConfig } from '@waha/apps/chatwoot/dto/config.dto';
 import { SessionManager } from '@waha/core/abc/manager.abc';
 import { RMutexService } from '@waha/modules/rmutex/rmutex.service';
 import { Job } from 'bullmq';

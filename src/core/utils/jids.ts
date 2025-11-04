@@ -29,14 +29,27 @@ export function isLidUser(jid: string) {
   return typeof jid === 'string' && jid.endsWith('@lid');
 }
 
-export function isPnUser(jid: string) {
-  return (
-    typeof jid === 'string' &&
-    (jid.endsWith('@s.whatsapp.net') || jid.endsWith('@c.us'))
-  );
+export function isNullJid(jid: string) {
+  if (!jid) {
+    return false;
+  }
+  return jid === '0@c.us' || jid === '0@s.whatsapp.net';
 }
 
-function normalizeJid(jid: string): string {
+export function isPnUser(jid: string) {
+  if (typeof jid !== 'string') {
+    return false;
+  }
+  if (!jid.endsWith('@s.whatsapp.net') && !jid.endsWith('@c.us')) {
+    return false;
+  }
+  if (isNullJid(jid)) {
+    return false;
+  }
+  return true;
+}
+
+export function normalizeJid(jid: string): string {
   return jid.replace(/:\d+(?=@)/, '');
 }
 
@@ -65,6 +78,7 @@ export function toJID(chatId) {
 }
 
 export interface IgnoreJidConfig {
+  dm?: boolean;
   status: boolean;
   groups: boolean;
   channels: boolean;
@@ -86,6 +100,10 @@ export class JidFilter {
     } else if (this.ignore.groups && isJidGroup(jid)) {
       return false;
     } else if (this.ignore.channels && isJidNewsletter(jid)) {
+      return false;
+    } else if (this.ignore.dm && isLidUser(jid)) {
+      return false;
+    } else if (this.ignore.dm && isPnUser(jid)) {
       return false;
     }
     return true;

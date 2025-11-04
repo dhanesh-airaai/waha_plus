@@ -1,4 +1,4 @@
-# Bengali translations for ChatWoot integration
+# Bengali translations for WhatsApp inbox integration
 locale.name: '🇧🇩 বাংলা (Bengali)'
 
 # বেস লোকেল কোড - এটি একটি বৈধ BCP 47 লোকেল হতে হবে
@@ -12,16 +12,21 @@ app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/wah
 # date.toLocaleString এর "options"
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
 datetime:
+  weekday: short
   locales: bn-BD
   day: 2-digit
-  month: 2-digit
+  month: short
   year: numeric
   hour: 2-digit
   minute: 2-digit
+  hour12: true
   # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
-  timeZoneName: shortGeneric
+  timeZoneName: short
   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   # timeZone: 'Asia/Dhaka'
+
+Today: 'আজ'
+Yesterday: 'গতকাল'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -51,14 +56,14 @@ whatsapp.message.removing.error: হোয়াটসঅ্যাপ থেক�
 job.scheduled.error.header: নির্ধারিত কাজ সম্পাদন করতে ব্যর্থ হয়েছে
 
 message.from.whatsapp: |-
-  {{{text}}}
+  *📱 হোয়াটসঅ্যাপ থেকে পাঠানো হয়েছে*
 
-  📱 *হোয়াটসঅ্যাপ থেকে পাঠানো হয়েছে*
+  {{{text}}}
 
 message.from.api: |-
-  {{{text}}}
+  *📱 API এর মাধ্যমে পাঠানো হয়েছে*
 
-  📱 *API এর মাধ্যমে পাঠানো হয়েছে*
+  {{{text}}}
 
 message.removed.in.whatsapp: |-
   ❌ *এই বার্তাটি হোয়াটসঅ্যাপে মুছে ফেলা হয়েছে*
@@ -86,11 +91,11 @@ whatsapp.contact.broadcast.suffix: 'প্রচার তালিকা'
 whatsapp.contact.status.name: 'স্ট্যাটাস'
 
 app.connected.message: |-
-  🔗 **সংযুক্ত: হোয়াটসঅ্যাপ সেশন থেকে ChatWoot ইনবক্স**
+  🔗 **সংযুক্ত: হোয়াটসঅ্যাপ সেশন থেকে ইনবক্স**
 
-  ✅ হোয়াটসঅ্যাপ সেশন **{{{name}}}** সফলভাবে এই ChatWoot ইনবক্সের সাথে সংযুক্ত করা হয়েছে।
+  ✅ হোয়াটসঅ্যাপ সেশন **{{{name}}}** সফলভাবে এই ইনবক্সের সাথে সংযুক্ত করা হয়েছে।
 
-  এই ইনবক্সটি এখন আপনার **হোয়াটসঅ্যাপ অ্যাকাউন্টের** সাথে সংযুক্ত। আপনি এখান থেকে সরাসরি বার্তা পাঠাতে এবং গ্রহণ করতে পারেন — ঠিক হোয়াটসঅ্যাপ ব্যবহার করার মতো, কিন্তু ChatWoot এর ভিতরে।
+  এই ইনবক্সটি এখন আপনার **হোয়াটসঅ্যাপ অ্যাকাউন্টের** সাথে সংযুক্ত। আপনি এখান থেকে সরাসরি বার্তা পাঠাতে এবং গ্রহণ করতে পারেন — ঠিক হোয়াটসঅ্যাপ ব্যবহার করার মতো, কিন্তু এই ওয়ার্কস্পেসের ভিতরে।
 
   আপনি এই ইনবক্সের সাথে সংযুক্ত হোয়াটসঅ্যাপ সেশনও পরিচালনা করতে পারেন। উপলব্ধ কার্যগুলি দেখতে, এই চ্যাটে **help** পাঠান।
 
@@ -104,9 +109,9 @@ app.connected.message: |-
   চলুন শুরু করা যাক! 🚀
 
 app.disconnected.message: |-
-  🔌 **সংযোগ বিচ্ছিন্ন: হোয়াটসঅ্যাপ সেশন থেকে ChatWoot ইনবক্স**
+  🔌 **সংযোগ বিচ্ছিন্ন: হোয়াটসঅ্যাপ সেশন থেকে ইনবক্স**
 
-  ❌ হোয়াটসঅ্যাপ সেশন **{{{name}}}** এই ChatWoot ইনবক্স থেকে সংযোগ বিচ্ছিন্ন করা হয়েছে।
+  ❌ হোয়াটসঅ্যাপ সেশন **{{{name}}}** এই ইনবক্স থেকে সংযোগ বিচ্ছিন্ন করা হয়েছে।
 
   আপনি আর হোয়াটসঅ্যাপ থেকে বার্তা পাঠাতে বা গ্রহণ করতে পারবেন না।
 
@@ -117,33 +122,155 @@ app.updated.message: |-
 
   ✅ হোয়াটসঅ্যাপ সেশন **{{{name}}}** এর সেটিংস আপডেট করা হয়েছে।
 
-app.commands.list: |-
-  আপনি নিম্নলিখিত কমান্ডগুলির একটি পাঠিয়ে **হোয়াটসঅ্যাপ ইন্টিগ্রেশন** পরিচালনা করতে পারেন:
+cli.usage.arguments: |-
+  [অ্যাকশন]
 
+cli.usage.command: |-
+  [কমান্ড]
+
+cli.usage.options: |-
+  [বিকল্প]
+
+cli.cmd.disabled: ⛔ **`{{command}}` কমান্ডটি নিষ্ক্রিয় করা হয়েছে**।
+
+  অনুগ্রহ করে আপনার প্রশাসকের সঙ্গে যোগাযোগ করুন।
+
+  উপলব্ধ কমান্ডগুলির তালিকা পেতে **help** পাঠান।
+
+cli.cmd.root.description: |-
+  আপনার **হোয়াটসঅ্যাপ ইন্টিগ্রেশন** পরিচালনা করুন!
+
+cli.cmd.root.sub.session: |-
   🖥️ **সেশন**:
-  1. **status** - বর্তমান সেশনের স্ট্যাটাস পান।
-  2. **restart** - সেশন পুনরায় চালু করুন - এটি আপনার হোয়াটসঅ্যাপ অ্যাকাউন্ট পুনরায় সংযোগ করার চেষ্টা করবে।
-  3. **start** - সেশন শুরু করুন।
-  4. **stop** - সেশন বন্ধ করুন।
-  5. **logout** - সেশন থেকে লগআউট করুন, যাতে আপনি QR কোড স্ক্যান করতে পারেন এবং সেশন মেরামত করতে পারেন।
-  6. **qr** - সেশনের জন্য QR কোড পান।
-  7. **screenshot** - সেশনের স্ক্রিনশট পান (শুধুমাত্র **WEBJS** ইঞ্জিনে উপলব্ধ)।
-  8. **help** - উপলব্ধ কমান্ডগুলি।
 
-  {{#commands.server}}
-  ⚙️ সার্ভার:
-  - **server status** - সার্ভারের সংস্করণ এবং স্ট্যাটাস তথ্য পান।
-  - **server reboot** - সার্ভার সুন্দরভাবে পুনরায় চালু করুন।
-  - **server reboot force** - সার্ভার জোর করে পুনরায় চালু করুন।
-  {{/commands.server}}
+cli.cmd.root.sub.server: |-
+  🖥️ **সার্ভার**:
 
-  এই কথোপকথনে একটি **কমান্ড** (কেস সংবেদনশীল নয়) বা **কমান্ড নম্বর** পাঠান।
+cli.cmd.root.sub.sync: |-
+  🔄️ **সিঙ্ক**:
 
-app.commands.server.disabled: ⛔ **সার্ভার কমান্ড নিষ্ক্রিয় করা হয়েছে**।
+cli.cmd.session.status.description: |-
+  বর্তমান সেশনের স্ট্যাটাস দেখুন।
 
-  দয়া করে আপনার প্রশাসকের সাথে যোগাযোগ করুন।
+cli.cmd.session.restart.description: |-
+  সেশন পুনরায় চালু করুন।
 
-  উপলব্ধ কমান্ডের তালিকা পেতে **help** পাঠান।
+cli.cmd.session.start.description: |-
+  সেশন শুরু করুন।
+
+cli.cmd.session.stop.description: |-
+  সেশন বন্ধ করুন।
+
+cli.cmd.session.logout.description: |-
+  সংযোগ পুনরুদ্ধার করতে নতুন QR কোড স্ক্যান করার জন্য সেশন থেকে লগ আউট করুন।
+
+cli.cmd.session.qr.description: |-
+  সেশনের QR কোড দেখান।
+
+cli.cmd.session.screenshot.description: |-
+  সেশনের স্ক্রিনশট নিন (শুধুমাত্র **WEBJS** ইঞ্জিনে উপলব্ধ)।
+
+cli.cmd.contacts.summary: |-
+  হোয়াটসঅ্যাপ কনট্যাক্টস আনুন।
+
+cli.cmd.contacts.description: |-
+  👤 সিঙ্ক শুরু করতে `contacts pull` চালান বা অগ্রগতি দেখতে `contacts status` চালান।
+
+cli.cmd.contacts.action.description: |-
+  `start` দিয়ে কনট্যাক্ট টানা শুরু করুন বা `status` দিয়ে সক্রিয় কাজ পরীক্ষা করুন।
+
+cli.cmd.contacts.pull.description: |-
+  হোয়াটসঅ্যাপ কনট্যাক্টস ইনবক্সে আনা শুরু করুন।
+
+cli.cmd.contacts.pull.option.batch: |-
+  প্রতি ব্যাচে কত কনট্যাক্ট টানা হবে।
+
+cli.cmd.contacts.pull.option.delay-contact: |-
+  প্রতিটি কনট্যাক্ট সিঙ্কের মাঝে বিলম্ব, যাতে অ্যাভাটার টানার সময় রেট লিমিট এড়ানো যায়।
+
+cli.cmd.contacts.pull.option.delay-batch: |-
+  প্রতিটি ব্যাচের মাঝে বিলম্ব।
+
+cli.cmd.contacts.pull.option.avatar: |-
+  কনট্যাক্টের অ্যাভাটার কীভাবে টানবেন নির্ধারণ করুন: `skip`, `if-missing`, অথবা `update`।
+
+cli.cmd.contacts.pull.option.groups: |-
+  সিঙ্কে WhatsApp গ্রুপ কনট্যাক্ট অন্তর্ভুক্ত করুন।
+
+cli.cmd.contacts.pull.option.no-attributes: |-
+  কনট্যাক্ট আগেই থাকলে তার অ্যাট্রিবিউট টানবেন না (এতে প্রক্রিয়া দ্রুত হয়)।
+
+cli.cmd.contacts.pull.already-running: |-
+  ⏳ **Pull Contacts** কাজটি ইতিমধ্যেই চলছে। এটি শেষ হওয়া পর্যন্ত অপেক্ষা করুন বা নতুন কাজ শুরু করার আগে থামান।
+
+  বিস্তারিত জানতে `contacts status` পাঠান।
+
+cli.cmd.options.job.attempts: |-
+  কোনো কাজ ব্যর্থ ঘোষণা করার আগে কয়বার পুনরায় চেষ্টা করা হবে।
+
+cli.cmd.options.job.timeout: |-
+  কাজ পুনরায় চেষ্টা করার আগে সর্বোচ্চ চালনার সময় (যেমন `30s`, `5m`, `1h`)।
+
+cli.cmd.contacts.status.description: |-
+  চলমান টানার কাজের অবস্থা দেখান।
+
+cli.cmd.contacts.status.not-found: |-
+  ℹ️ কোনো সক্রিয় **Pull Contacts** কাজ পাওয়া যায়নি। `contacts pull` দিয়ে একটি শুরু করুন।
+
+cli.cmd.server.description: |-
+  সার্ভার পরিচালনা করুন।
+
+cli.cmd.server.status.description: |-
+  সার্ভারের সংস্করণ এবং স্ট্যাটাস দেখান।
+
+cli.cmd.server.reboot.description: |-
+  সার্ভার পুনরায় চালু করুন।
+
+cli.cmd.server.reboot.option.force: |-
+  অবিলম্বে রিবুট করতে বাধ্য করুন।
+
+cli.help.usage.title: |-
+  ব্যবহার: কথোপকথনে নীচের ফরম্যাটে একটি কমান্ড পাঠান:
+
+cli.help.commands.defaultGroup: |-
+  **কমান্ডসমূহ:**
+
+cli.help.arguments.title: |-
+  **আর্গুমেন্টসমূহ:**
+
+cli.help.options.defaultGroup: |-
+  **বিকল্পসমূহ:**
+
+cli.help.globalOptions.title: |-
+  **গ্লোবাল বিকল্পসমূহ:**
+
+task.contacts.status: |-
+  👤 কনট্যাক্ট টানা: **{{state}}**
+  - ✅ সফল: {{{progress.ok}}} কনট্যাক্ট
+  - ⚪ এড়িয়ে গেছে: {{{progress.skipped}}} কনট্যাক্ট
+  - ⚠️ ত্রুটি: {{{progress.errors}}} কনট্যাক্ট
+
+  {{#job}}
+  ⌛ সময়রেখা:
+  - কিউ হয়েছে: {{{timestamp}}}
+  {{#processedOn}}
+  - শুরু হয়েছে: {{{processedOn}}}
+  {{/processedOn}}
+  {{#finishedOn}}
+  - শেষ হয়েছে: {{{finishedOn}}}
+  {{/finishedOn}}
+  {{/job}}
+
+  {{#error}}
+  বিস্তারিত:
+  [{{{details.text}}}]({{{details.url}}})
+  {{/error}}
+
+task.contacts.started: |-
+  কনট্যাক্ট টানা হচ্ছে...
+
+task.contacts.progress: |-
+  কনট্যাক্ট টানা: ✅ {{progress.ok}}, ⚪ {{progress.skipped}}, ⚠️ {{progress.errors}}
 
 app.help.reminder: |-
   উপলব্ধ কমান্ডগুলির তালিকা পেতে **help** পাঠান।
@@ -158,17 +285,17 @@ app.session.current.status: |-
   📱 **{{{name}}} ({{{id}}})**
 
 app.session.status.working: |-
-  ✅ এই ChatWoot ইনবক্স **হোয়াটসঅ্যাপ অ্যাকাউন্টের** সাথে সংযুক্ত এবং বার্তা পাঠাতে ও গ্রহণ করতে প্রস্তুত!
+  ✅ এই ইনবক্সটি আপনার **হোয়াটসঅ্যাপ অ্যাকাউন্টের** সাথে সংযুক্ত এবং বার্তা পাঠাতে ও গ্রহণ করতে প্রস্তুত!
 
   📱 **{{{name}}} ({{{id}}})**
 
 app.session.status.error: |-
-  ⚠️ **এই ChatWoot ইনবক্স হোয়াটসঅ্যাপ অ্যাকাউন্টের সাথে সংযুক্ত কিন্তু বার্তা পাঠাতে ও গ্রহণ করতে প্রস্তুত নয়!**
+  ⚠️ **এই ইনবক্সটি হোয়াটসঅ্যাপ অ্যাকাউন্টের সাথে সংযুক্ত কিন্তু বার্তা পাঠাতে ও গ্রহণ করতে প্রস্তুত নয়!**
 
   অনুগ্রহ করে সেশনের স্ট্যাটাস পরীক্ষা করুন এবং এটি পুনরায় চালু করার চেষ্টা করুন অথবা লগআউট করুন এবং QR কোড আবার স্ক্যান করুন।
 
 app.session.scan.qr.code: |-
-  ⚠️ **এই ChatWoot ইনবক্সের সাথে হোয়াটসঅ্যাপ অ্যাকাউন্ট লিঙ্ক করতে আপনার ফোনে QR কোড স্ক্যান করুন!**
+  ⚠️ **এই ইনবক্সের সাথে হোয়াটসঅ্যাপ অ্যাকাউন্ট লিঙ্ক করতে আপনার ফোনে QR কোড স্ক্যান করুন!**
 
 app.server.version.and.status: |-
   **সংস্করণ:**
@@ -361,10 +488,25 @@ whatsapp.to.chatwoot.message.pix: |-
   {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
-  ⚠️ **এই ধরনের বার্তা ChatWoot-এ সমর্থিত নয়।**
+  ⚠️ **এই ধরনের বার্তা এই ইনবক্সে সমর্থিত নয়।**
   📱 এটি দেখতে অনুগ্রহ করে **WhatsApp** খুলুন।
 
   বিস্তারিত: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.album: |-
+  📷 **অ্যালবাম বার্তা প্রাপ্ত**
+
+  {{#totalCount}}
+  **{{totalCount}}** মিডিয়া ফাইল সহ একটি অ্যালবাম প্রাপ্ত হয়েছে।
+  {{#expectedImageCount}}
+  📸 ছবি: **{{expectedImageCount}}**
+  {{/expectedImageCount}}
+  {{#expectedVideoCount}}
+  🎥 ভিডিও: **{{expectedVideoCount}}**
+  {{/expectedVideoCount}}
+
+  মিডিয়া ফাইলগুলি পরবর্তী বার্তাগুলিতে সরবরাহ করা হবে।
+  {{/totalCount}}
 
 whatsapp.to.chatwoot.message.facebook.ad: |-
   📢 **ফেসবুক বিজ্ঞাপন**
@@ -380,3 +522,141 @@ whatsapp.to.chatwoot.message.facebook.ad: |-
   ---
   💬 **গ্রাহকের বার্তা:**
   {{{payload.body}}}
+whatsapp.history.message.wrapper: |-
+  {{{content}}}
+  `{{#history}}📥{{/history}}🗓️ {{{timestamp}}}`
+
+UNKNOWN: অজানা
+ERROR: ত্রুটি
+PENDING: পাঠানো হচ্ছে
+SERVER: সার্ভার
+DEVICE: ডিভাইস
+READ: পড়া হয়েছে
+PLAYED: চালানো হয়েছে
+whatsapp.to.chatwoot.message.has.media.no.media: |-
+  {{#content}}
+  {{{content}}}
+
+  {{/content}}
+  🖼️⚠️ **বার্তায় মিডিয়া আছে, কিন্তু আমরা এটি ডাউনলোড করতে পারিনি**
+  📱 দেখার জন্য অনুগ্রহ করে **WhatsApp** খুলুন।
+
+  {{^content}}
+  বিস্তারিত: [{{{details.text}}}]({{{details.url}}})
+  {{/content}}
+cli.cmd.root.sub.queue: '🧩 **কিউ**:'
+cli.cmd.messages.summary: WhatsApp বার্তা টানুন।
+cli.cmd.messages.description:
+  💬 বার্তা সিঙ্ক শুরু করতে `messages pull` চালান অথবা অগ্রগতি দেখতে `messages
+  status` চালান।
+cli.cmd.messages.action.description:
+  বার্তা টানতে `pull` ব্যবহার করুন অথবা সক্রিয় কাজ দেখার জন্য `status`।
+cli.cmd.messages.pull.option.chat:
+  নির্দিষ্ট WhatsApp চ্যাট আইডিতে টান সীমাবদ্ধ করুন।
+cli.cmd.messages.pull.option.force:
+  WhatsApp বার্তা কথোপকথনের ম্যাপিংয়ে থাকলেও ইনবক্সকে বার্তা তৈরি করতে বাধ্য
+  করুন।
+cli.cmd.messages.pull.option.batch: প্রতিটি ব্যাচে কতটি বার্তা টানবেন।
+cli.cmd.messages.pull.option.progress:
+  প্রতি N বার্তায় অগ্রগতি জানায়। রিপোর্ট বন্ধ করতে 0 সেট করুন।
+cli.cmd.messages.pull.option.no-dm: ইতিহাস টানার সময় সরাসরি বার্তা উপেক্ষা করুন।
+cli.cmd.messages.pull.option.groups:
+  ইতিহাস টানার সময় WhatsApp গ্রুপ অন্তর্ভুক্ত করুন।
+cli.cmd.messages.pull.option.channels:
+  ইতিহাস টানার সময় WhatsApp চ্যানেল অন্তর্ভুক্ত করুন।
+cli.cmd.messages.pull.option.status:
+  ইতিহাস টানার সময় WhatsApp স্ট্যাটাস আপডেট অন্তর্ভুক্ত করুন।
+cli.cmd.messages.pull.option.broadcast:
+  ইতিহাস টানার সময় ব্রডকাস্ট তালিকা অন্তর্ভুক্ত করুন।
+cli.cmd.messages.pull.option.media:
+  ইতিহাস টানার সময় মিডিয়া (ছবি, ভিডিও, ফাইল) ডাউনলোড করুন।
+cli.cmd.messages.pull.option.pause:
+  বার্তা টানার কাজটিকে বিরতি অবস্থায় কিউতে রাখে এবং শেষ না হওয়া পর্যন্ত নতুন
+  WhatsApp বার্তার প্রসেসিং বন্ধ রাখে।
+cli.cmd.messages.pull.option.resolve-conversations:
+  সমস্ত ইতিহাস বার্তা প্রক্রিয়ার পর কথোপকথনগুলোকে সমাধান হয়েছে হিসেবে চিহ্নিত
+  করে।
+cli.cmd.messages.pull.error.pause-no-queue:
+  ⛔ `--pause` ব্যবহার করা যাবে না কারণ এই কনফিগারেশনে **queue** কমান্ড
+  নিষ্ক্রিয়।
+cli.cmd.queue.description: কিউ পরিচালনা করুন।
+cli.cmd.queue.summary: কিউ-তে কর্ম সম্পাদন করুন।
+cli.cmd.queue.action.description: একটি কর্ম নির্বাচন করুন।
+cli.cmd.queue.status.description: কিউ-র অবস্থা দেখুন।
+cli.cmd.queue.argument.name: 'কিউ নাম: `inbox` বা `whatsapp` (ঐচ্ছিক)।'
+cli.cmd.queue.start.description: নামের ভিত্তিতে কিউ শুরু করুন।
+cli.cmd.queue.stop.description: নামের ভিত্তিতে কিউ বন্ধ করুন।
+cli.cmd.queue.paused: ⚪🧩 কিউ বিরতিতে আছে। অবস্থা দেখতে `queue status` পাঠান।
+cli.cmd.queue.resumed:
+  🟢🧩 কিউ আবার চালু হয়েছে। অবস্থা দেখতে `queue status` পাঠান।
+cli.cmd.queue.status.result: >-
+  📊 কিউ অবস্থা:
+
+  {{#queues}}
+
+  - **{{name}}**: {{#locked}}🔒{{/locked}}{{#paused}}⚪
+  বিরতিতে{{/paused}}{{^paused}}🟢 চলমান{{/paused}}
+
+  {{/queues}}
+cli.cmd.messages.pull.option.timeout-media:
+  প্রতিটি বার্তার জন্য মিডিয়া ডাউনলোডের সময়সীমা নির্ধারণ করুন।
+cli.cmd.messages.pull.argument.end:
+  টানার উইন্ডো কোথায় শেষ হবে নির্ধারণ করুন; যেমন `2d` দুই দিন আগে থামে।
+cli.cmd.messages.pull.argument.start:
+  টানার উইন্ডো কোথা থেকে শুরু হবে নির্ধারণ করুন; যেমন `1d` এক দিন আগে শুরু হয়
+  (ডিফল্ট `0d`, অর্থাৎ এখন)।
+cli.cmd.messages.pull.already-running: >-
+  ⏳ **Pull Messages** কাজটি ইতিমধ্যে **{{{chat}}}**-এর জন্য চলছে। শেষ হওয়া
+  পর্যন্ত অপেক্ষা করুন অথবা নতুন শুরু করার আগে এটি বন্ধ করুন।
+
+
+  বিস্তারিত জানার জন্য `messages status` পাঠান।
+cli.cmd.messages.status.not-found:
+  ℹ️ কোনো সক্রিয় **Pull Messages** কাজ পাওয়া যায়নি। `messages pull` দিয়ে একটি
+  শুরু করুন।
+cli.cmd.messages.pull.no-chats-found:
+  এই সময়সীমার জন্য কোনো WhatsApp চ্যাট পাওয়া যায়নি।
+cli.cmd.contacts.pull.option.progress:
+  প্রতি N কন্টাক্টে অগ্রগতি জানান। রিপোর্ট বন্ধ করতে 0 সেট করুন।
+cli.cmd.contacts.pull.option.lids:
+  সিঙ্কে WhatsApp LID (অনামা) কন্টাক্ট অন্তর্ভুক্ত করুন।
+task.contacts.completed:
+  👤✅ কন্টাক্ট সম্পন্ন → 🆕 {{progress.created}}, 🔄 {{progress.updated}}, ⚪
+  {{progress.skipped}}, 🔴 {{progress.errors}}, 🖼️ {{progress.avatar.updated}}
+task.messages.started: ⏳ বার্তা টানা হচ্ছে 💬 {{{chat}}} ⏱️ {{{period}}}...
+task.messages.details: আরও জানতে "{{{prefix}}}messages status" পাঠান।
+task.messages.progress:
+  '⏳ বার্তা {{{chat}}}: 🆕 {{progress.ok}}, 🟢 {{progress.exists}}, ⚪
+  {{progress.ignored}}, 🔴 {{progress.errors}}{{#messages.last}} | 📅
+  {{{messages.last}}}{{/messages.last}}'
+task.messages.completed:
+  ✅ বার্তা {{{chat}}} {{{period}}}-এ → 🆕 {{progress.ok}}, 🟢
+  {{progress.exists}}, ⚪ {{progress.ignored}}, 🔴 {{progress.errors}}
+task.messages.status: |-
+  **{{{chat}}}**-এর বার্তা ⏱️ **{{{period}}}** সময়ে। ⚙️ কাজের অবস্থা: **{{state}}**.
+
+  🗨️ বার্তা:
+  - 🆕 তৈরি: **{{{progress.ok}}}**
+  - 🟢 আগেই ছিল: {{{progress.exists}}}
+  - ⚪ উপেক্ষা: {{{progress.ignored}}}
+  - 🔴 ত্রুটি: {{{progress.errors}}}
+  {{#messages.first}}
+  - 🗓️ প্রাচীনতম: **{{{messages.first}}}**
+  {{/messages.first}}
+  {{#messages.last}}
+  - 🗓️ সর্বশেষ: **{{{messages.last}}}**
+  {{/messages.last}}
+
+  💬 WhatsApp চ্যাট:
+  - 🆕 **{{{chats}}}** চ্যাটে নতুন বার্তা
+  {{#options.resolveConversations}}
+
+  🗣️ কথোপকথন:
+  - 🟢 সমাধান হয়েছে: **{{{progress.conversationResolve.success}}}**
+  {{#progress.conversationResolve.error}}
+  - 🔴 ত্রুটি: **{{{progress.conversationResolve.error}}}**
+  {{/progress.conversationResolve.error}}
+  {{/options.resolveConversations}}
+
+  বিস্তারিত:
+  [{{{details.text}}}]({{{details.url}}})

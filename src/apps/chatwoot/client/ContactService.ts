@@ -14,10 +14,16 @@ import * as lodash from 'lodash';
 
 import { AttributeKey } from '../const';
 import { E164Parser } from '@waha/core/utils/PhoneJidNormalizer';
+import { ContactInfo } from '@waha/apps/chatwoot/client/ContactConversationService';
 
 export interface ContactResponse {
   data: generic_id & contact;
   sourceId: string;
+}
+
+export enum AvatarUpdateMode {
+  IF_MISSING,
+  ALWAYS,
 }
 
 export class ContactService {
@@ -27,6 +33,20 @@ export class ContactService {
     protected inboxAPI: ChatWootInboxAPI,
     private logger: ILogger,
   ) {}
+
+  async findOrCreateContact(
+    contactInfo: ContactInfo,
+  ): Promise<[ContactResponse, boolean]> {
+    const chatId = contactInfo.ChatId();
+    let contact = await this.searchByAnyID(chatId);
+    if (contact) {
+      return [contact, false];
+    }
+
+    const request = await contactInfo.PublicContactCreate();
+    contact = await this.create(chatId, request);
+    return [contact, true];
+  }
 
   async searchByAnyID(chatId: string): Promise<ContactResponse | null> {
     const payload: any[] = [
@@ -136,8 +156,32 @@ export class ContactService {
     };
   }
 
-  public updateAvatarUrlSafe(contactId, avatarUrl: string) {
-    this.accountAPI.contacts
+  public async updateAvatar(
+    contact: ContactResponse,
+    contactInfo: ContactInfo,
+    mode: AvatarUpdateMode,
+  ): Promise<boolean> {
+    // Update Avatar if nothing, but keep the original one if any
+    if (contact.data.thumbnail && mode == AvatarUpdateMode.IF_MISSING) {
+      return false;
+    }
+    const chatId = contactInfo.ChatId();
+    const avatarUrl = await contactInfo.AvatarUrl().catch((err) => {
+      this.logger.warn(
+        `Error getting avatar for chat.id from WhatsApp: ${chatId}`,
+      );
+      this.logger.warn(err);
+      return null;
+    });
+    if (!avatarUrl) {
+      return false;
+    }
+    const success = await this.updateAvatarUrlSafe(contact.data.id, avatarUrl);
+    return success;
+  }
+
+  public updateAvatarUrlSafe(contactId, avatarUrl: string): Promise<boolean> {
+    return this.accountAPI.contacts
       .update({
         accountId: this.config.accountId,
         id: contactId,
@@ -145,11 +189,15 @@ export class ContactService {
           avatar_url: avatarUrl,
         },
       })
+      .then(() => {
+        return true;
+      })
       .catch((e) => {
         this.logger.warn(
           `Error updating avatar_url for contact.id: ${contactId}`,
         );
         this.logger.warn(e);
+        return true;
       });
   }
 }

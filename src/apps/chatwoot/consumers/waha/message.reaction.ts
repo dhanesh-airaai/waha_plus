@@ -9,16 +9,17 @@ import {
   IMessageInfo,
 } from '@waha/apps/chatwoot/consumers/waha/base';
 import { MessageBaseHandler } from '@waha/apps/chatwoot/consumers/waha/base';
-import { WAHASessionAPI } from '@waha/apps/chatwoot/session/WAHASelf';
+import { WAHASessionAPI } from '@waha/apps/app_sdk/waha/WAHASelf';
 import { SessionManager } from '@waha/core/abc/manager.abc';
 import { parseMessageIdSerialized } from '@waha/core/utils/ids';
 import { RMutexService } from '@waha/modules/rmutex/rmutex.service';
-import { WAHAEvents } from '@waha/structures/enums.dto';
+import { WAHAEngine, WAHAEvents } from '@waha/structures/enums.dto';
 import { WAMessageReaction, WAReaction } from '@waha/structures/responses.dto';
 import { WAHAWebhookMessageReaction } from '@waha/structures/webhooks.dto';
 import { Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
 import { TKey } from '@waha/apps/chatwoot/i18n/templates';
+import { EngineHelper } from '@waha/apps/chatwoot/waha';
 
 @Processor(QueueName.WAHA_MESSAGE_REACTION, { concurrency: JOB_CONCURRENCY })
 export class WAHAMessageReactionConsumer extends ChatWootWAHABaseConsumer {
@@ -31,7 +32,13 @@ export class WAHAMessageReactionConsumer extends ChatWootWAHABaseConsumer {
   }
 
   GetChatId(event: WAHAWebhookMessageReaction): string {
-    return event.payload.from;
+    if (event.environment?.engine == WAHAEngine.WEBJS) {
+      // chat in "to" field for WEBJS for message.reaction
+      // probably we need to set it to "from"
+      // but for backward compatability we do this
+      return event.payload.to;
+    }
+    return EngineHelper.ChatID(event.payload);
   }
 
   async Process(
@@ -51,7 +58,7 @@ export class WAHAMessageReactionConsumer extends ChatWootWAHABaseConsumer {
       container.Locale(),
       container.WAHASelf(),
     );
-    return await handler.handle(event);
+    return await handler.handle(event.payload);
   }
 }
 

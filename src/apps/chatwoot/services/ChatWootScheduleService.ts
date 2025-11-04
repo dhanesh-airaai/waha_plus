@@ -1,8 +1,10 @@
-import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { Queue } from 'bullmq';
 
 import { QueueName } from '../consumers/QueueName';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { ContactsPullRemove } from '@waha/apps/chatwoot/cli/cmd.contacts';
+import { MessagesPullRemove } from '@waha/apps/chatwoot/cli/cmd.messages';
+import { QueueRegistry } from './QueueRegistry';
 
 /**
  * Service for scheduling ChatWoot tasks
@@ -11,10 +13,9 @@ import { QueueName } from '../consumers/QueueName';
 @Injectable()
 export class ChatWootScheduleService {
   constructor(
-    @InjectQueue(QueueName.SCHEDULED_MESSAGE_CLEANUP)
-    private readonly messageCleanupQueue: Queue,
-    @InjectQueue(QueueName.SCHEDULED_CHECK_VERSION)
-    private readonly checkVersionQueue: Queue,
+    @InjectPinoLogger('DashboardConfigService')
+    protected logger: PinoLogger,
+    private readonly queueRegistry: QueueRegistry,
   ) {}
 
   /**
@@ -24,7 +25,10 @@ export class ChatWootScheduleService {
    */
   async schedule(appId: string, sessionName: string): Promise<void> {
     // Message Cleanup
-    await this.messageCleanupQueue.upsertJobScheduler(
+    const messageCleanupQueue = this.queueRegistry.queue(
+      QueueName.SCHEDULED_MESSAGE_CLEANUP,
+    );
+    await messageCleanupQueue.upsertJobScheduler(
       this.JobId(QueueName.SCHEDULED_MESSAGE_CLEANUP, appId),
       // Every day at 17:00
       { pattern: '0 0 17 * * *' },
@@ -36,7 +40,10 @@ export class ChatWootScheduleService {
       },
     );
     // Check the version
-    await this.checkVersionQueue.upsertJobScheduler(
+    const checkVersionQueue = this.queueRegistry.queue(
+      QueueName.SCHEDULED_CHECK_VERSION,
+    );
+    await checkVersionQueue.upsertJobScheduler(
       this.JobId(QueueName.SCHEDULED_CHECK_VERSION, appId),
       // Every Wednesday (3) at 18:00
       { pattern: '0 0 18 * * 3' },
@@ -51,16 +58,54 @@ export class ChatWootScheduleService {
 
   async unschedule(appId: string, sessionName: string): Promise<void> {
     // Message Cleanup
-    await this.messageCleanupQueue.removeJobScheduler(
+    const messageCleanupQueue = this.queueRegistry.queue(
+      QueueName.SCHEDULED_MESSAGE_CLEANUP,
+    );
+    await messageCleanupQueue.removeJobScheduler(
       this.JobId(QueueName.SCHEDULED_MESSAGE_CLEANUP, appId),
     );
     // Check the version
-    await this.checkVersionQueue.removeJobScheduler(
+    const checkVersionQueue = this.queueRegistry.queue(
+      QueueName.SCHEDULED_CHECK_VERSION,
+    );
+    await checkVersionQueue.removeJobScheduler(
       this.JobId(QueueName.SCHEDULED_CHECK_VERSION, appId),
+    );
+
+    // contacts
+    const contactsPullQueue = this.queueRegistry.queue(
+      QueueName.TASK_CONTACTS_PULL,
+    );
+    ContactsPullRemove(contactsPullQueue, appId, this.logger).catch(
+      (reason) => {
+        // Ignore errors
+        this.logger.warn(
+          `Failed to remove "contacts" job for app ${appId}, session ${sessionName}: ${reason}`,
+        );
+      },
+    );
+
+    const messagesPullQueue = this.queueRegistry.queue(
+      QueueName.TASK_MESSAGES_PULL,
+    );
+    MessagesPullRemove(messagesPullQueue, appId, this.logger).catch(
+      (reason) => {
+        this.logger.warn(
+          `Failed to remove "messages" job for app ${appId}, session ${sessionName}: ${reason}`,
+        );
+      },
     );
   }
 
+  /**
+   * DEPRECATED - for backward compatability
+   * Use SingleJobId if you want to have single job in the queue by app
+   */
   private JobId(queue: QueueName, appId: string) {
     return `${queue} | ${appId}`;
+  }
+
+  static SingleJobId(appId: string) {
+    return `${appId}`;
   }
 }

@@ -6,6 +6,12 @@ export enum QueueName {
   SCHEDULED_CHECK_VERSION = 'chatwoot.scheduled | check.version',
 
   //
+  // Task
+  //
+  TASK_CONTACTS_PULL = 'chatwoot.task | contacts.pull',
+  TASK_MESSAGES_PULL = 'chatwoot.task | messages.pull',
+
+  //
   // WAHA Events
   //
   WAHA_SESSION_STATUS = 'chatwoot.waha | session.status',
@@ -26,4 +32,8 @@ export enum QueueName {
   //
   INBOX_MESSAGE_DELETED = 'chatwoot.inbox | message_deleted',
   INBOX_COMMANDS = 'chatwoot.inbox | commands',
+}
+
+export enum FlowProducerName {
+  MESSAGES_PULL_FLOW = 'messages.pull.flow',
 }

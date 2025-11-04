@@ -1,4 +1,4 @@
-# Russian translations for ChatWoot integration
+# Russian translations for WhatsApp inbox integration
 locale.name: '🇷🇺 Русский (Russian)'
 
 # Базовый код локали - должен быть корректной локалью BCP 47
@@ -12,16 +12,21 @@ app.inbox.contact.avatar.url: 'https://raw.githubusercontent.com/devlikeapro/wah
 # "параметры" из date.toLocaleString
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
 datetime:
+  weekday: short
   locales: ru-RU
   day: 2-digit
-  month: 2-digit
+  month: short
   year: numeric
   hour: 2-digit
   minute: 2-digit
+  hour12: false
   # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#timezonename
-  timeZoneName: shortGeneric
+  timeZoneName: short
   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   # timeZone: 'Europe/Moscow'
+
+Today: 'Сегодня'
+Yesterday: 'Вчера'
 
 job.report.error: |-
   ⚠️ **{{{header}}}**
@@ -51,14 +56,14 @@ whatsapp.message.removing.error: Не удалось удалить сообще
 job.scheduled.error.header: Запланированная задача не выполнена
 
 message.from.whatsapp: |-
-  {{{text}}}
+  *📱 Отправлено из WhatsApp*
 
-  📱 *Отправлено из WhatsApp*
+  {{{text}}}
 
 message.from.api: |-
-  {{{text}}}
+  *📱 Отправлено через API*
 
-  📱 *Отправлено через API*
+  {{{text}}}
 
 message.removed.in.whatsapp: |-
   ❌ *Это сообщение было удалено в WhatsApp*
@@ -86,11 +91,11 @@ whatsapp.contact.broadcast.suffix: 'Список рассылки'
 whatsapp.contact.status.name: 'Статус'
 
 app.connected.message: |-
-  🔗 **ПОДКЛЮЧЕНО: Сессия WhatsApp к ChatWoot Inbox**
+  🔗 **ПОДКЛЮЧЕНО: Сессия WhatsApp к Inbox**
 
-  ✅ Сессия WhatsApp **{{{name}}}** была успешно подключена к этому ChatWoot Inbox.
+  ✅ Сессия WhatsApp **{{{name}}}** была успешно подключена к этому Inbox.
 
-  Этот inbox теперь связан с вашим **аккаунтом WhatsApp**. Вы можете отправлять и получать сообщения прямо отсюда — как в WhatsApp, но внутри ChatWoot.
+  Этот inbox теперь связан с вашим **аккаунтом WhatsApp**. Вы можете отправлять и получать сообщения прямо отсюда — как в WhatsApp, но внутри вашего рабочего пространства.
 
   Вы также можете управлять сессией WhatsApp, связанной с этим inbox. Чтобы увидеть доступные действия, отправьте **help** в этот чат.
 
@@ -104,9 +109,9 @@ app.connected.message: |-
   Давайте начнем! 🚀
 
 app.disconnected.message: |-
-  🔌 **ОТКЛЮЧЕНО: Сессия WhatsApp от ChatWoot Inbox**
+  🔌 **ОТКЛЮЧЕНО: Сессия WhatsApp от Inbox**
 
-  ❌ Сессия WhatsApp **{{{name}}}** была отключена от этого ChatWoot Inbox.
+  ❌ Сессия WhatsApp **{{{name}}}** была отключена от этого Inbox.
 
   Вы больше не сможете отправлять или получать сообщения из WhatsApp.
 
@@ -117,33 +122,155 @@ app.updated.message: |-
 
   ✅ Настройки для сессии WhatsApp **{{{name}}}** были обновлены.
 
-app.commands.list: |-
-  Вы можете управлять **WhatsApp Интеграцией**, отправив одну из следующих команд:
+cli.usage.arguments: |-
+  [действие]
 
-  🖥️ **Сессия**:
-  1. **status** - получить текущий статус сессии.
-  2. **restart** - перезапустить сессию - это попытается переподключить ваш аккаунт WhatsApp.
-  3. **start** - запустить сессию.
-  4. **stop** - остановить сессию.
-  5. **logout** - выйти из сессии, чтобы вы могли отсканировать QR-код и восстановить сессию.
-  6. **qr** - получить QR-код для сессии.
-  7. **screenshot** - получить скриншот сессии (доступно только в движке **WEBJS**).
-  8. **help** - доступные команды.
+cli.usage.command: |-
+  [команда]
 
-  {{#commands.server}}
-  ⚙️ Сервер:
-  - **server status** - получить информацию о версии и статусе сервера.
-  - **server reboot** - корректно перезагрузить сервер.
-  - **server reboot force** - принудительно перезагрузить сервер.
-  {{/commands.server}}
+cli.usage.options: |-
+  [опции]
 
-  Отправьте **команду** (без учета регистра) или **номер команды** в этот разговор.
+cli.cmd.disabled: ⛔ **Команда `{{command}}` отключена**.
 
-app.commands.server.disabled: ⛔ **Команды сервера отключены**.
-
-  Пожалуйста, свяжитесь с вашим администратором.
+  Пожалуйста, обратитесь к вашему администратору.
 
   Отправьте **help**, чтобы получить список доступных команд.
+
+cli.cmd.root.description: |-
+  Управляйте своей **интеграцией WhatsApp**!
+
+cli.cmd.root.sub.session: |-
+  🖥️ **Сессия**:
+
+cli.cmd.root.sub.server: |-
+  🖥️ **Сервер**:
+
+cli.cmd.root.sub.sync: |-
+  🔄️ **Синхронизация**:
+
+cli.cmd.session.status.description: |-
+  Получите текущий статус сессии.
+
+cli.cmd.session.restart.description: |-
+  Перезапустите сессию.
+
+cli.cmd.session.start.description: |-
+  Запустите сессию.
+
+cli.cmd.session.stop.description: |-
+  Остановите сессию.
+
+cli.cmd.session.logout.description: |-
+  Выйдите из сессии, чтобы отсканировать новый QR-код и восстановить соединение.
+
+cli.cmd.session.qr.description: |-
+  Покажите QR-код сессии.
+
+cli.cmd.session.screenshot.description: |-
+  Сделайте снимок экрана сессии (доступно только с движком **WEBJS**).
+
+cli.cmd.contacts.summary: |-
+  Загрузить контакты WhatsApp.
+
+cli.cmd.contacts.description: |-
+  👤 Выполните `contacts pull`, чтобы запустить синхронизацию, или `contacts status`, чтобы проверить прогресс.
+
+cli.cmd.contacts.action.description: |-
+  Используйте `start`, чтобы начать загрузку контактов, или `status`, чтобы проверить активное задание.
+
+cli.cmd.contacts.pull.description: |-
+  Начните импорт контактов WhatsApp в inbox.
+
+cli.cmd.contacts.pull.option.batch: |-
+  Количество контактов в каждой партии.
+
+cli.cmd.contacts.pull.option.delay-contact: |-
+  Задержка между обработкой контактов, чтобы избежать ограничений при загрузке аватаров.
+
+cli.cmd.contacts.pull.option.delay-batch: |-
+  Задержка между партиями контактов.
+
+cli.cmd.contacts.pull.option.avatar: |-
+  Выберите, как загружать аватары контактов: `skip`, `if-missing` или `update`.
+
+cli.cmd.contacts.pull.option.groups: |-
+  Включить контакты групп WhatsApp в синхронизацию.
+
+cli.cmd.contacts.pull.option.no-attributes: |-
+  Не загружать атрибуты контакта, если он уже существует (ускоряет процесс).
+
+cli.cmd.contacts.pull.already-running: |-
+  ⏳ Задание **Pull Contacts** уже выполняется. Подождите его завершения или остановите перед запуском нового.
+
+  Отправьте `contacts status` для подробностей.
+
+cli.cmd.options.job.attempts: |-
+  Число повторных попыток до пометки задания как неуспешного.
+
+cli.cmd.options.job.timeout: |-
+  Максимальное время выполнения перед повторной попыткой (поддерживает значения `30s`, `5m`, `1h`).
+
+cli.cmd.contacts.status.description: |-
+  Показать статус текущего задания загрузки.
+
+cli.cmd.contacts.status.not-found: |-
+  ℹ️ Активное задание **Pull Contacts** не найдено. Запустите его командой `contacts pull`.
+
+cli.cmd.server.description: |-
+  Управляйте сервером.
+
+cli.cmd.server.status.description: |-
+  Покажите версию и статус сервера.
+
+cli.cmd.server.reboot.description: |-
+  Перезагрузите сервер.
+
+cli.cmd.server.reboot.option.force: |-
+  Принудительно выполните немедленную перезагрузку.
+
+cli.help.usage.title: |-
+  Использование: отправьте команду в диалог в следующем формате:
+
+cli.help.commands.defaultGroup: |-
+  **Команды:**
+
+cli.help.arguments.title: |-
+  **Аргументы:**
+
+cli.help.options.defaultGroup: |-
+  **Опции:**
+
+cli.help.globalOptions.title: |-
+  **Глобальные опции:**
+
+task.contacts.status: |-
+  👤 Загрузка контактов: **{{state}}**
+  - ✅ Успешно: {{{progress.ok}}} контактов
+  - ⚪ Пропущено: {{{progress.skipped}}} контактов
+  - ⚠️ Ошибки: {{{progress.errors}}} контактов
+
+  {{#job}}
+  ⌛ Хронология:
+  - В очереди: {{{timestamp}}}
+  {{#processedOn}}
+  - Начато: {{{processedOn}}}
+  {{/processedOn}}
+  {{#finishedOn}}
+  - Завершено: {{{finishedOn}}}
+  {{/finishedOn}}
+  {{/job}}
+
+  {{#error}}
+  Подробности:
+  [{{{details.text}}}]({{{details.url}}})
+  {{/error}}
+
+task.contacts.started: |-
+  Идёт загрузка контактов...
+
+task.contacts.progress: |-
+  Загрузка контактов: ✅ {{progress.ok}}, ⚪ {{progress.skipped}}, ⚠️ {{progress.errors}}
 
 app.help.reminder: |-
   Отправьте **help**, чтобы получить список доступных команд.
@@ -158,17 +285,17 @@ app.session.current.status: |-
   📱 **{{{name}}} ({{{id}}})**
 
 app.session.status.working: |-
-  ✅ Этот ChatWoot Inbox связан с **аккаунтом WhatsApp** и готов отправлять и получать сообщения!
+  ✅ Этот inbox связан с вашим **аккаунтом WhatsApp** и готов отправлять и получать сообщения!
 
   📱 **{{{name}}} ({{{id}}})**
 
 app.session.status.error: |-
-  ⚠️ **Этот ChatWoot Inbox связан с аккаунтом WhatsApp, но НЕ готов отправлять и получать сообщения!**
+  ⚠️ **Этот inbox связан с аккаунтом WhatsApp, но НЕ готов отправлять и получать сообщения!**
 
   Пожалуйста, проверьте статус сессии и попробуйте перезапустить её или выйдите и отсканируйте QR-код снова.
 
 app.session.scan.qr.code: |-
-  ⚠️ **Отсканируйте QR-код на вашем телефоне, чтобы связать аккаунт WhatsApp с этим ChatWoot Inbox!**
+  ⚠️ **Отсканируйте QR-код на вашем телефоне, чтобы связать аккаунт WhatsApp с этим Inbox!**
 
 app.server.version.and.status: |-
   **Версия:**
@@ -361,10 +488,25 @@ whatsapp.to.chatwoot.message.pix: |-
   {{/pixData}}
 
 whatsapp.to.chatwoot.message.unsupported: |-
-  ⚠️ **Этот тип сообщения не поддерживается в ChatWoot.**
+  ⚠️ **Этот тип сообщения не поддерживается в этом Inbox.**
   📱 Пожалуйста, откройте **WhatsApp**, чтобы просмотреть.
 
   Подробности: [{{{details.text}}}]({{{details.url}}})
+
+whatsapp.to.chatwoot.message.album: |-
+  📷 **Получено сообщение с альбомом**
+
+  {{#totalCount}}
+  Получен альбом с **{{totalCount}}** медиафайлом(ами).
+  {{#expectedImageCount}}
+  📸 Изображений: **{{expectedImageCount}}**
+  {{/expectedImageCount}}
+  {{#expectedVideoCount}}
+  🎥 Видео: **{{expectedVideoCount}}**
+  {{/expectedVideoCount}}
+
+  Медиафайлы будут доставлены в следующих сообщениях.
+  {{/totalCount}}
 
 whatsapp.to.chatwoot.message.facebook.ad: |-
   📢 **РЕКЛАМА FACEBOOK**
@@ -380,3 +522,146 @@ whatsapp.to.chatwoot.message.facebook.ad: |-
   ---
   💬 **Сообщение клиента:**
   {{{payload.body}}}
+whatsapp.history.message.wrapper: |-
+  {{{content}}}
+  `{{#history}}📥{{/history}}🗓️ {{{timestamp}}}`
+
+UNKNOWN: Неизвестно
+ERROR: Ошибка
+PENDING: Отправляется
+SERVER: Сервер
+DEVICE: Устройство
+READ: Прочитано
+PLAYED: Прослушано
+whatsapp.to.chatwoot.message.has.media.no.media: |-
+  {{#content}}
+  {{{content}}}
+
+  {{/content}}
+  🖼️⚠️ **В сообщении есть медиа, но нам не удалось его скачать**
+  📱 Откройте **WhatsApp**, чтобы посмотреть.
+
+  {{^content}}
+  Подробности: [{{{details.text}}}]({{{details.url}}})
+  {{/content}}
+cli.cmd.root.sub.queue: '🧩 **Очередь**:'
+cli.cmd.messages.summary: Загрузить сообщения WhatsApp.
+cli.cmd.messages.description:
+  💬 Выполните `messages pull`, чтобы запустить синхронизацию, или `messages
+  status`, чтобы проверить прогресс.
+cli.cmd.messages.action.description:
+  '`pull` — начать загрузку, `status` — посмотреть текущую задачу.'
+cli.cmd.messages.pull.option.chat:
+  Ограничить загрузку конкретным идентификатором чата WhatsApp.
+cli.cmd.messages.pull.option.force:
+  Принудительно создавать сообщения в ящике, даже если сообщение WhatsApp уже
+  есть в сопоставлении беседы.
+cli.cmd.messages.pull.option.batch: Количество сообщений в каждом пакете.
+cli.cmd.messages.pull.option.progress:
+  Сообщать о прогрессе каждые N сообщений. Значение 0 отключает отчёты.
+cli.cmd.messages.pull.option.no-dm:
+  Пропускать личные сообщения при загрузке истории.
+cli.cmd.messages.pull.option.groups:
+  Включать группы WhatsApp при загрузке истории.
+cli.cmd.messages.pull.option.channels:
+  Включать каналы WhatsApp при загрузке истории.
+cli.cmd.messages.pull.option.status:
+  Включать статусы WhatsApp при загрузке истории.
+cli.cmd.messages.pull.option.broadcast:
+  Включать списки рассылок при загрузке истории.
+cli.cmd.messages.pull.option.media:
+  Скачивать медиафайлы (изображения, видео, документы) при загрузке истории.
+cli.cmd.messages.pull.option.pause:
+  Поставить задачу загрузки сообщений в очередь на паузу и остановить обработку
+  новых сообщений WhatsApp до завершения.
+cli.cmd.messages.pull.option.resolve-conversations:
+  Отмечает беседы как завершённые после обработки всей истории сообщений.
+cli.cmd.messages.pull.error.pause-no-queue:
+  ⛔ Невозможно использовать `--pause`, потому что команда **queue** отключена в
+  этой конфигурации.
+cli.cmd.queue.description: Управление очередями.
+cli.cmd.queue.summary: Действия с очередями.
+cli.cmd.queue.action.description: Выберите действие.
+cli.cmd.queue.status.description: Показать состояние очереди.
+cli.cmd.queue.argument.name:
+  'Название очереди: `inbox` или `whatsapp` (необязательно).'
+cli.cmd.queue.start.description: Запустить очередь по имени.
+cli.cmd.queue.stop.description: Остановить очередь по имени.
+cli.cmd.queue.paused:
+  ⚪🧩 Очереди поставлены на паузу. Отправьте `queue status`, чтобы проверить
+  состояние.
+cli.cmd.queue.resumed:
+  🟢🧩 Очереди возобновлены. Отправьте `queue status`, чтобы проверить
+  состояние.
+cli.cmd.queue.status.result: >-
+  📊 Состояние очередей:
+
+  {{#queues}}
+
+  - **{{name}}**: {{#locked}}🔒{{/locked}}{{#paused}}⚪ На
+  паузе{{/paused}}{{^paused}}🟢 Активна{{/paused}}
+
+  {{/queues}}
+cli.cmd.messages.pull.option.timeout-media:
+  Указывает, как долго пытаться скачать медиа для каждого сообщения.
+cli.cmd.messages.pull.argument.end:
+  Задаёт конец окна загрузки, например `2d` — до двух дней назад.
+cli.cmd.messages.pull.argument.start:
+  Задаёт начало окна загрузки, например `1d` — с одного дня назад (по умолчанию
+  `0d`, то есть сейчас).
+cli.cmd.messages.pull.already-running: >-
+  ⏳ Задача **Pull Messages** уже выполняется для **{{{chat}}}**. Дождитесь
+  завершения или остановите её перед запуском новой.
+
+
+  Отправьте `messages status` для деталей.
+cli.cmd.messages.status.not-found:
+  ℹ️ Активная задача **Pull Messages** не найдена. Запустите её командой
+  `messages pull`.
+cli.cmd.messages.pull.no-chats-found:
+  Чаты WhatsApp для выбранного периода не найдены.
+cli.cmd.contacts.pull.option.progress:
+  Сообщать о прогрессе каждые N контактов. Значение 0 отключает отчёты.
+cli.cmd.contacts.pull.option.lids:
+  Включать контакты WhatsApp LID (анонимные контакты) в синхронизацию.
+task.contacts.completed:
+  👤✅ Контакты завершены → 🆕 {{progress.created}}, 🔄 {{progress.updated}}, ⚪
+  {{progress.skipped}}, 🔴 {{progress.errors}}, 🖼️ {{progress.avatar.updated}}
+task.messages.started: ⏳ Загружаем сообщения 💬 {{{chat}}} ⏱️ {{{period}}}...
+task.messages.details:
+  Отправьте "{{{prefix}}}messages status", чтобы увидеть подробности.
+task.messages.progress:
+  '⏳ Сообщения {{{chat}}}: 🆕 {{progress.ok}}, 🟢 {{progress.exists}}, ⚪
+  {{progress.ignored}}, 🔴 {{progress.errors}}{{#messages.last}} | 📅
+  {{{messages.last}}}{{/messages.last}}'
+task.messages.completed:
+  ✅ Сообщения {{{chat}}} за {{{period}}} → 🆕 {{progress.ok}}, 🟢
+  {{progress.exists}}, ⚪ {{progress.ignored}}, 🔴 {{progress.errors}}
+task.messages.status: |-
+  Сообщения **{{{chat}}}** за период ⏱️ **{{{period}}}**. ⚙️ Статус задачи: **{{state}}**.
+
+  🗨️ Сообщения:
+  - 🆕 Создано: **{{{progress.ok}}}**
+  - 🟢 Уже есть: {{{progress.exists}}}
+  - ⚪ Пропущено: {{{progress.ignored}}}
+  - 🔴 Ошибки: {{{progress.errors}}}
+  {{#messages.first}}
+  - 🗓️ Самое раннее: **{{{messages.first}}}**
+  {{/messages.first}}
+  {{#messages.last}}
+  - 🗓️ Самое позднее: **{{{messages.last}}}**
+  {{/messages.last}}
+
+  💬 Чаты WhatsApp:
+  - 🆕 Новые сообщения в **{{{chats}}}** чатах
+  {{#options.resolveConversations}}
+
+  🗣️ Беседы:
+  - 🟢 Закрыто: **{{{progress.conversationResolve.success}}}**
+  {{#progress.conversationResolve.error}}
+  - 🔴 Ошибки: **{{{progress.conversationResolve.error}}}**
+  {{/progress.conversationResolve.error}}
+  {{/options.resolveConversations}}
+
+  Подробности:
+  [{{{details.text}}}]({{{details.url}}})
