@@ -15,6 +15,7 @@ import { Jid } from '@waha/core/engines/const';
 import { EventsFromObservable } from '@waha/core/engines/gows/EventsFromObservable';
 import { GowsEventStreamObservable } from '@waha/core/engines/gows/GowsEventStreamObservable';
 import {
+  ToGroupParticipants,
   ToGroupV2JoinEvent,
   ToGroupV2LeaveEvent,
   ToGroupV2ParticipantsEvents,
@@ -105,6 +106,7 @@ import {
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
 import {
   CreateGroupRequest,
+  GroupParticipant,
   GroupSortField,
   Participant,
   ParticipantsRequest,
@@ -198,8 +200,8 @@ enum WhatsMeowEvent {
 }
 
 const gRPCClientConfig = {
-  'grpc.max_send_message_length': 128 * 1024 * 1024,
-  'grpc.max_receive_message_length': 128 * 1024 * 1024,
+  'grpc.max_send_message_length': 512 * 1024 * 1024,
+  'grpc.max_receive_message_length': 512 * 1024 * 1024,
 };
 
 export interface GowsConfig {
@@ -804,6 +806,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       linkPreview: request.linkPreview ?? true,
       linkPreviewHighQuality: request.linkPreviewHighQuality,
       replyTo: getMessageIdFromSerialized(request.reply_to),
+      mentions: request.mentions?.map((mention) => toJID(mention)),
     });
     const response = await promisify(this.client.SendMessage)(message);
     const data = response.toObject();
@@ -999,7 +1002,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   reply(request: MessageReplyRequest) {
-    throw new Error('Method not implemented.');
+    return this.sendText(request);
   }
 
   async sendSeen(request: SendSeenRequest) {
@@ -1100,6 +1103,14 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     const response = await promisify(this.client.GetGroupInfo)(req);
     const data = parseJson(response);
     return data;
+  }
+
+  public async getGroupParticipants(id: string): Promise<GroupParticipant[]> {
+    const group = await this.getGroup(id);
+    if (!group?.Participants?.length) {
+      return [];
+    }
+    return ToGroupParticipants(group.Participants);
   }
 
   public async getInfoAdminsOnly(id): Promise<SettingsSecurityChangeInfo> {

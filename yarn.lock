@@ -5,9 +5,9 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@adiwajshing/baileys@github:devlikeapro/Baileys#fork-master-2025-10-19":
-  version: 7.0.0-rc.5
-  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=df07435e41a5b6062c51a4a74393558cecf8fc50"
+"@adiwajshing/baileys@github:devlikeapro/Baileys#fork-master-2025-11-07":
+  version: 7.0.0-rc.6
+  resolution: "@adiwajshing/baileys@https://github.com/devlikeapro/Baileys.git#commit=e828866d7936785b054e16f360c32115f118f291"
   dependencies:
     "@cacheable/node-cache": ^1.4.0
     "@hapi/boom": ^9.1.3
@@ -31,7 +31,7 @@ __metadata:
       optional: true
     link-preview-js:
       optional: true
-  checksum: 065a0a3e086e307ef805321355914c97282d279e7cbe2350118562373c0d36aaf877b0789d7e339f45f9c24e31a425f699b2f905411500522d0dc95a31c8986a
+  checksum: 0a02bc71fe13e998047f10e205126cca978ffde85a50fabc8ccf25c79a3ff6baecc857a395956e6c37b10abbeb9e390e4fcbc870ea11e3a22224cbc8c562c41e
   languageName: node
   linkType: hard
 
@@ -6171,6 +6171,13 @@ __metadata:
   version: 16.4.5
   resolution: "dotenv@npm:16.4.5"
   checksum: 301a12c3d44fd49888b74eb9ccf9f07a1f5df43f489e7fcb89647a2edcd84c42d6bc349dc8df099cd18f07c35c7b04685c1a4f3e6a6a9e6b30f8d48c15b7f49c
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^17.2.3":
+  version: 17.2.3
+  resolution: "dotenv@npm:17.2.3"
+  checksum: fde23eb88649041ec7a0f6a47bbe59cac3c454fc2007cf2e40b9c984aaf0636347218c56cfbbf067034b0a73f530a2698a19b4058695787eb650ec69fe234624
   languageName: node
   linkType: hard
 
@@ -12525,7 +12532,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "waha@workspace:."
   dependencies:
-    "@adiwajshing/baileys": "github:devlikeapro/Baileys#fork-master-2025-10-19"
+    "@adiwajshing/baileys": "github:devlikeapro/Baileys#fork-master-2025-11-07"
     "@adiwajshing/keyed-db": ^0.2.4
     "@aws-sdk/client-s3": ^3.633.0
     "@aws-sdk/s3-request-presigner": ^3.633.0
@@ -12578,6 +12585,7 @@ __metadata:
     class-validator: 0.14.0
     commander: ^14.0.1
     del: ^8.0.0
+    dotenv: ^17.2.3
     express-basic-auth: ^1.2.1
     file-type: 16.5.4
     fs-extra: ^11.2.0
@@ -12628,7 +12636,7 @@ __metadata:
     typescript: 5.9.2
     ulid: ^2.3.0
     undici: ^7.16.0
-    whatsapp-web.js: "github:devlikeapro/whatsapp-web.js#fork-main-2025-09-10"
+    whatsapp-web.js: "github:devlikeapro/whatsapp-web.js#fork-main-2025-11-05"
     write-file-atomic: ^6.0.0
     yaml: ^2.7.1
   dependenciesMeta:
@@ -12729,9 +12737,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"whatsapp-web.js@github:devlikeapro/whatsapp-web.js#fork-main-2025-09-10":
-  version: 1.34.1
-  resolution: "whatsapp-web.js@https://github.com/devlikeapro/whatsapp-web.js.git#commit=130dbdb5608d9d6add1fe8712dc9e8be6a4bab34"
+"whatsapp-web.js@github:devlikeapro/whatsapp-web.js#fork-main-2025-11-05":
+  version: 1.34.2
+  resolution: "whatsapp-web.js@https://github.com/devlikeapro/whatsapp-web.js.git#commit=c84b4af4dfd01f326d37f4de6acd7bebc06496d0"
   dependencies:
     "@pedroslopez/moduleraid": ^5.0.2
     archiver: ^5.3.1
@@ -12749,7 +12757,7 @@ __metadata:
       optional: true
     unzipper:
       optional: true
-  checksum: fd1fa94beab523b7b0becec27bd626e350805e1cdcefe81b4648e4a1c865fab8eeee9ab5a7c2d72d83969647c108df446ee2ffa2a475a0024acb75007fd96a53
+  checksum: d9d615d29ba14f6113080a19d8f7e1396ea7dde3cbe4983db04e8df512483198c3f73236e9e8c366afb035ee700bd5718d72bc18ee01caeb7cd86bcadfdbb056
   languageName: node
   linkType: hard
 
