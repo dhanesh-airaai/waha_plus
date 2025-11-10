@@ -4,6 +4,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Logger } from 'pino';
 import { IMediaConverter } from '@waha/core/media/IConverter';
+import { foldFlowLines } from 'yaml/util';
 
 function IsMP3(buffer) {
   if (!Buffer.isBuffer(buffer) || buffer.length < 3) return false;
@@ -21,63 +22,138 @@ function IsMP3(buffer) {
   return isID3 || isMPEGFrame;
 }
 
-class FfmpegCommandBuilder {
-  private readonly parts: string[] = [];
-  private readonly inputIndex: number;
-  private readonly outputIndex: number;
+interface ICommand {
+  get input(): string | null;
+
+  get output(): string | null;
+
+  spawn(cwd: string, logger: Logger): Promise<void>;
+}
+
+class Command implements ICommand {
+  private readonly bin: string;
+  private args: string[];
 
   constructor(
-    command: string,
-    public input: string,
-    public output: string,
+    private command: string,
+    public input: string = null,
+    public output: string = null,
   ) {
     const parts = command.split(' ');
-    if (parts[0] != 'ffmpeg') {
-      throw new Error('Invalid command, must start with ffmpeg');
-    }
-    this.parts = parts.slice(1);
-    this.inputIndex = this.parts.indexOf(input);
-    if (this.inputIndex < 0) {
+    this.bin = parts[0];
+    this.args = parts.slice(1);
+    this.checkArgs();
+  }
+
+  private checkArgs() {
+    if (this.input && !this.args.includes(this.input)) {
       throw new Error(
-        `Invalid command "${command}", must contain input "${input}"`,
+        `Invalid command "${this.command}", must contain input "${this.input}"`,
       );
     }
-    this.outputIndex = this.parts.indexOf(output);
-    if (this.outputIndex < 0) {
+    if (this.output && !this.args.includes(this.output)) {
       throw new Error(
-        `Invalid command "${command}", must contain output "${output}"`,
+        `Invalid command "${this.command}", must contain output "${this.output}"`,
       );
     }
   }
 
-  args(input: string, output: string): string[] {
-    const args = this.parts.slice();
-    args[this.inputIndex] = input;
-    args[this.outputIndex] = output;
-    return args;
+  public spawn(cwd: string | undefined, logger: Logger): Promise<void> {
+    const args = this.args.slice();
+    logger.debug(`Executing command: '${this.bin} ${args.join(' ')}'...`);
+    return new Promise((resolve, reject) => {
+      const command = spawn(this.bin, args, { cwd: cwd });
+      command.stderr.on('data', (data) => {
+        // command might output progress information to stderr
+        logger.debug(`${this.bin}: ${data}`);
+      });
+
+      command.on('close', (code) => {
+        logger.debug(`${this.bin} exited with code ${code}`);
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(
+            new Error(
+              `${this.bin} process exited with code ${code}. Check logs to find the reason`,
+            ),
+          );
+        }
+      });
+
+      command.on('error', (err) => {
+        reject(
+          new Error(`Failed to start ${this.bin} process: ${err.message}`),
+        );
+      });
+    });
   }
 }
 
+class CommandPipe implements ICommand {
+  constructor(private commands: ICommand[]) {}
+
+  get input(): string {
+    return this.commands[0].input;
+  }
+
+  get output(): string {
+    return this.commands[this.commands.length - 1].output;
+  }
+
+  async spawn(cwd: string, logger: Logger): Promise<void> {
+    for (const cmd of this.commands) {
+      if (!cmd.input) {
+        new Error(`Command in pipeline is missing input file specification`);
+      }
+      if (!cmd.output) {
+        new Error(`Command in pipeline is missing output file specification`);
+      }
+      await cmd.spawn(cwd, logger);
+    }
+  }
+}
+
+function pipeline(...commands: ICommand[]): ICommand {
+  return new CommandPipe(commands);
+}
+
 class Ffmpeg implements IMediaConverter {
-  private WhatsAppVoice = new FfmpegCommandBuilder(
+  private readonly tmpdir: TmpDir;
+
+  // Cleanup mp3 metadata and convert to wav
+  // https://github.com/devlikeapro/waha/issues/1393
+  private VoiceCleanupMp3 = new Command(
+    'ffmpeg -hide_banner -loglevel error -nostdin -y -i input.mp3 -vn -sn -dn -map 0:a:0 -map_metadata -1 -ac 1 -ar 48000 -c:a pcm_s16le input.wav',
+    'input.mp3',
+    'input.wav',
+  );
+  // Convert wav to ogg opus with WhatsApp settings
+  // $ ffprobe -hide_banner -v error -show_format -show_streams "output.opus"
+  private VoiceConvertToOGG = new Command(
     'ffmpeg -hide_banner -loglevel error -nostdin -i input.wav -c:a libopus -b:a 32k -ar 48000 -ac 1 output.opus',
     'input.wav',
     'output.opus',
   );
-
-  private MP3toWAV = new FfmpegCommandBuilder(
-    'ffmpeg -hide_banner -loglevel error -nostdin -y -i input.mp3 -vn -sn -dn -map 0:a:0 -map_metadata -1 -ac 1 -ar 48000 -c:a pcm_s16le output.wav',
-    'input.mp3',
-    'output.wav',
+  // Clean up opus tags that may reveal the encoder used
+  // $ mediainfo "output.opus"
+  private VoiceCleanOpustags = new Command(
+    'opustags --in-place --delete ENCODER --delete encoder --set-vendor Recorder output.opus',
+    'output.opus',
+    'output.opus',
   );
 
-  private WhatsAppVideo = new FfmpegCommandBuilder(
+  private OpustagsHelp = new Command('opustags --help');
+
+  private WhatsAppVoice: ICommand;
+
+  // Convert video to WhatsApp compatible mp4
+  // TODO: Do we need to remove metadata as well?
+  private WhatsAppVideo = new Command(
     'ffmpeg -hide_banner -loglevel error -nostdin -i input.mp4 -c:v libx264 -map 0 -movflags +faststart output.mp4',
     'input.mp4',
     'output.mp4',
   );
-
-  private readonly tmpdir: TmpDir;
 
   constructor(
     session: string,
@@ -86,52 +162,12 @@ class Ffmpeg implements IMediaConverter {
     this.tmpdir = new TmpDir(logger, `waha-ffmpeg-${session}-`);
   }
 
-  protected spawn(args: string[]): Promise<void> {
-    this.logger.debug(`Executing command: 'ffmpeg ${args.join(' ')}'...`);
-    return new Promise((resolve, reject) => {
-      const ffmpeg = spawn('ffmpeg', args);
-      ffmpeg.stderr.on('data', (data) => {
-        // ffmpeg outputs progress information to stderr
-        this.logger.debug(`ffmpeg: ${data}`);
-      });
-
-      ffmpeg.on('close', (code) => {
-        this.logger.debug(`ffmpeg exited with code ${code}`);
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(
-            new Error(
-              `ffmpeg process exited with code ${code}. Check logs to find the reason`,
-            ),
-          );
-        }
-      });
-
-      ffmpeg.on('error', (err) => {
-        reject(new Error(`Failed to start ffmpeg process: ${err.message}`));
-      });
-    });
-  }
-
-  protected command(
-    cmd: FfmpegCommandBuilder,
-    input: string,
-    output: string,
-  ): Promise<void> {
-    const args = cmd.args(input, output);
-    return this.spawn(args);
-  }
-
-  protected async process(
-    cmd: FfmpegCommandBuilder,
-    content: Buffer,
-  ): Promise<Buffer> {
+  protected async process(cmd: ICommand, content: Buffer): Promise<Buffer> {
     return await this.tmpdir.use(async (dir) => {
       const inputFile = path.join(dir, cmd.input);
       const outputFile = path.join(dir, cmd.output);
       await fs.writeFile(inputFile, content);
-      await this.command(cmd, inputFile, outputFile);
+      await cmd.spawn(dir, this.logger);
       return await fs.readFile(outputFile);
     });
   }
@@ -142,12 +178,28 @@ class Ffmpeg implements IMediaConverter {
    * @returns Processed audio buffer or original buffer if processing fails
    */
   public async voice(content: Buffer): Promise<Buffer> {
-    if (IsMP3(content)) {
-      // mp3 to wav to clean up the metadata
-      // https://github.com/devlikeapro/waha/issues/1393
-      content = await this.process(this.MP3toWAV, content);
+    if (!this.WhatsAppVoice) {
+      try {
+        // Test if opustags available
+        await this.OpustagsHelp.spawn(undefined, this.logger);
+        this.logger.debug(
+          'opustags found, voice messages will have metadata cleaned',
+        );
+        this.WhatsAppVoice = pipeline(
+          this.VoiceCleanupMp3,
+          this.VoiceConvertToOGG,
+          this.VoiceCleanOpustags,
+        );
+      } catch (e) {
+        this.logger.warn(
+          `opustags not found, voice messages will not have metadata cleaned: ${e.message}`,
+        );
+        this.WhatsAppVoice = pipeline(
+          this.VoiceCleanupMp3,
+          this.VoiceConvertToOGG,
+        );
+      }
     }
-    // whatever to opus
     return this.process(this.WhatsAppVoice, content);
   }
 
@@ -161,4 +213,4 @@ class Ffmpeg implements IMediaConverter {
   }
 }
 
-export { Ffmpeg, FfmpegCommandBuilder };
+export { Ffmpeg };
