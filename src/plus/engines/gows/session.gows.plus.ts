@@ -47,6 +47,7 @@ import esm from '@waha/vendor/esm';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { promisify } from 'util';
+import { Activity } from '@waha/core/abc/activity';
 
 axiosRetry(axios, { retries: 3 });
 
@@ -80,6 +81,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   /**
    * Send methods
    */
+  @Activity()
   async sendList(request: SendListRequest): Promise<any> {
     const jid = toJID(this.ensureSuffix(request.chatId));
     if (isJidGroup(jid) || isJidBroadcast(jid) || isJidNewsletter(jid)) {
@@ -109,6 +111,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   /**
    * Profile methods
    */
+  @Activity()
   protected async setProfilePicture(
     file: BinaryFile | RemoteFile,
   ): Promise<boolean> {
@@ -134,6 +137,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   /**
    * Groups methods
    */
+  @Activity()
   protected async setGroupPicture(
     id: string,
     file: BinaryFile | RemoteFile,
@@ -149,6 +153,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return true;
   }
 
+  @Activity()
   protected async deleteGroupPicture(id: string): Promise<boolean> {
     const request = new messages.SetPictureRequest({
       session: this.session,
@@ -222,22 +227,27 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return this.messageResponse(jid, data);
   }
 
+  @Activity()
   async sendImage(request: MessageImageRequest) {
     return await this.sendMedia(messages.MediaType.IMAGE, request);
   }
 
+  @Activity()
   async sendFile(request: MessageFileRequest) {
     return await this.sendMedia(messages.MediaType.DOCUMENT, request);
   }
 
+  @Activity()
   async sendVoice(request: MessageVoiceRequest) {
     return await this.sendMedia(messages.MediaType.AUDIO, request);
   }
 
+  @Activity()
   async sendVideo(request: MessageVideoRequest) {
     return await this.sendMedia(messages.MediaType.VIDEO, request);
   }
 
+  @Activity()
   async sendPollVote(request: MessagePollVoteRequest) {
     const jid = toJID(this.ensureSuffix(request.chatId));
     const key = parseMessageIdSerialized(request.pollMessageId, true);
@@ -259,6 +269,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return this.messageResponse(jid, data);
   }
 
+  @Activity()
   async sendLinkCustomPreview(
     request: MessageLinkCustomPreviewRequest,
   ): Promise<any> {
@@ -284,6 +295,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return this.messageResponse(jid, data);
   }
 
+  @Activity()
   async sendButtonsReply(request: MessageButtonReply) {
     throw new NotImplementedByEngineError();
 
@@ -304,6 +316,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   /**
    * Status methods
    */
+  @Activity()
   public async sendImageStatus(status: ImageStatus) {
     const request = {
       ...status,
@@ -312,6 +325,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return await this.sendMedia(messages.MediaType.IMAGE, request);
   }
 
+  @Activity()
   public async sendVoiceStatus(status: VoiceStatus) {
     const request = {
       ...status,
@@ -320,6 +334,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return await this.sendMedia(messages.MediaType.AUDIO, request);
   }
 
+  @Activity()
   public async sendVideoStatus(status: VideoStatus) {
     const request = {
       ...status,
@@ -328,6 +343,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return await this.sendMedia(messages.MediaType.VIDEO, request);
   }
 
+  @Activity()
   public async channelsCreateChannel(
     request: CreateChannelRequest,
   ): Promise<Channel> {
@@ -346,6 +362,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return this.toChannel(newsletter);
   }
 
+  @Activity()
   public async previewChannelMessages(
     inviteCode: string,
     query: PreviewChannelMessages,
@@ -407,6 +424,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
   /**
    * Channels Search methods
    */
+  @Activity()
   public async searchChannelsByView(
     query: ChannelSearchByView,
   ): Promise<ChannelListResult> {
@@ -426,6 +444,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     return this.channelsRawDataToResponse(response);
   }
 
+  @Activity()
   public async searchChannelsByText(
     query: ChannelSearchByText,
   ): Promise<ChannelListResult> {

@@ -38,6 +38,7 @@ import axiosRetry from 'axios-retry';
 import { NowebClient } from './NowebClient';
 import { NowebAuthFactoryPlus } from './store/NowebAuthFactoryPlus';
 import esm from '@waha/vendor/esm';
+import { Activity } from '@waha/core/abc/activity';
 
 axiosRetry(axios, { retries: 3 });
 
@@ -118,6 +119,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Send methods
    */
+  @Activity()
   async sendList(request: SendListRequest): Promise<any> {
     const jid = toJID(this.ensureSuffix(request.chatId));
     if (!isLidUser(jid) && !isPnUser(jid)) {
@@ -140,6 +142,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Profile methods
    */
+  @Activity()
   protected async setProfilePicture(
     file: BinaryFile | RemoteFile,
   ): Promise<boolean> {
@@ -158,6 +161,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Groups methods
    */
+  @Activity()
   protected async setGroupPicture(
     id: string,
     file: BinaryFile | RemoteFile,
@@ -167,6 +171,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return true;
   }
 
+  @Activity()
   protected async deleteGroupPicture(id: string): Promise<boolean> {
     await this.sock.removeProfilePicture(id);
     return true;
@@ -175,7 +180,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Send media methods
    */
-
+  @Activity()
   async sendImage(request: MessageImageRequest) {
     const message: any = await this.fileToMessage(
       request.file,
@@ -187,6 +192,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return this.sock.sendMessage(chatId, message, options);
   }
 
+  @Activity()
   async sendFile(request: MessageFileRequest) {
     const message: any = await this.fileToMessage(
       request.file,
@@ -198,6 +204,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return this.sock.sendMessage(chatId, message, options);
   }
 
+  @Activity()
   async sendVoice(request: MessageVoiceRequest) {
     const message: any = await this.fileToMessage(request.file, 'audio');
     if (request.convert) {
@@ -209,6 +216,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return this.sock.sendMessage(chatId, message, options);
   }
 
+  @Activity()
   async sendVideo(request: MessageVideoRequest) {
     const message: any = await this.fileToMessage(
       request.file,
@@ -225,6 +233,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     return this.sock.sendMessage(chatId, message, options);
   }
 
+  @Activity()
   async sendLinkCustomPreview(
     request: MessageLinkCustomPreviewRequest,
   ): Promise<any> {
@@ -272,6 +281,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Status methods
    */
+  @Activity()
   public async sendImageStatus(status: ImageStatus) {
     const message: any = await this.fileToMessage(
       status.file,
@@ -294,6 +304,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     );
   }
 
+  @Activity()
   public async sendVoiceStatus(status: VoiceStatus) {
     const message: any = await this.fileToMessage(status.file, 'audio');
     if (status.convert) {
@@ -317,6 +328,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     );
   }
 
+  @Activity()
   public async sendVideoStatus(status: VideoStatus) {
     const message: any = await this.fileToMessage(
       status.file,
@@ -347,6 +359,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Channels methods
    */
+  @Activity()
   public async previewChannelMessages(
     inviteCode: string,
     query: PreviewChannelMessages,
@@ -391,6 +404,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
   /**
    * Channels Search methods
    */
+  @Activity()
   public async searchChannelsByView(
     query: ChannelSearchByView,
   ): Promise<ChannelListResult> {
@@ -404,6 +418,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     };
   }
 
+  @Activity()
   public async searchChannelsByText(
     query: ChannelSearchByText,
   ): Promise<ChannelListResult> {
@@ -417,6 +432,7 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     };
   }
 
+  @Activity()
   public async channelsCreateChannel(request: CreateChannelRequest) {
     const channel = await super.channelsCreateChannel(request);
 

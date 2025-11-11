@@ -35,6 +35,7 @@ import { IsChrome } from '@waha/version';
 import { GroupChat, MessageMedia } from 'whatsapp-web.js';
 
 import { WebJSAuthFactory } from './WebJSAuthFactory';
+import { Activity } from '@waha/core/abc/activity';
 
 export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   authFactory = new WebJSAuthFactory();
@@ -77,6 +78,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   /**
    * Profile methods
    */
+  @Activity()
   protected async setProfilePicture(
     file: BinaryFile | RemoteFile,
   ): Promise<boolean> {
@@ -91,6 +93,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   /**
    * Groups methods
    */
+  @Activity()
   protected async setGroupPicture(
     id: string,
     file: BinaryFile | RemoteFile,
@@ -100,6 +103,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return await groupChat.setPicture(media);
   }
 
+  @Activity()
   protected async deleteGroupPicture(id: string): Promise<boolean> {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return await groupChat.deletePicture();
@@ -108,6 +112,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   /**
    * Send media methods
    */
+  @Activity()
   async sendFile(request: MessageFileRequest) {
     const media = await this.fileToMedia(request.file);
     let options = this.getMessageOptions(request);
@@ -123,6 +128,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     );
   }
 
+  @Activity()
   async sendImage(request: MessageImageRequest) {
     const media = await this.fileToMedia(request.file);
     let options = this.getMessageOptions(request);
@@ -137,6 +143,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     );
   }
 
+  @Activity()
   async sendVoice(request) {
     const media = await this.fileToMedia(request.file);
     if (request.convert) {
@@ -155,6 +162,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     );
   }
 
+  @Activity()
   async sendVideo(request: MessageVideoRequest) {
     this.checkBrowserIsChrome();
     const media = await this.fileToMedia(request.file);
@@ -192,6 +200,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     media.filesize = null;
   }
 
+  @Activity()
   async sendButtonsReply(request: MessageButtonReply) {
     const options = this.getMessageOptions(request);
     const extra: any = {
@@ -215,6 +224,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   /**
    * Status methods
    */
+  @Activity()
   public async sendImageStatus(status: ImageStatus) {
     this.checkStatusRequest(status);
     const media = await this.fileToMedia(status.file);
@@ -224,6 +234,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return this.whatsapp.sendMessage(BROADCAST_ID, media, options);
   }
 
+  @Activity()
   public async sendVoiceStatus(status: VoiceStatus) {
     this.checkStatusRequest(status);
     const media = await this.fileToMedia(status.file);
@@ -237,6 +248,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return this.whatsapp.sendMessage(BROADCAST_ID, media, options);
   }
 
+  @Activity()
   public async sendVideoStatus(status: VideoStatus) {
     this.checkBrowserIsChrome();
     this.checkStatusRequest(status);
@@ -261,6 +273,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   /**
    * Channels methods
    */
+  @Activity()
   public async previewChannelMessages(
     inviteCode: string,
     query: PreviewChannelMessages,
@@ -301,6 +314,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
   /**
    * Channels Search methods
    */
+  @Activity()
   public async searchChannelsByView(
     query: ChannelSearchByView,
   ): Promise<ChannelListResult> {
@@ -315,6 +329,7 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     return this.channelsRawDataToResponse(data);
   }
 
+  @Activity()
   public async searchChannelsByText(
     query: ChannelSearchByText,
   ): Promise<ChannelListResult> {

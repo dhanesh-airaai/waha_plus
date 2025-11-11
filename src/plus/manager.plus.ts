@@ -496,6 +496,9 @@ export class SessionManagerPlus
         status: status,
         config: sessionConfig,
         me: me,
+        presence: this.sessions[sessionName].presence,
+        lastActivityTimestamp:
+          this.sessions[sessionName].getLastActivityTimestamp(),
       };
     });
     return sessions;
@@ -522,6 +525,8 @@ export class SessionManagerPlus
         status: status,
         config: sessionConfig,
         me: me,
+        presence: null,
+        lastActivityTimestamp: null,
       };
     });
     return await Promise.all(sessions);
@@ -578,6 +583,8 @@ export class SessionManagerPlus
     const engine = await this.fetchEngineInfo(name);
     return {
       ...session,
+      presence: session.presence,
+      lastActivityTimestamp: session.lastActivityTimestamp,
       engine: engine,
     };
   }
