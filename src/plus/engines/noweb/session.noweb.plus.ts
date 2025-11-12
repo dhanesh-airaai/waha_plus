@@ -187,6 +187,9 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       'image',
       request.caption,
     );
+    if (request.mentions?.length) {
+      message.mentions = request.mentions.map((mention) => toJID(mention));
+    }
     const options = await this.getMessageOptions(request);
     const chatId = toJID(this.ensureSuffix(request.chatId));
     return this.sock.sendMessage(chatId, message, options);
@@ -199,6 +202,9 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
       'document',
       request.caption,
     );
+    if (request.mentions?.length) {
+      message.mentions = request.mentions.map((mention) => toJID(mention));
+    }
     const chatId = toJID(this.ensureSuffix(request.chatId));
     const options = await this.getMessageOptions(request);
     return this.sock.sendMessage(chatId, message, options);
@@ -226,6 +232,9 @@ export class WhatsappSessionNoWebPlus extends WhatsappSessionNoWebCore {
     if (request.convert) {
       message['video'] = await this.mediaConverter.video(message['video']);
       message.mimetype = WAMimeType.VIDEO;
+    }
+    if (request.mentions?.length) {
+      message.mentions = request.mentions.map((mention) => toJID(mention));
     }
     const chatId = toJID(this.ensureSuffix(request.chatId));
     const options = await this.getMessageOptions(request);

@@ -207,6 +207,7 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
       session: this.session,
       media: media,
       backgroundColor: backgroundColor,
+      mentions: request.mentions?.map((mention) => toJID(mention)),
       participants: participants,
     });
 
