@@ -110,7 +110,11 @@ import {
   WAHAChatPresences,
   WAHAPresenceData,
 } from '@waha/structures/presence.dto';
-import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
+import {
+  WALocation,
+  WAMessage,
+  WAMessageReaction,
+} from '@waha/structures/responses.dto';
 import { BrowserTraceQuery } from '@waha/structures/server.debug.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { StatusRequest, TextStatus } from '@waha/structures/status.dto';
@@ -155,6 +159,7 @@ import {
   normalizeJid,
   toCusFormat,
 } from '@waha/core/utils/jids';
+import { Activity } from '@waha/core/abc/activity';
 
 export interface WebJSConfig {
   webVersion?: string;
@@ -366,6 +371,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   async stop() {
+    this.cleanupPresenceTimeout();
     this.shouldRestart = false;
     this.status = WAHASessionStatus.STOPPED;
     this.stopEvents();
@@ -389,6 +395,8 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   private async end() {
+    this.cleanupPresenceTimeout();
+    this.presence = null;
     this.engineStateCheckDelayedJob.cancel();
     this.whatsapp?.removeAllListeners();
     this.whatsapp?.pupBrowser?.removeAllListeners();
@@ -620,11 +628,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Profile methods
    */
+  @Activity()
   public async setProfileName(name: string): Promise<boolean> {
     await this.whatsapp.setPushName(name);
     return true;
   }
 
+  @Activity()
   public async setProfileStatus(status: string): Promise<boolean> {
     await this.whatsapp.setStatus(status);
     return true;
@@ -641,6 +651,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Other methods
    */
+  @Activity()
   sendText(request: MessageTextRequest) {
     const options = this.getMessageOptions(request);
     return this.whatsapp.sendMessage(
@@ -650,11 +661,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     );
   }
 
+  @Activity()
   public deleteMessage(chatId: string, messageId: string) {
     const message = this.recreateMessage(messageId);
     return message.delete(true);
   }
 
+  @Activity()
   public editMessage(
     chatId: string,
     messageId: string,
@@ -669,6 +682,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return message.edit(request.text, options);
   }
 
+  @Activity()
   async sendContactVCard(request: MessageContactVcardRequest) {
     const chatId = this.ensureSuffix(request.chatId);
     const vcards = request.contacts.map((el) => toVcardV3(el as any));
@@ -691,7 +705,8 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return this.whatsapp.sendMessage(chatId, '', { ...options, extra });
   }
 
-  reply(request: MessageReplyRequest) {
+  @Activity()
+  async reply(request: MessageReplyRequest) {
     const options = this.getMessageOptions(request);
     return this.whatsapp.sendMessage(
       this.ensureSuffix(request.chatId),
@@ -716,6 +731,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     throw new AvailableInPlusVersion();
   }
 
+  @Activity()
   async sendLocation(request: MessageLocationRequest) {
     const location = new Location(request.latitude, request.longitude, {
       name: request.title,
@@ -728,6 +744,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     );
   }
 
+  @Activity()
   async forwardMessage(request: MessageForwardRequest): Promise<WAMessage> {
     const forwardMessage = this.recreateMessage(request.messageId);
     const msg = await forwardMessage.forward(this.ensureSuffix(request.chatId));
@@ -737,6 +754,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return { sent: msg || false };
   }
 
+  @Activity()
   async sendSeen(request: SendSeenRequest) {
     const chat: Chat = await this.whatsapp.getChatById(
       this.ensureSuffix(request.chatId),
@@ -744,13 +762,15 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     await chat.sendSeen();
   }
 
-  async startTyping(request: ChatRequest) {
+  @Activity()
+  async startTyping(request: ChatRequest): Promise<void> {
     const chat: Chat = await this.whatsapp.getChatById(
       this.ensureSuffix(request.chatId),
     );
     await chat.sendStateTyping();
   }
 
+  @Activity()
   async stopTyping(request: ChatRequest) {
     const chat: Chat = await this.whatsapp.getChatById(
       this.ensureSuffix(request.chatId),
@@ -758,6 +778,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     await chat.clearState();
   }
 
+  @Activity()
   async setReaction(request: MessageReactionRequest) {
     const message = this.recreateMessage(request.messageId);
     return message.react(request.reaction);
@@ -774,6 +795,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return new MessageInstance(this.whatsapp, data);
   }
 
+  @Activity()
   async setStar(request: MessageStarRequest) {
     const message = this.recreateMessage(request.messageId);
     if (request.star) {
@@ -863,6 +885,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return result;
   }
 
+  @Activity()
   public async readChatMessages(
     chatId: string,
     request: ReadChatMessagesQuery,
@@ -897,6 +920,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return await this.processIncomingMessage(message, query.downloadMedia);
   }
 
+  @Activity()
   public async pinMessage(
     chatId: string,
     messageId: string,
@@ -906,6 +930,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return message.pin(duration);
   }
 
+  @Activity()
   public async unpinMessage(
     chatId: string,
     messageId: string,
@@ -914,26 +939,31 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return message.unpin();
   }
 
+  @Activity()
   async deleteChat(chatId) {
     const chat = await this.whatsapp.getChatById(this.ensureSuffix(chatId));
     return chat.delete();
   }
 
+  @Activity()
   async clearMessages(chatId) {
     const chat = await this.whatsapp.getChatById(chatId);
     return chat.clearMessages();
   }
 
+  @Activity()
   public chatsArchiveChat(chatId: string): Promise<any> {
     const id = this.ensureSuffix(chatId);
     return this.whatsapp.archiveChat(id);
   }
 
+  @Activity()
   public chatsUnarchiveChat(chatId: string): Promise<any> {
     const id = this.ensureSuffix(chatId);
     return this.whatsapp.unarchiveChat(id);
   }
 
+  @Activity()
   public chatsUnreadChat(chatId: string): Promise<any> {
     const id = this.ensureSuffix(chatId);
     return this.whatsapp.markChatUnread(id);
@@ -949,6 +979,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return labels.map(this.toLabel);
   }
 
+  @Activity()
   public async createLabel(label: LabelDTO): Promise<Label> {
     const labelId = await this.whatsapp.createLabel(label.name, label.color);
     return {
@@ -959,14 +990,17 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     };
   }
 
+  @Activity()
   public async updateLabel(label: Label): Promise<Label> {
     return await this.whatsapp.updateLabel(label);
   }
 
+  @Activity()
   public deleteLabel(label: Label): Promise<void> {
     return this.whatsapp.deleteLabel(label);
   }
 
+  @Activity()
   public getChatsByLabelId(labelId: string) {
     return this.whatsapp.getChatsByLabelId(labelId);
   }
@@ -977,6 +1011,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return labels.map(this.toLabel);
   }
 
+  @Activity()
   public async putLabelsToChat(chatId: string, labels: LabelID[]) {
     const labelIds = labels.map((label) => label.id);
     const chatIds = [this.ensureSuffix(chatId)];
@@ -996,6 +1031,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Contacts methods
    */
+  @Activity()
   public async upsertContact(chatId: string, body: ContactUpdateBody) {
     const phoneNumber = chatId.split('@')[0];
     await this.whatsapp.saveOrEditAddressbookContact(
@@ -1026,12 +1062,14 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return { about: await contact.getAbout() };
   }
 
+  @Activity()
   public async fetchContactProfilePicture(id: string) {
     const contact = await this.whatsapp.getContactById(this.ensureSuffix(id));
     const url = await contact.getProfilePicUrl();
     return url;
   }
 
+  @Activity()
   public async blockContact(request: ContactRequest) {
     const contact = await this.whatsapp.getContactById(
       this.ensureSuffix(request.contactId),
@@ -1039,6 +1077,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     await contact.block();
   }
 
+  @Activity()
   public async unblockContact(request: ContactRequest) {
     const contact = await this.whatsapp.getContactById(
       this.ensureSuffix(request.contactId),
@@ -1081,6 +1120,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Group methods
    */
+  @Activity()
   public createGroup(request: CreateGroupRequest) {
     const participantIds = request.participants.map(
       (participant) => participant.id,
@@ -1088,10 +1128,12 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return this.whatsapp.createGroup(request.name, participantIds);
   }
 
+  @Activity()
   public joinGroup(code: string) {
     return this.whatsapp.acceptInvite(code);
   }
 
+  @Activity()
   public joinInfoGroup(code: string) {
     return this.whatsapp.getInviteInfo(code);
   }
@@ -1105,6 +1147,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     };
   }
 
+  @Activity()
   public async setInfoAdminsOnly(id, value) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return groupChat.setInfoAdminsOnly(value);
@@ -1120,6 +1163,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     };
   }
 
+  @Activity()
   public async setMessagesAdminsOnly(id, value) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return groupChat.setMessagesAdminsOnly(value);
@@ -1162,31 +1206,37 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return getParticipants(group.participants);
   }
 
+  @Activity()
   public async deleteGroup(id) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return groupChat.delete();
   }
 
+  @Activity()
   public async leaveGroup(id) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return groupChat.leave();
   }
 
+  @Activity()
   public async setDescription(id, description) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return groupChat.setDescription(description);
   }
 
+  @Activity()
   public async setSubject(id, subject) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return groupChat.setSubject(subject);
   }
 
+  @Activity()
   public async getInviteCode(id): Promise<string> {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     return groupChat.getInviteCode();
   }
 
+  @Activity()
   public async revokeInviteCode(id): Promise<string> {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     await groupChat.revokeInvite();
@@ -1198,6 +1248,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return groupChat.participants;
   }
 
+  @Activity()
   public async addParticipants(id, request: ParticipantsRequest) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     const participantIds = request.participants.map(
@@ -1206,6 +1257,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return groupChat.addParticipants(participantIds);
   }
 
+  @Activity()
   public async removeParticipants(id, request: ParticipantsRequest) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     const participantIds = request.participants.map(
@@ -1214,6 +1266,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return groupChat.removeParticipants(participantIds);
   }
 
+  @Activity()
   public async promoteParticipantsToAdmin(id, request: ParticipantsRequest) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     const participantIds = request.participants.map(
@@ -1222,6 +1275,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return groupChat.promoteParticipants(participantIds);
   }
 
+  @Activity()
   public async demoteParticipantsToUser(id, request: ParticipantsRequest) {
     const groupChat = (await this.whatsapp.getChatById(id)) as GroupChat;
     const participantIds = request.participants.map(
@@ -1292,6 +1346,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     };
   }
 
+  @Activity()
   public async channelsList(query: ListChannelsQuery): Promise<Channel[]> {
     const data = await this.whatsapp.getChannels();
     let channels = data.map(this.ChatToChannel);
@@ -1326,6 +1381,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return await this.channelsGetChannelByInviteCode(id);
   }
 
+  @Activity()
   public async channelsGetChannelByInviteCode(
     inviteCode: string,
   ): Promise<Channel> {
@@ -1370,14 +1426,17 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         await this.whatsapp.sendPresenceUnavailable();
         break;
       case WAHAPresenceStatus.TYPING:
+        await this.maintainPresenceOnline();
         chat = await this.whatsapp.getChatById(chatId);
         await chat.sendStateTyping();
         break;
       case WAHAPresenceStatus.RECORDING:
+        await this.maintainPresenceOnline();
         chat = await this.whatsapp.getChatById(chatId);
         await chat.sendStateRecording();
         break;
       case WAHAPresenceStatus.PAUSED:
+        await this.maintainPresenceOnline();
         chat = await this.whatsapp.getChatById(chatId);
         await chat.clearState();
         break;
@@ -1386,18 +1445,21 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
           `WEBJS engine doesn't support '${presence}' presence.`,
         );
     }
+    this.presence = presence;
   }
 
   public getPresences(): Promise<WAHAChatPresences[]> {
     throw new NotImplementedByEngineError();
   }
 
+  @Activity()
   public async getPresence(id: string): Promise<WAHAChatPresences> {
     const chatId = toCusFormat(id);
     const presences = await this.whatsapp.getPresence(chatId);
     return this.toWahaPresences(chatId, presences);
   }
 
+  @Activity()
   public async subscribePresence(id: string): Promise<any> {
     const chatId = toCusFormat(id);
     await this.whatsapp.subscribePresence(chatId);
@@ -1445,6 +1507,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     }
   }
 
+  @Activity()
   public sendTextStatus(status: TextStatus) {
     this.checkStatusRequest(status);
     return this.whatsapp.sendTextStatus(status);
@@ -1802,7 +1865,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       // @ts-ignore
       ack: message.ack,
       ackName: WAMessageAck[message.ack] || ACK_UNKNOWN,
-      location: message.location,
+      location: this.extractLocation(message),
       vCards: message.vCards,
       replyTo: replyTo,
       _data: message.rawData,
@@ -1820,6 +1883,24 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       participant: quotedMsg.author || quotedMsg.from,
       body: quotedMsg.caption || quotedMsg.body,
       _data: quotedMsg,
+    };
+  }
+
+  protected extractLocation(message: Message): WALocation | null {
+    const location = message.location;
+    if (lodash.isEmpty(location)) {
+      return null;
+    }
+    const rawData: any = message.rawData;
+    return {
+      live: Boolean(rawData.isLive),
+      latitude: location.latitude,
+      longitude: location.longitude,
+      name: location.name,
+      address: location.address,
+      description: rawData.comment || location.description,
+      url: location.url,
+      thumbnail: message.body,
     };
   }
 

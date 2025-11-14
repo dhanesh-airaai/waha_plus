@@ -14,6 +14,7 @@ import { Sqlite3ChatRepository } from './Sqlite3ChatRepository';
 import { Sqlite3ContactRepository } from './Sqlite3ContactRepository';
 import { Sqlite3MessagesRepository } from './Sqlite3MessagesRepository';
 import { Sqlite3SchemaValidation } from './Sqlite3SchemaValidation';
+import { KNEX_SQLITE_CLIENT } from '@waha/core/env';
 
 export class Sqlite3Storage extends INowebStorage {
   private readonly tables: Schema[];
@@ -22,9 +23,16 @@ export class Sqlite3Storage extends INowebStorage {
   constructor(filePath: string) {
     super();
     this.knex = Knex({
-      client: 'sqlite3',
+      client: KNEX_SQLITE_CLIENT,
       connection: { filename: filePath },
       useNullAsDefault: true,
+      pool: {
+        min: 1,
+        max: 10,
+        idleTimeoutMillis: 60_000,
+        createTimeoutMillis: 120_000,
+        acquireTimeoutMillis: 120_000,
+      },
     });
     this.tables = NOWEB_STORE_SCHEMA;
   }
