@@ -171,6 +171,10 @@ import {
   isLabelChatAddedEvent,
   isLabelUpsertEvent,
 } from './labels.gows';
+import {
+  EventStreamClientSingleton,
+  MessageServiceClientSingleton,
+} from '@waha/core/engines/gows/clients';
 import esm from '@waha/vendor/esm';
 import { IsEditedMessage } from '@waha/core/utils/pwa';
 import MessageServiceClient = messages.MessageServiceClient;
@@ -272,7 +276,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       }),
     });
 
-    this.client = new MessageServiceClient(
+    this.client = MessageServiceClientSingleton(
       this.engineConfig.connection,
       grpc.credentials.createInsecure(),
       gRPCClientConfig,
@@ -302,7 +306,7 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     this.stream$ = new GowsEventStreamObservable(
       this.loggerBuilder.child({ grpc: 'stream' }),
       () => {
-        const client = new messages.EventStreamClient(
+        const client = EventStreamClientSingleton(
           this.engineConfig.connection,
           grpc.credentials.createInsecure(),
           gRPCClientConfig,
@@ -701,7 +705,6 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     this.status = WAHASessionStatus.STOPPED;
     this.events?.stop();
     this.stopEvents();
-    this.client?.close();
     this.mediaManager.close();
   }
 
@@ -2369,6 +2372,8 @@ export class GOWSEngineMediaProcessor implements IMediaEngineProcessor<any> {
   }
 
   async getMediaBuffer(message: any): Promise<Buffer | null> {
+    const mediaDownloadTimeoutMs = 600_000; // 10 minutes
+
     const data = JSON.stringify(message.Message);
     const request = new messages.DownloadMediaRequest({
       // double "session" it's not a mistake here
@@ -2377,11 +2382,23 @@ export class GOWSEngineMediaProcessor implements IMediaEngineProcessor<any> {
       jid: message.Info.Chat,
       messageId: message.Info.ID,
     });
-    const response = await promisify(this.session.client.DownloadMedia)(
-      request,
+
+    const opts = {
+      deadline: new Date(Date.now() + mediaDownloadTimeoutMs),
+    };
+    const call = promisify(
+      this.session.client.DownloadMedia.bind(this.session.client),
     );
-    const obj = response.toObject();
-    return Buffer.from(obj.content);
+    try {
+      const response = await call(request, opts);
+      const obj = response.toObject();
+      return Buffer.from(obj.content);
+    } catch (err) {
+      if (err?.code === grpc.status.DEADLINE_EXCEEDED) {
+        err.message = `DownloadMedia timed out after ${mediaDownloadTimeoutMs}ms for message '${message?.Info?.ID}'`;
+      }
+      throw err;
+    }
   }
 
   getFilename(message: any): string | null {

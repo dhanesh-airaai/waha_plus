@@ -1,5 +1,5 @@
 ARG NODE_IMAGE_TAG=22.16-bookworm-slim
-ARG GOLANG_IMAGE_TAG=1.23-bookworm
+ARG GOLANG_IMAGE_TAG=1.24-bookworm
 
 #
 # Build
@@ -228,6 +228,9 @@ ENV CHOKIDAR_INTERVAL=5000
 
 # WAHA variables
 ENV WAHA_ZIPPER=ZIPUNZIP
+
+# GOWS - use libc DNS resolver
+ENV GODEBUG netdns=cgo
 
 # Run command, etc
 EXPOSE 3000
