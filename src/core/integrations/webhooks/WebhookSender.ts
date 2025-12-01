@@ -9,8 +9,9 @@ import axios, { AxiosInstance } from 'axios';
 import axiosRetry, { retryAfter } from 'axios-retry';
 import * as crypto from 'crypto';
 import { Logger } from 'pino';
-import { ulid } from 'ulid';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const uniqid = require('uniqid');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const HttpAgent = require('agentkeepalive');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -71,6 +72,7 @@ export class WebhookSender {
     const ctx = {
       id: headers['X-Webhook-Request-Id'],
       ['event.id']: json.id,
+      event: json.event,
       url: this.url,
     };
     this.logger.info(ctx, `Sending POST...`);
@@ -133,7 +135,9 @@ export class WebhookSender {
       retryCondition: (error) => true,
       onRetry: (retryCount, error, requestConfig) => {
         this.logger.warn(
-          { id: requestConfig.headers['X-Webhook-Request-Id'] },
+          {
+            id: requestConfig.headers['X-Webhook-Request-Id'],
+          },
           `Error sending POST request: '${error.message}'. Retrying ${retryCount}/${attempts}...`,
         );
       },
@@ -157,7 +161,7 @@ export class WebhookSender {
     const timestamp = json.timestamp?.toString() || Date.now().toString();
     return {
       // UUID, no '-' in it
-      'X-Webhook-Request-Id': ulid(),
+      'X-Webhook-Request-Id': uniqid(),
       // unix timestamp with ms
       'X-Webhook-Timestamp': timestamp,
     };
