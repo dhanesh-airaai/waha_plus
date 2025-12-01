@@ -48,6 +48,9 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { promisify } from 'util';
 import { Activity } from '@waha/core/abc/activity';
+import { TmpDir } from '@waha/utils/tmpdir';
+import * as path from 'path';
+import * as fsp from 'fs/promises';
 
 axiosRetry(axios, { retries: 3 });
 
@@ -223,9 +226,21 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
     }
 
     message.replyTo = getMessageIdFromSerialized(request.reply_to);
-    const response = await promisify(this.client.SendMessage)(message);
-    const data = response.toObject();
-    return this.messageResponse(jid, data);
+    const tmpdir = new TmpDir(this.logger, `waha-smedia-${this.name}-`);
+    return await tmpdir.use(async (dir) => {
+      const file = path.join(dir, 'send-media.tmp');
+      // Try to write to the file
+      try {
+        await fsp.writeFile(file, Buffer.from(media.content));
+        media.contentPath = file;
+        media.content = null;
+      } catch (e) {
+        this.logger.error(`Failed to write media to temp file: ${e.message}`);
+      }
+      const response = await promisify(this.client.SendMessage)(message);
+      const data = response.toObject();
+      return this.messageResponse(jid, data);
+    });
   }
 
   @Activity()
