@@ -321,7 +321,7 @@ export abstract class WhatsappSession {
     return this.events2.get(event);
   }
 
-  protected set status(value: WAHASessionStatus) {
+  public set status(value: WAHASessionStatus) {
     if (this.unpairing && value !== WAHASessionStatus.STOPPED) {
       // In case of unpairing
       // wait for STOPPED event, ignore the rest
@@ -661,6 +661,10 @@ export abstract class WhatsappSession {
   }
 
   cancelEvent(eventId: string): Promise<WAMessage> {
+    throw new NotImplementedByEngineError();
+  }
+
+  public rejectCall(from: string, id: string): Promise<void> {
     throw new NotImplementedByEngineError();
   }
 

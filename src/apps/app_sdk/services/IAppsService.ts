@@ -11,13 +11,23 @@ export interface IAppsService {
 
   create(manager: SessionManager, app: App): Promise<App>;
 
+  upsert(manager: SessionManager, app: App): Promise<App>;
+
   update(manager: SessionManager, app: App): Promise<App>;
 
-  delete(manager: SessionManager, appId: string): Promise<void>;
+  delete(manager: SessionManager, appId: string): Promise<App>;
+
+  removeBySession(manager: SessionManager, session: string): Promise<void>;
 
   beforeSessionStart(session: WhatsappSession, store: DataStore): Promise<void>;
 
   afterSessionStart(session: WhatsappSession, store: DataStore): Promise<void>;
+
+  syncSessionApps(
+    manager: SessionManager,
+    sessionName: string,
+    apps?: App[] | null,
+  ): Promise<void>;
 
   migrate(knex: Knex): Promise<void>;
 }

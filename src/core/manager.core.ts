@@ -218,11 +218,20 @@ export class SessionManagerCore extends SessionManager implements OnModuleInit {
     webhook.configure(session, webhooks);
 
     // Apps
-    await this.appsService.beforeSessionStart(session, this.store);
+    try {
+      await this.appsService.beforeSessionStart(session, this.store);
+    } catch (e) {
+      logger.error(`Apps Error: ${e}`);
+      session.status = WAHASessionStatus.FAILED;
+    }
 
     // start session
-    await session.start();
-    logger.info('Session has been started.');
+    if (session.status !== WAHASessionStatus.FAILED) {
+      await session.start();
+      logger.info('Session has been started.');
+      // Apps
+      await this.appsService.afterSessionStart(session, this.store);
+    }
 
     // Apps
     await this.appsService.afterSessionStart(session, this.store);
@@ -295,6 +304,7 @@ export class SessionManagerCore extends SessionManager implements OnModuleInit {
 
   async delete(name: string): Promise<void> {
     this.onlyDefault(name);
+    await this.appsService.removeBySession(this, name);
     this.session = DefaultSessionStatus.REMOVED;
     this.updateSession();
     this.sessionConfig = undefined;

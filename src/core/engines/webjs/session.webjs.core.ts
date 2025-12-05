@@ -131,7 +131,15 @@ import { TmpDir } from '@waha/utils/tmpdir';
 import * as lodash from 'lodash';
 import * as path from 'path';
 import { ProtocolError } from 'puppeteer';
-import { filter, fromEvent, merge, mergeMap, Observable, share } from 'rxjs';
+import {
+  filter,
+  fromEvent,
+  merge,
+  mergeMap,
+  Observable,
+  share,
+  Subject,
+} from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   AuthStrategy,
@@ -150,7 +158,10 @@ import {
   Reaction,
   WAState,
 } from 'whatsapp-web.js';
-import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
+import {
+  Message as MessageInstance,
+  Call as CallInstance,
+} from 'whatsapp-web.js/src/structures';
 
 import { WAJSPresenceChatStateType, WebJSPresence } from './types';
 import {
@@ -160,6 +171,7 @@ import {
   toCusFormat,
 } from '@waha/core/utils/jids';
 import { Activity } from '@waha/core/abc/activity';
+import { CallData } from '@waha/structures/calls.dto';
 
 export interface WebJSConfig {
   webVersion?: string;
@@ -180,6 +192,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
   whatsapp: WebjsClientCore;
   protected qr: QR;
+  private callRejected$ = new Subject<CallData>();
 
   public constructor(config) {
     super(config);
@@ -475,7 +488,6 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     });
 
     this.whatsapp.on(Events.READY, () => {
-      this.status = WAHASessionStatus.WORKING;
       this.qr.save('');
       this.logger.info(`Session '${this.name}' is ready!`);
     });
@@ -497,6 +509,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     });
 
     this.whatsapp.on(Events.AUTHENTICATED, (args) => {
+      this.status = WAHASessionStatus.WORKING;
       this.qr.save('');
       this.logger.info({ args: args }, `Session has been authenticated!`);
     });
@@ -651,6 +664,15 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Other methods
    */
+  async rejectCall(from: string, id: string): Promise<void> {
+    const peerJid = normalizeJid(this.ensureSuffix(from));
+    const call = new CallInstance(this.whatsapp, null);
+    call.id = id;
+    call.from = peerJid;
+    await call.reject();
+    this.callRejected$.next(this.toRejectedCallData(peerJid, id));
+  }
+
   @Activity()
   sendText(request: MessageTextRequest) {
     const options = this.getMessageOptions(request);
@@ -1770,10 +1792,14 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
           timestamp: call.timestamp,
           isVideo: call.isVideo,
           isGroup: call.isGroup,
+          _data: call,
         };
       }),
     );
     this.events2.get(WAHAEvents.CALL_RECEIVED).switch(calls$);
+    this.events2
+      .get(WAHAEvents.CALL_REJECTED)
+      .switch(this.callRejected$.asObservable());
   }
 
   protected async processIncomingMessage(
@@ -1788,6 +1814,23 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       wamessage.media = media;
     }
     return wamessage;
+  }
+
+  private toRejectedCallData(peerJid: string, id: string): CallData {
+    const timestamp = Math.floor(Date.now() / 1000);
+    return {
+      id: id,
+      from: peerJid,
+      timestamp: timestamp,
+      isVideo: false,
+      isGroup: isJidGroup(peerJid),
+      _data: {
+        id: id,
+        from: peerJid,
+        status: 'reject',
+        api: true,
+      },
+    };
   }
 
   private processMessageReaction(reaction: Reaction): WAMessageReaction {

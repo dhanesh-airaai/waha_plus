@@ -24,7 +24,7 @@ import { SessionManager } from '@waha/core/abc/manager.abc';
 import { parseMessageIdSerialized } from '@waha/core/utils/ids';
 import { RMutexService } from '@waha/modules/rmutex/rmutex.service';
 import { WAHAEvents } from '@waha/structures/enums.dto';
-import { MessageSource, WAMessageBase } from '@waha/structures/responses.dto';
+import { MessageSource } from '@waha/structures/responses.dto';
 import { sleep } from '@waha/utils/promiseTimeout';
 import { Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
@@ -34,16 +34,26 @@ import { isJidBroadcast, isJidGroup, toCusFormat } from '@waha/core/utils/jids';
 import { EngineHelper } from '@waha/apps/chatwoot/waha';
 import { EnsureSeconds } from '@waha/utils/timehelper';
 import { CHATWOOT_MESSAGE_CALENDAR_THRESHOLD_SECONDS } from '@waha/apps/chatwoot/env';
+import {
+  ChatWootAppConfig,
+  ChatWootConfig,
+} from '@waha/apps/chatwoot/dto/config.dto';
 
-export function ListenEventsForChatWoot() {
-  return [
+export function ListenEventsForChatWoot(config: ChatWootConfig) {
+  const events = [
     WAHAEvents.MESSAGE_ANY,
     WAHAEvents.MESSAGE_REACTION,
     WAHAEvents.MESSAGE_EDITED,
     WAHAEvents.MESSAGE_REVOKED,
-    WAHAEvents.MESSAGE_ACK,
     WAHAEvents.SESSION_STATUS,
+    WAHAEvents.CALL_RECEIVED,
+    WAHAEvents.CALL_ACCEPTED,
+    WAHAEvents.CALL_REJECTED,
   ];
+  if (config.conversations.markAsRead) {
+    events.push(WAHAEvents.MESSAGE_ACK);
+  }
+  return events;
 }
 
 /**
@@ -195,7 +205,17 @@ export interface ChatWootMessagePartial {
   private?: boolean;
 }
 
-export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
+export interface MessageBaseHandlerPayload {
+  id: string;
+  timestamp: number;
+  from?: string;
+  fromMe?: boolean;
+  source?: MessageSource;
+}
+
+export abstract class MessageBaseHandler<
+  Payload extends MessageBaseHandlerPayload,
+> {
   constructor(
     protected job: Job,
     protected mappingService: MessageMappingService,
@@ -305,7 +325,7 @@ export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
 
   private async saveMapping(
     chatwootMessage: generic_id & message,
-    whatsappMessage: WAMessageBase,
+    whatsappMessage: MessageBaseHandlerPayload,
   ) {
     const chatwoot: Omit<ChatwootMessage, 'id'> = {
       timestamp: new Date(chatwootMessage.created_at * 1000),
@@ -369,12 +389,13 @@ export abstract class MessageBaseHandler<Payload extends WAMessageBase> {
       },
     );
 
-    const type = payload.fromMe ? MessageType.OUTGOING : MessageType.INCOMING;
+    const private_ = message.private ?? payload.fromMe;
+    const type = private_ ? MessageType.OUTGOING : MessageType.INCOMING;
     content = this.finalizeContent(content, payload);
     return {
       content: content,
       message_type: type,
-      private: message.private ?? payload.fromMe,
+      private: private_,
       attachments: message.attachments as any,
       content_attributes: {
         in_reply_to: replyTo,
