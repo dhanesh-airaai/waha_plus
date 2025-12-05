@@ -356,14 +356,20 @@ export class SessionManagerPlus
     webhook.configure(session, webhooks);
 
     // Apps
-    await this.appsService.beforeSessionStart(session, this.store);
+    try {
+      await this.appsService.beforeSessionStart(session, this.store);
+    } catch (e) {
+      logger.error(`Apps Error: ${e}`);
+      session.status = WAHASessionStatus.FAILED;
+    }
 
     // start session
-    await session.start();
-    logger.info('Session has been started.');
-
-    // Apps
-    await this.appsService.afterSessionStart(session, this.store);
+    if (session.status !== WAHASessionStatus.FAILED) {
+      await session.start();
+      logger.info('Session has been started.');
+      // Apps
+      await this.appsService.afterSessionStart(session, this.store);
+    }
 
     return {
       name: session.name,
