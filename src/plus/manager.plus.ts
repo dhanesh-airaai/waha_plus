@@ -298,6 +298,7 @@ export class SessionManagerPlus
 
   async delete(name: string): Promise<void> {
     this.log.info({ session: name }, `Deleting session...`);
+    await this.appsService.removeBySession(this, name);
     await this.sessionConfigRepository.deleteConfig(name);
     await this.sessionAuthRepository.clean(name);
     await this.sessionMeRepository.removeMe(name);
