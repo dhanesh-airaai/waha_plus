@@ -9,9 +9,17 @@ function mongoKey(id: string) {
   return id.replace(/\./g, '-');
 }
 
+type AuthDocument = Document & {
+  key?: string;
+  data?: any;
+  type?: string;
+  [key: string]: any;
+};
+
 export class NoWebMongoDbAuth {
-  private collection: Collection;
-  private document: Document;
+  private collection: Collection<AuthDocument>;
+  // Keep legacy aggregated document reference for gradual migration.
+  private document: AuthDocument | null;
   private creds: any;
 
   private db: Db;
@@ -25,77 +33,100 @@ export class NoWebMongoDbAuth {
       maxPending: Infinity,
       maxExecutionTime: 60_000,
     });
+    this.document = null;
   }
 
   async init() {
-    this.document = await this.lock.acquire('auth', async () => {
-      return await this.upsertDocument();
-    });
+    await this.ensureIndexes();
+    this.document = await this.loadLegacyDocument();
+    const creds = await this.readData('creds');
+    // @ts-ignore:next-line
+    this.creds = creds || (0, esm.b.initAuthCreds)();
   }
 
-  upsertDocument() {
-    return this.collection.findOneAndUpdate(
-      // @ts-ignore
-      { _id: this.session },
-      {
-        $setOnInsert: {},
-      },
-      {
-        returnDocument: 'after',
-        upsert: true,
-      },
-    );
+  private async ensureIndexes() {
+    // Separate docs are keyed by "key", keep collection indexable for new format.
+    await this.collection.createIndex({ key: 1 }, { unique: true });
   }
 
-  async writeData(data, field: string) {
-    return this.lock.acquire('auth', async () => {
-      return await this._writeData(data, field);
-    });
+  private serialize(data: any) {
+    return JSON.parse(JSON.stringify(data, esm.b.BufferJSON.replacer));
   }
 
-  async _writeData(data, field: string) {
-    const key = mongoKey(field);
-    this.document = await this.collection.findOneAndUpdate(
-      // @ts-ignore
-      { _id: this.session },
-      {
-        $set: {
-          [key]: JSON.parse(JSON.stringify(data, esm.b.BufferJSON.replacer)),
-        },
-      },
-      { returnDocument: 'after' },
-    );
+  private deserialize(data: any) {
+    if (data === null || data === undefined) {
+      return null;
+    }
+    const json = JSON.stringify(data);
+    if (!json) {
+      return null;
+    }
+    return JSON.parse(json, esm.b.BufferJSON.reviver);
   }
 
-  readData(field: string) {
-    const key = mongoKey(field);
+  private async loadLegacyDocument(): Promise<AuthDocument | null> {
+    // The old format stored everything in one doc; keep it for reads and migrate lazily.
+    return this.collection.findOne({ data: { $exists: false } });
+  }
+
+  private async readFromLegacy(field: string, key: string) {
+    if (!this.document) {
+      return null;
+    }
+    if (!(key in this.document)) {
+      return null;
+    }
+
     try {
-      const data = JSON.stringify(this.document[key]);
-      if (data === 'null' || data === 'undefined') return null;
-      if (!data) return null;
-
-      return JSON.parse(data, esm.b.BufferJSON.reviver);
+      const value = this.deserialize(this.document[key]);
+      if (value === null || value === undefined) {
+        return null;
+      }
+      await this.writeData(value, field);
+      return value;
     } catch (error) {
       console.error(error);
       return null;
     }
   }
 
+  private async writeData(data: any, field: string) {
+    const key = mongoKey(field);
+    await this.lock.acquire(key, async () => {
+      await this.collection.updateOne(
+        { key: key },
+        {
+          $set: {
+            key: key,
+            data: this.serialize(data),
+            type: 'kv',
+          },
+        },
+        { upsert: true },
+      );
+    });
+  }
+
+  async readData(field: string) {
+    const key = mongoKey(field);
+    try {
+      const document = await this.collection.findOne({ key: key });
+      if (document && 'data' in document) {
+        return this.deserialize(document.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return this.readFromLegacy(field, key);
+  }
+
   async removeData(field: string) {
     const key = mongoKey(field);
     try {
-      this.document = await this.collection.findOneAndUpdate(
-        // @ts-ignore
-        { _id: this.session },
-        {
-          $unset: {
-            [key]: '',
-          },
-        },
-        { returnDocument: 'after' },
-      );
-    } catch (_a) {
-      console.error(_a);
+      await this.collection.deleteOne({ key: key });
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -106,12 +137,10 @@ export class NoWebMongoDbAuth {
   }
 
   methods() {
-    const creds = this.readData('creds');
-    // @ts-ignore:next-line
-    this.creds = creds || (0, esm.b.initAuthCreds)();
+    const creds = this.creds;
     return {
       state: {
-        creds: this.creds,
+        creds: creds,
         keys: {
           get: async (type, ids) => {
             const data = {};
