@@ -22,6 +22,7 @@ import {
   MessageButtonReply,
   MessageFileRequest,
   MessageImageRequest,
+  MessagePollVoteRequest,
   MessageVideoRequest,
 } from '@waha/structures/chatting.dto';
 import { BinaryFile, RemoteFile } from '@waha/structures/files.dto';
@@ -198,6 +199,17 @@ export class WhatsappSessionWebJSPlus extends WhatsappSessionWebJSCore {
     media.mimetype = WAMimeType.VOICE;
     media.filename = null;
     media.filesize = null;
+  }
+
+  @Activity()
+  async sendPollVote(request: MessagePollVoteRequest) {
+    const message = await this.whatsapp.getMessageById(request.pollMessageId);
+    if (!message) {
+      throw new UnprocessableEntityException(
+        `Poll message not found: ${request.pollMessageId}`,
+      );
+    }
+    return message.vote(request.votes);
   }
 
   @Activity()
