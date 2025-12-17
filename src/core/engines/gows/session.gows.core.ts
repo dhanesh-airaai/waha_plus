@@ -161,7 +161,7 @@ import { isFromFullSync } from '@waha/core/engines/gows/appstate';
 import { toVcardV3 } from '@waha/core/vcard';
 import { AckToStatus } from '@waha/core/utils/acks';
 import { ParseEventResponseType } from '@waha/core/utils/events';
-import { DistinctAck } from '@waha/core/utils/reactive';
+import { DistinctAck, DistinctMessages } from '@waha/core/utils/reactive';
 import { Label, LabelDTO, LabelID } from '@waha/structures/labels.dto';
 import { LidToPhoneNumber } from '@waha/structures/lids.dto';
 import { exclude } from '@waha/utils/reactive/ops/exclude';
@@ -174,8 +174,8 @@ import {
   isLabelUpsertEvent,
 } from './labels.gows';
 import {
-  EventStreamClientSingleton,
-  MessageServiceClientSingleton,
+  GetEventStreamClient,
+  GetMessageServiceClient,
 } from '@waha/core/engines/gows/clients';
 import esm from '@waha/vendor/esm';
 import { IsEditedMessage } from '@waha/core/utils/pwa';
@@ -282,7 +282,8 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       }),
     });
 
-    this.client = MessageServiceClientSingleton(
+    this.client = GetMessageServiceClient(
+      this.name,
       this.engineConfig.connection,
       grpc.credentials.createInsecure(),
     );
@@ -311,7 +312,8 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     this.stream$ = new GowsEventStreamObservable(
       this.loggerBuilder.child({ grpc: 'stream' }),
       () => {
-        const client = EventStreamClientSingleton(
+        const client = GetEventStreamClient(
+          this.name,
           this.engineConfig.connection,
           grpc.credentials.createInsecure(),
         );
@@ -477,6 +479,10 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
         return msg;
       }),
       mergeMap((msg) => this.processIncomingMessage(msg, true)),
+      filter(Boolean),
+      // Deduplicate messages by ID to prevent duplicate webhooks
+      // @see https://github.com/devlikeapro/waha/issues/1564
+      DistinctMessages(),
       share(), // share it so we don't process twice in message.any
     );
     messagesFromOthers$ = messagesFromOthers$.pipe(
@@ -485,6 +491,10 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
         return msg;
       }),
       mergeMap((msg) => this.processIncomingMessage(msg, true)),
+      filter(Boolean),
+      // Deduplicate messages by ID to prevent duplicate webhooks
+      // @see https://github.com/devlikeapro/waha/issues/1564
+      DistinctMessages(),
       share(), // share it so we don't process twice in message.any
     );
     const messagesFromAll$ = merge(messagesFromMe$, messagesFromOthers$);
@@ -538,11 +548,19 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       onlyEvent(WhatsMeowEvent.RECEIPT),
       filter((r: any) => this.jids.include(r?.Chat)),
     );
-    const messageAck$ = receipt$.pipe(
+    const [receiptGroups$, receiptContacts$] = partition(receipt$, (r: any) =>
+      isJidGroup(r?.Chat || r?.Info?.Chat),
+    );
+    const messageAckGroups$ = receiptGroups$.pipe(
       mergeMap(this.receiptToMessageAck.bind(this)),
       DistinctAck(),
     );
-    this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAck$);
+    const messageAckContacts$ = receiptContacts$.pipe(
+      mergeMap(this.receiptToMessageAck.bind(this)),
+      DistinctAck(),
+    );
+    this.events2.get(WAHAEvents.MESSAGE_ACK_GROUP).switch(messageAckGroups$);
+    this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAckContacts$);
 
     const messageReactions$ = messages$.pipe(
       filter((msg) => !!msg?.Message?.reactionMessage),

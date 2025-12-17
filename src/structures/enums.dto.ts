@@ -6,6 +6,7 @@ export enum WAHAEvents {
   MESSAGE_REACTION = 'message.reaction',
   MESSAGE_ANY = 'message.any',
   MESSAGE_ACK = 'message.ack',
+  MESSAGE_ACK_GROUP = 'message.ack.group',
   MESSAGE_WAITING = 'message.waiting',
   MESSAGE_REVOKED = 'message.revoked',
   MESSAGE_EDITED = 'message.edited',

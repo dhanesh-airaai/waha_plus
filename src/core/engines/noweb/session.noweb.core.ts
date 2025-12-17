@@ -666,10 +666,10 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
         const key = message.key;
         const myIds = [jidNormalizedUser(me.id), jidNormalizedUser(me.lid)];
         const participantIds = [
-          key?.participantAlt,
-          key?.remoteJidAlt,
-          key?.participant,
-          key?.remoteJid,
+          jidNormalizedUser(key?.participantAlt),
+          jidNormalizedUser(key?.remoteJidAlt),
+          jidNormalizedUser(key?.participant),
+          jidNormalizedUser(key?.remoteJid),
         ];
         let creators: string[] = creationMsgKey.fromMe
           ? [...myIds, ...participantIds]
@@ -2074,10 +2074,13 @@ export class WhatsappSessionNoWebCore extends WhatsappSession {
       filter(isMine), // ack comes only for MY messages
       map(this.convertMessageReceiptUpdateToMessageAck.bind(this)),
     );
-    const messageAck$ = merge(messageAckDirect$, messageAckGroups$).pipe(
-      DistinctAck(),
-    );
-    this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAck$);
+    const messageAckDirectFinal$ = messageAckDirect$.pipe(DistinctAck());
+    const messageAckGroupsFinal$ = messageAckGroups$.pipe(DistinctAck());
+
+    this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAckDirectFinal$);
+    this.events2
+      .get(WAHAEvents.MESSAGE_ACK_GROUP)
+      .switch(messageAckGroupsFinal$);
 
     //
     // Other

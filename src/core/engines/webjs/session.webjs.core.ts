@@ -3,7 +3,10 @@ import {
   getChannelInviteLink,
   WhatsappSession,
 } from '@waha/core/abc/session.abc';
-import { getFromToParticipant } from '@waha/core/engines/noweb/session.noweb.core';
+import {
+  getDestination,
+  getFromToParticipant,
+} from '@waha/core/engines/noweb/session.noweb.core';
 import {
   ReceiptEvent,
   TagReceiptNodeToReceiptEvent,
@@ -70,6 +73,7 @@ import {
   MessageForwardRequest,
   MessageImageRequest,
   MessageLocationRequest,
+  MessagePollRequest,
   MessageReactionRequest,
   MessageReplyRequest,
   MessageStarRequest,
@@ -117,9 +121,15 @@ import {
 } from '@waha/structures/responses.dto';
 import { BrowserTraceQuery } from '@waha/structures/server.debug.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
-import { StatusRequest, TextStatus } from '@waha/structures/status.dto';
+import {
+  DeleteStatusRequest,
+  StatusRequest,
+  TextStatus,
+} from '@waha/structures/status.dto';
 import {
   EnginePayload,
+  PollVote as WAHAPollVote,
+  PollVotePayload,
   WAMessageAckBody,
   WAMessageEditedBody,
   WAMessageRevokedBody,
@@ -153,6 +163,8 @@ import {
   GroupNotification,
   Label as WEBJSLabel,
   Location,
+  Poll,
+  PollVote as WebjsPollVote,
   Message,
   MessageMedia,
   Reaction,
@@ -172,6 +184,7 @@ import {
 } from '@waha/core/utils/jids';
 import { Activity } from '@waha/core/abc/activity';
 import { CallData } from '@waha/structures/calls.dto';
+import { Jid } from '@waha/core/engines/const';
 
 export interface WebJSConfig {
   webVersion?: string;
@@ -733,6 +746,20 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return this.whatsapp.sendMessage(
       this.ensureSuffix(request.chatId),
       request.text,
+      options,
+    );
+  }
+
+  @Activity()
+  async sendPoll(request: MessagePollRequest) {
+    const poll = new Poll(request.poll.name, request.poll.options, {
+      allowMultipleAnswers: request.poll.multipleAnswers,
+      messageSecret: undefined,
+    });
+    const options = this.getMessageOptions(request);
+    return this.whatsapp.sendMessage(
+      this.ensureSuffix(request.chatId),
+      poll,
       options,
     );
   }
@@ -1521,7 +1548,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   /**
    * Status methods
    */
-  protected checkStatusRequest(request: StatusRequest) {
+  protected checkStatusRequest(request: { contacts?: any[] }) {
     if (request.contacts && request.contacts?.length > 0) {
       const msg =
         "WEBJS doesn't accept 'contacts'. Remove the field to send status to all contacts.";
@@ -1532,7 +1559,26 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   @Activity()
   public sendTextStatus(status: TextStatus) {
     this.checkStatusRequest(status);
-    return this.whatsapp.sendTextStatus(status);
+    const extra: any = {};
+    if (status.font != null) {
+      extra.fontStyle = status.font;
+    }
+    if (status.backgroundColor != null) {
+      extra.backgroundColor = status.backgroundColor;
+    }
+
+    const options = { extra: extra, linkPreview: status.linkPreview };
+    return this.whatsapp.sendMessage(Jid.BROADCAST, status.text, options);
+  }
+
+  public async deleteStatus(request: DeleteStatusRequest) {
+    this.checkStatusRequest(request);
+
+    let messageId = request.id;
+    if (!request.id.startsWith('true_status@broadcast_')) {
+      messageId = `true_status@broadcast_${request.id}`;
+    }
+    return await this.whatsapp.revokeStatusMessage(messageId);
   }
 
   /**
@@ -1651,6 +1697,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     );
     this.events2.get(WAHAEvents.MESSAGE_EDITED).switch(messagesEdit$);
 
+    const pollVote$ = fromEvent(this.whatsapp, Events.VOTE_UPDATE);
+    const pollVotes$ = pollVote$.pipe(
+      map(this.toPollVotePayload.bind(this)),
+      filter(Boolean),
+    );
+    this.events2.get(WAHAEvents.POLL_VOTE).switch(pollVotes$);
+
     const messageAckWEBJS$ = fromEvent(
       this.whatsapp,
       Events.MESSAGE_ACK,
@@ -1675,10 +1728,13 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       filter((ack) => this.jids.include(ack.to)),
     );
 
-    const messageAckAll$ = merge(messagesAckDM$, messageAckGroups$);
+    const messageAckDMFinal$ = messagesAckDM$.pipe(DistinctAck());
+    const messageAckGroupsFinal$ = messageAckGroups$.pipe(DistinctAck());
 
-    const messageAck$ = messageAckAll$.pipe(DistinctAck());
-    this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAck$);
+    this.events2.get(WAHAEvents.MESSAGE_ACK).switch(messageAckDMFinal$);
+    this.events2
+      .get(WAHAEvents.MESSAGE_ACK_GROUP)
+      .switch(messageAckGroupsFinal$);
 
     //
     // Others
@@ -1855,6 +1911,57 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         text: reaction.reaction,
         messageId: reaction.msgId._serialized,
       },
+    };
+  }
+
+  private toPollVotePayload(vote: WebjsPollVote): PollVotePayload | null {
+    const pollMessageId = vote?.parentMessage?.id?._serialized;
+    if (!pollMessageId) {
+      return null;
+    }
+    let pollKey;
+    try {
+      pollKey = parseMessageIdSerialized(pollMessageId);
+    } catch (error) {
+      this.logger.warn(
+        { pollMessageId, error },
+        'Failed to parse poll message id for vote update',
+      );
+      return null;
+    }
+    const chatId = toCusFormat(
+      vote?.parentMessage?.id?.remote || pollKey.remoteJid,
+    );
+    if (!this.jids.include(chatId)) {
+      return null;
+    }
+    const meId = this.getSessionMeInfo()?.id;
+    const poll = getDestination(pollKey, meId);
+
+    let voter = vote.voter;
+    if (!voter) {
+      return null;
+    }
+    voter = normalizeJid(voter);
+    const fromMe = !!meId && toCusFormat(meId) === toCusFormat(voter);
+    const voteKey = {
+      id: pollKey.id,
+      remoteJid: pollKey.remoteJid,
+      fromMe: fromMe,
+      participant: isJidGroup(chatId) ? voter : undefined,
+    };
+    const selectedOptions =
+      vote?.selectedOptions?.map((option) => option?.name).filter(Boolean) ??
+      [];
+    const pollVote: WAHAPollVote = {
+      ...getDestination(voteKey, meId),
+      selectedOptions: selectedOptions,
+      timestamp: vote?.interractedAtTs,
+    };
+    return {
+      poll: poll,
+      vote: pollVote,
+      _data: vote,
     };
   }
 

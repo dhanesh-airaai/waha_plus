@@ -1,35 +1,40 @@
 import * as grpc from '@grpc/grpc-js';
 import { messages } from '@waha/core/engines/gows/grpc/gows';
+import { Pool, SizedPool } from '@waha/core/engines/gows/pools';
 
-let messageServiceClient: messages.MessageServiceClient | null = null;
-let eventStreamClient: messages.EventStreamClient | null = null;
+let CLIENTS: Pool<messages.MessageServiceClient> | null = null;
+let STREAM_CLIENTS: Pool<messages.EventStreamClient> | null = null;
 
-export const MessageServiceClientSingleton = (
+export const GetMessageServiceClient = (
+  session: string,
   address: string,
   credentials: grpc.ChannelCredentials,
 ): messages.MessageServiceClient => {
-  if (!messageServiceClient) {
-    messageServiceClient = new messages.MessageServiceClient(
-      address,
-      credentials,
-      {
+  if (!CLIENTS) {
+    const factory = () => {
+      return new messages.MessageServiceClient(address, credentials, {
         'grpc.max_send_message_length': 128 * 1024 * 1024,
         'grpc.max_receive_message_length': 128 * 1024 * 1024,
-      },
-    );
+      });
+    };
+    CLIENTS = new SizedPool(16, factory);
   }
-  return messageServiceClient;
+  return CLIENTS.get(session);
 };
 
-export const EventStreamClientSingleton = (
+export const GetEventStreamClient = (
+  session: string,
   address: string,
   credentials: grpc.ChannelCredentials,
 ): messages.EventStreamClient => {
-  if (!eventStreamClient) {
-    eventStreamClient = new messages.EventStreamClient(address, credentials, {
-      'grpc.max_send_message_length': 128 * 1024 * 1024,
-      'grpc.max_receive_message_length': 128 * 1024 * 1024,
-    });
+  if (!STREAM_CLIENTS) {
+    const factory = () => {
+      return new messages.EventStreamClient(address, credentials, {
+        'grpc.max_send_message_length': 128 * 1024 * 1024,
+        'grpc.max_receive_message_length': 128 * 1024 * 1024,
+      });
+    };
+    STREAM_CLIENTS = new SizedPool(16, factory);
   }
-  return eventStreamClient;
+  return STREAM_CLIENTS.get(session);
 };
