@@ -189,6 +189,12 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
           );
           media.mimetype = WAMimeType.VIDEO;
           break;
+        case messages.MediaType.PTV:
+          media.content = await this.mediaConverter.video(
+            media.content as Buffer,
+          );
+          media.mimetype = WAMimeType.VIDEO;
+          break;
         default:
           this.logger.warn(`No conversion for ${type}`);
           break;
@@ -260,7 +266,10 @@ export class WhatsappSessionGoWSPlus extends WhatsappSessionGoWSCore {
 
   @Activity()
   async sendVideo(request: MessageVideoRequest) {
-    return await this.sendMedia(messages.MediaType.VIDEO, request);
+    const type = request.asNote
+      ? messages.MediaType.PTV
+      : messages.MediaType.VIDEO;
+    return await this.sendMedia(type, request);
   }
 
   @Activity()
