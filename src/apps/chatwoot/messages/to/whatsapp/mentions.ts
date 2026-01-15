@@ -15,7 +15,15 @@ export interface ParsedMentions {
  * @param text - The message text
  * @returns Parsed mentions with cleaned text
  */
-export function parseMentionsFromText(text: string): ParsedMentions {
+export function parseMentionsFromText(
+  text: string | null | undefined,
+): ParsedMentions {
+  if (!text) {
+    return {
+      text: text,
+      mentions: null,
+    };
+  }
   const mentions: string[] = [];
   let content = text;
 
@@ -39,6 +47,10 @@ export function parseMentionsFromText(text: string): ParsedMentions {
     if (!mentions.includes(formattedLid)) {
       mentions.push(formattedLid);
     }
+  }
+  if (mentions.length > 0) {
+    const lidRegexReplace = /(^|\s)@(\d{6,15})@lid\b/g;
+    content = content.replace(lidRegexReplace, '$1@$2').trim();
   }
 
   // Regex to match @ followed by phone number

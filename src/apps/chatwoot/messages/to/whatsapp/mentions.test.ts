@@ -9,6 +9,13 @@ describe('parseMentionsFromText', () => {
     });
   });
 
+  it('handles empty content safely', () => {
+    expect(parseMentionsFromText(null)).toEqual({
+      text: null,
+      mentions: null,
+    });
+  });
+
   it('parses @all and removes it from the text', () => {
     const input = 'Hello @all';
     expect(parseMentionsFromText(input)).toEqual({
@@ -108,8 +115,16 @@ describe('parseMentionsFromText', () => {
   it('parses @lid mentions without c.us suffix', () => {
     const input = 'Notify @123123@lid now';
     expect(parseMentionsFromText(input)).toEqual({
-      text: 'Notify @123123@lid now',
+      text: 'Notify @123123 now',
       mentions: ['123123@lid'],
+    });
+  });
+
+  it('replaces @lid suffix with plain ids', () => {
+    const input = '@123456@lid please ping @654321@lid.';
+    expect(parseMentionsFromText(input)).toEqual({
+      text: '@123456 please ping @654321.',
+      mentions: ['123456@lid', '654321@lid'],
     });
   });
 });
