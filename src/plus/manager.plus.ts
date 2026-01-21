@@ -22,7 +22,9 @@ import { Sqlite3SessionWorkerRepository } from '@waha/core/storage/sqlite3/Sqlit
 import { WhatsappSessionGoWSPlus } from '@waha/plus/engines/gows/session.gows.plus';
 import { MongoSessionMeRepository } from '@waha/plus/storage/mongo/MongoSessionMeRepository';
 import { MongoSessionWorkerRepository } from '@waha/plus/storage/mongo/MongoSessionWorkerRepository';
+import { MongoApiKeyRepository } from '@waha/plus/storage/mongo/MongoApiKeyRepository';
 import { parsePsql } from '@waha/plus/storage/psql/PsqlConnectionConfig';
+import { PsqlApiKeyRepository } from '@waha/plus/storage/psql/PsqlApiKeyRepository';
 import { PsqlSessionAuthRepository } from '@waha/plus/storage/psql/PsqlSessionAuthRepository';
 import { PsqlSessionConfigRepository } from '@waha/plus/storage/psql/PsqlSessionConfigRepository';
 import { PsqlSessionMeRepository } from '@waha/plus/storage/psql/PsqlSessionMeRepository';
@@ -65,6 +67,7 @@ import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
 import { MongoSessionAuthRepository } from './storage/mongo/MongoSessionAuthRepository';
 import { MongoSessionConfigRepository } from './storage/mongo/MongoSessionConfigRepository';
 import { MongoStore } from './storage/mongo/MongoStore';
+import { Sqlite3ApiKeyRepository } from '@waha/plus/storage/sqlite3/Sqlite3ApiKeyRepository';
 
 const ALL = '*';
 
@@ -144,6 +147,7 @@ export class SessionManagerPlus
       this.sessionWorkerRepository = new MongoSessionWorkerRepository(
         this.store,
       );
+      this.apiKeyRepository = new MongoApiKeyRepository(this.store);
     } else if (postgresUrl) {
       this.log.info('Using Postgres storage for session info.');
       const config = parsePsql(postgresUrl);
@@ -159,6 +163,7 @@ export class SessionManagerPlus
       this.sessionWorkerRepository = new PsqlSessionWorkerRepository(
         this.store,
       );
+      this.apiKeyRepository = new PsqlApiKeyRepository(this.store);
       const knex = this.store.getWAHADatabase();
       await this.appsService.migrate(knex);
     } else {
@@ -173,6 +178,7 @@ export class SessionManagerPlus
       this.sessionWorkerRepository = new Sqlite3SessionWorkerRepository(
         this.store,
       );
+      this.apiKeyRepository = new Sqlite3ApiKeyRepository(this.store);
       const knex = this.store.getWAHADatabase();
       await this.appsService.migrate(knex);
     }
@@ -180,6 +186,7 @@ export class SessionManagerPlus
     await this.sessionConfigRepository.init();
     await this.sessionMeRepository.init();
     await this.sessionWorkerRepository.init();
+    await this.apiKeyRepository.init();
     this.listenEvents();
     await this.clearStorage();
   }
