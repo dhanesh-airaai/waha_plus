@@ -30,6 +30,26 @@ export class MongoSessionMeRepository extends ISessionMeRepository {
     return data?.me;
   }
 
+  async getMeBySessions(
+    sessionNames: string[],
+  ): Promise<Map<string, MeInfo | null>> {
+    const result = new Map<string, MeInfo | null>();
+    const uniqueNames = Array.from(new Set(sessionNames));
+    if (uniqueNames.length === 0) {
+      return result;
+    }
+    for (const sessionName of uniqueNames) {
+      result.set(sessionName, null);
+    }
+    const docs = await this.collection
+      .find({ session: { $in: uniqueNames } })
+      .toArray();
+    for (const doc of docs) {
+      result.set(doc.session, doc.me ?? null);
+    }
+    return result;
+  }
+
   async removeMe(sessionName: string): Promise<void> {
     await this.collection.deleteOne({ session: sessionName });
   }

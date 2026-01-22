@@ -523,16 +523,16 @@ export class SessionManagerPlus
     if (name) {
       names = names.filter((n) => n === name);
     }
+    const meBySession = await this.sessionMeRepository.getMeBySessions(names);
     const sessions = names.map(async (sessionName) => {
       const status = WAHASessionStatus.STOPPED;
       const sessionConfig =
         await this.sessionConfigRepository.getConfig(sessionName);
-      const me = await this.sessionMeRepository.getMe(sessionName);
       return {
         name: sessionName,
         status: status,
         config: sessionConfig,
-        me: me,
+        me: meBySession.get(sessionName) ?? null,
         presence: null,
         timestamps: {
           activity: null,
