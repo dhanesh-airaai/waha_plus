@@ -533,7 +533,7 @@ export class SessionManagerPlus
     const configBySession =
       await this.sessionConfigRepository.getConfigBySessions(names);
     const meBySession = await this.sessionMeRepository.getMeBySessions(names);
-    const sessions = names.map(async (sessionName) => {
+    const sessions = names.map((sessionName) => {
       const status = WAHASessionStatus.STOPPED;
       return {
         name: sessionName,
@@ -546,7 +546,7 @@ export class SessionManagerPlus
         },
       };
     });
-    return await Promise.all(sessions);
+    return sessions;
   }
 
   async getSessions(all: boolean): Promise<SessionInfo[]> {
