@@ -37,6 +37,22 @@ export class PsqlSessionConfigRepository
     return data?.config ?? null;
   }
 
+  async getConfigBySessions(
+    sessionNames: string[],
+  ): Promise<Map<string, SessionConfig | null>> {
+    const result = new Map<string, SessionConfig | null>();
+    const uniqueNames = Array.from(new Set(sessionNames));
+    if (uniqueNames.length === 0) {
+      return result;
+    }
+    const entities = await this.getEntitiesByIds(uniqueNames);
+    for (const sessionName of uniqueNames) {
+      const entity = entities.get(sessionName);
+      result.set(sessionName, entity?.config ?? null);
+    }
+    return result;
+  }
+
   async exists(sessionName: string): Promise<boolean> {
     const data = await this.getById(sessionName);
     return data !== null;

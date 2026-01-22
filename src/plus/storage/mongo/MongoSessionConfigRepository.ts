@@ -40,6 +40,27 @@ export class MongoSessionConfigRepository extends ISessionConfigRepository {
     return result;
   }
 
+  async getConfigBySessions(
+    sessionNames: string[],
+  ): Promise<Map<string, SessionConfig | null>> {
+    const result = new Map<string, SessionConfig | null>();
+    const uniqueNames = Array.from(new Set(sessionNames));
+    if (uniqueNames.length === 0) {
+      return result;
+    }
+    for (const sessionName of uniqueNames) {
+      result.set(sessionName, null);
+    }
+    const docs = await this.collection
+      .find({ name: { $in: uniqueNames } })
+      .toArray();
+    for (const doc of docs) {
+      const { _id, name, ...config } = doc;
+      result.set(name, config ?? null);
+    }
+    return result;
+  }
+
   async deleteConfig(sessionName: string): Promise<void> {
     await this.collection.deleteOne({ name: sessionName });
   }
