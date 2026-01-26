@@ -78,6 +78,7 @@ export class WebjsClientPlus extends WebjsClientCore {
     inviteCode: string,
     limit: number,
   ): Promise<WebjsChannelMessage[]> {
+    await this.ensureWahaPlusInjected();
     const response: _GetNewsletterPreviewDataResponse =
       await this.pupPage.evaluate(
         async (code, limit) => {
@@ -129,6 +130,7 @@ export class WebjsClientPlus extends WebjsClientCore {
    * Channels Search methods
    */
   async searchChannelsView(params: any): Promise<any> {
+    await this.ensureWahaPlusInjected();
     const newsletters: any = await this.pupPage.evaluate(async (params) => {
       return await window[
         'WAHA'
@@ -138,6 +140,7 @@ export class WebjsClientPlus extends WebjsClientCore {
   }
 
   async searchChannelsText(params: any): Promise<any> {
+    await this.ensureWahaPlusInjected();
     const newsletters: any = await this.pupPage.evaluate(async (params) => {
       return await window[
         'WAHA'
@@ -146,5 +149,21 @@ export class WebjsClientPlus extends WebjsClientCore {
       );
     }, params);
     return newsletters;
+  }
+
+  protected async ensureWahaPlusInjected() {
+    const hasWahaPlus = await this.pupPage.evaluate(() => {
+      return Boolean(
+        // @ts-ignore
+        window.WAHA &&
+          // @ts-ignore
+          window.WAHA.WAWebNewsletterDirectorySearchJob &&
+          // @ts-ignore
+          window.WAHA.WAWebNewsletterPreviewJob,
+      );
+    });
+    if (!hasWahaPlus) {
+      await this.injectWaha();
+    }
   }
 }
