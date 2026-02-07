@@ -32,8 +32,8 @@ import { GowsAuthFactoryCore } from '@waha/core/engines/gows/store/GowsAuthFacto
 import {
   extractBody,
   getDestination,
-} from '@waha/core/engines/noweb/session.noweb.core';
-import { extractMediaContent } from '@waha/core/engines/noweb/utils';
+  extractMediaContent,
+} from '@waha/core/utils/messages';
 import {
   AvailableInPlusVersion,
   NotImplementedByEngineError,
@@ -114,10 +114,7 @@ import {
 } from '@waha/structures/groups.dto';
 import { ReplyToMessage } from '@waha/structures/message.dto';
 import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
-import {
-  WAHAChatPresences,
-  WAHAPresenceData,
-} from '@waha/structures/presence.dto';
+import { WAHAChatPresences } from '@waha/structures/presence.dto';
 import {
   MessageSource,
   WAMessage,
@@ -144,7 +141,6 @@ import {
 import { PaginatorInMemory } from '@waha/utils/Paginator';
 import { sleep, waitUntil } from '@waha/utils/promiseTimeout';
 import { onlyEvent } from '@waha/utils/reactive/ops/onlyEvent';
-import * as NodeCache from 'node-cache';
 import {
   filter,
   groupBy,
@@ -256,18 +252,12 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
 
   protected me: MeInfo | null;
   public session: messages.Session;
-  protected presences: any;
-
   private local$ = new Subject<EnginePayload>();
 
   public constructor(config) {
     super(config);
     this.qr = new QR();
     this.session = new messages.Session({ id: this.name });
-    this.presences = new NodeCache({
-      stdTTL: 60 * 60, // 1 hour
-      useClones: false,
-    });
   }
 
   async start() {
@@ -425,74 +415,6 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
       this.logger.error('Logged out');
       this.status = WAHASessionStatus.FAILED;
     });
-    events.on(WhatsMeowEvent.PRESENCE, (event: gows.Presence) => {
-      if (isJidGroup(event.From)) {
-        // So group is not "online"
-        return;
-      }
-      const Chat = event.From;
-      const Sender = event.From;
-      const stored = this.presences.get(Chat) || [];
-      // remove values by event.Sender
-      const filtered = stored.filter(
-        (p) => p.Sender !== Sender && p.From !== Sender,
-      );
-      // add new value
-      this.presences.set(Chat, [...filtered, event]);
-    });
-    events.on(WhatsMeowEvent.CHAT_PRESENCE, (event: gows.ChatPresence) => {
-      const Chat = event.Chat;
-      const Sender = event.Sender;
-      const stored = this.presences.get(Chat) || [];
-      // remove values by event.Sender
-      const filtered = stored.filter(
-        (p) => p.Sender !== Sender && p.From !== Sender,
-      );
-      // add new value
-      this.presences.set(Chat, [...filtered, event]);
-    });
-
-    //
-    // Fix for "typing" after sending a message
-    // Re-issue a synthetic ChatPresence(PAUSED) to cancel COMPOSING state
-    // Works for both DM and Group chats
-    //
-    events.on(WhatsMeowEvent.MESSAGE, (message: any) => {
-      const chat = message?.Info?.Chat;
-      if (!this.jids.include(chat)) {
-        return;
-      }
-      if (message?.Info?.IsFromMe) {
-        return;
-      }
-      const sender = message?.Info?.Sender || chat;
-      if (!chat || !sender) {
-        return;
-      }
-      const stored: Array<gows.Presence | gows.ChatPresence> =
-        this.presences.get(chat) || [];
-      const composing = stored.find(
-        (presence: any) =>
-          (presence?.Sender === sender || presence?.From === sender) &&
-          presence?.State === gows.ChatPresenceState.COMPOSING,
-      ) as gows.ChatPresence | undefined;
-      if (!composing) {
-        return;
-      }
-      const presence: gows.ChatPresence = {
-        Chat: chat,
-        Sender: sender,
-        IsFromMe: false,
-        IsGroup: !!isJidGroup(chat),
-        State: gows.ChatPresenceState.PAUSED,
-        Media: (composing as any)?.Media ?? gows.ChatPresenceMedia.TEXT,
-      } as any;
-      this.local$.next({
-        event: WhatsMeowEvent.CHAT_PRESENCE,
-        data: presence,
-      } as any);
-    });
-
     events.start();
   }
 
@@ -648,19 +570,6 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     );
     this.events2.get(WAHAEvents.CALL_REJECTED).switch(callRejected$);
 
-    const presence$ = all$.pipe(
-      onlyEvent(WhatsMeowEvent.PRESENCE),
-      filter((event: any) => this.jids.include(event?.From)),
-      filter((event) => !isJidGroup(event.From)),
-    );
-    const chatPresence$ = all$.pipe(
-      onlyEvent(WhatsMeowEvent.CHAT_PRESENCE),
-      filter((event: any) => this.jids.include(event?.Chat)),
-    );
-    const presenceUpdates$ = merge(presence$, chatPresence$).pipe(
-      map((event) => this.toWahaPresences(event.From || event.Chat, [event])),
-    );
-    this.events2.get(WAHAEvents.PRESENCE_UPDATE).switch(presenceUpdates$);
     //
     // Group Events
     //
@@ -1516,22 +1425,13 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
   }
 
   public async getPresences(): Promise<WAHAChatPresences[]> {
-    const result: WAHAChatPresences[] = [];
-    for (const remoteJid in this.presences.keys()) {
-      const storedPresences = this.presences.get(remoteJid);
-      result.push(this.toWahaPresences(remoteJid, storedPresences));
-    }
-    return result;
+    return [];
   }
 
   public async getPresence(chatId: string): Promise<WAHAChatPresences> {
     const jid = toJID(chatId);
-    await this.subscribePresence(jid);
-    if (!(jid in this.presences.keys())) {
-      await sleep(1000);
-    }
-    const result = this.presences.get(jid) || [];
-    return this.toWahaPresences(jid, result);
+    const id = toCusFormat(jid);
+    return { id, presences: [] };
   }
 
   @Activity()
@@ -1543,54 +1443,6 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     });
     const response = await promisify(this.client.SubscribePresence)(req);
     return response.toObject();
-  }
-
-  protected toWahaPresenceData(
-    data: gows.Presence | gows.ChatPresence,
-  ): WAHAPresenceData {
-    if ('From' in data) {
-      data = data as gows.Presence;
-      const lastKnownPresence = data.Unavailable
-        ? WAHAPresenceStatus.OFFLINE
-        : WAHAPresenceStatus.ONLINE;
-      return {
-        participant: toCusFormat(data.From),
-        lastKnownPresence: lastKnownPresence,
-        lastSeen: parseTimestampToSeconds(data.LastSeen),
-      };
-    }
-
-    data = data as gows.ChatPresence;
-    let lastKnownPresence: WAHAPresenceStatus;
-    if (data.State === gows.ChatPresenceState.PAUSED) {
-      lastKnownPresence = WAHAPresenceStatus.PAUSED;
-    } else if (
-      data.State === gows.ChatPresenceState.COMPOSING &&
-      data.Media === gows.ChatPresenceMedia.TEXT
-    ) {
-      lastKnownPresence = WAHAPresenceStatus.TYPING;
-    } else if (
-      data.State === gows.ChatPresenceState.COMPOSING &&
-      data.Media === gows.ChatPresenceMedia.AUDIO
-    ) {
-      lastKnownPresence = WAHAPresenceStatus.RECORDING;
-    }
-    return {
-      participant: toCusFormat(data.Sender),
-      lastKnownPresence: lastKnownPresence,
-      lastSeen: null,
-    };
-  }
-
-  protected toWahaPresences(
-    jid,
-    result: null | gows.Presence[] | gows.ChatPresence[],
-  ): WAHAChatPresences {
-    const chatId = toCusFormat(jid);
-    return {
-      id: chatId,
-      presences: result?.map(this.toWahaPresenceData.bind(this)),
-    };
   }
 
   /**

@@ -6,10 +6,7 @@ import {
 } from '@nestjs/common';
 import { IAppsService } from '@waha/apps/app_sdk/services/IAppsService';
 import { WhatsappConfigService } from '@waha/config.service';
-import {
-  EngineBootstrap,
-  NoopEngineBootstrap,
-} from '@waha/core/abc/EngineBootstrap';
+import { EngineBootstrap } from '@waha/core/abc/EngineBootstrap';
 import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
 import { GowsBootstrap } from '@waha/core/engines/gows/GowsBootstrap';
 import { ISessionMeRepository } from '@waha/core/storage/ISessionMeRepository';
@@ -229,11 +226,8 @@ export abstract class SessionManager
 
   protected getEngineBootstrap(engine: WAHAEngine): EngineBootstrap {
     const logger = this.log.logger.child({ engine: engine.toLowerCase() });
-    if (engine === WAHAEngine.GOWS) {
-      const config = this.gowsConfigService.getBootstrapConfig();
-      return new GowsBootstrap(logger, config);
-    }
-    return new NoopEngineBootstrap();
+    const config = this.gowsConfigService.getBootstrapConfig();
+    return new GowsBootstrap(logger, config);
   }
 
   protected ignoreChatsConfig(config: SessionConfig) {

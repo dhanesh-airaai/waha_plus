@@ -45,7 +45,6 @@ import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import * as fs from 'fs';
 import * as lodash from 'lodash';
 import * as NodeCache from 'node-cache';
 import { Logger } from 'pino';
@@ -62,7 +61,13 @@ import {
   timestamp,
 } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
-import { MessageId } from 'whatsapp-web.js';
+
+interface MessageId {
+  fromMe: boolean;
+  remote: string;
+  id: string;
+  _serialized: string;
+}
 
 import {
   ChatRequest,
@@ -142,16 +147,6 @@ const qrcode = require('qrcode-terminal');
 
 axiosRetry(axios, { retries: 3 });
 
-const CHROME_PATH = '/usr/bin/google-chrome-stable';
-const CHROMIUM_PATH = '/usr/bin/chromium';
-
-export function getBrowserExecutablePath() {
-  if (fs.existsSync(CHROME_PATH)) {
-    return CHROME_PATH;
-  }
-  return CHROMIUM_PATH;
-}
-
 export function ensureSuffix(phone) {
   const suffix = '@c.us';
   if (phone.includes('@')) {
@@ -202,10 +197,6 @@ export abstract class WhatsappSession {
   private shouldPrintQR: boolean;
   protected events2: DefaultMap<WAHAEvents, SwitchObservable<any>>;
   private status$: Subject<WAHASessionStatus>;
-  protected profilePictures: NodeCache = new NodeCache({
-    stdTTL: 24 * 60 * 60, // 1 day
-  });
-
   // Save sent messages ids in cache so we can determine if a message was sent
   // via API or APP
   private sentMessageIds: NodeCache = new NodeCache({
@@ -359,68 +350,6 @@ export abstract class WhatsappSession {
     return this._presence;
   }
 
-  getBrowserExecutablePath() {
-    return getBrowserExecutablePath();
-  }
-
-  getBrowserArgsForPuppeteer() {
-    // Run optimized version of Chrome
-    // References:
-    // https://github.com/pedroslopez/whatsapp-web.js/issues/1420
-    // https://github.com/wppconnect-team/wppconnect/issues/1326
-    // https://superuser.com/questions/654565/how-to-run-google-chrome-in-a-single-process
-    // https://www.bannerbear.com/blog/ways-to-speed-up-puppeteer-screenshots/
-    return [
-      '--disable-accelerated-2d-canvas',
-      '--disable-application-cache',
-      // DO NOT disable software rasterizer, it will break the video
-      // https://github.com/devlikeapro/waha/issues/629
-      // '--disable-software-rasterizer',
-      '--disable-client-side-phishing-detection',
-      '--disable-component-update',
-      '--disable-default-apps',
-      '--disable-dev-shm-usage',
-      '--disable-extensions',
-      '--disable-metrics',
-      // '--disable-features=site-per-process', // COMMENTED to test WEBJS stability
-      '--disable-gpu', // COMMENTED to test WEBJS stability
-      '--disable-offer-store-unmasked-wallet-cards',
-      '--disable-offline-load-stale-cache',
-      '--disable-popup-blocking',
-      '--disable-setuid-sandbox',
-      '--disable-site-isolation-trials',
-      '--disable-speech-api',
-      '--disable-sync',
-      '--disable-translate',
-      '--disable-web-security',
-      '--hide-scrollbars',
-      '--ignore-certificate-errors',
-      '--ignore-ssl-errors',
-      // https://github.com/devlikeapro/waha/issues/725
-      // '--in-process-gpu', // COMMENTED to test WEBJS stability
-      '--metrics-recording-only',
-      '--mute-audio',
-      '--no-default-browser-check',
-      '--no-first-run',
-      '--no-pings',
-      '--no-sandbox',
-      '--no-zygote',
-      '--password-store=basic',
-      '--renderer-process-limit=2',
-      '--safebrowsing-disable-auto-update',
-      '--use-mock-keychain',
-      '--window-size=1280,720',
-      '--disable-blink-features=AutomationControlled',
-      //
-      // Cache options
-      //
-      '--disk-cache-size=1073741824', // 1GB
-      // '--disk-cache-size=0',
-      // '--disable-cache',
-      // '--aggressive-cache-discard',
-    ];
-  }
-
   protected isDebugEnabled() {
     return this.logger.isLevelEnabled('debug');
   }
@@ -486,25 +415,7 @@ export abstract class WhatsappSession {
       await this.deleteProfilePicture();
     }
 
-    // Refresh profile picture after update
-    setTimeout(() => {
-      this.logger.debug('Refreshing my profile picture after update...');
-      this.refreshMyProfilePicture()
-        .then(() => {
-          this.logger.debug('Refreshed my profile picture after update');
-        })
-        .catch((err) => {
-          this.logger.error('Error refreshing my profile picture after update');
-          this.logger.error(err, err.stack);
-        });
-    }, 3_000);
-
     return true;
-  }
-
-  protected async refreshMyProfilePicture() {
-    const me = this.getSessionMeInfo();
-    await this.getContactProfilePicture(me.id, true);
   }
 
   protected setProfilePicture(file: BinaryFile | RemoteFile): Promise<boolean> {
@@ -856,23 +767,10 @@ export abstract class WhatsappSession {
     id: string,
     refresh: boolean,
   ): Promise<string | null> {
-    const has: boolean = this.profilePictures.has(id);
-    if (!has || refresh) {
-      await this.refreshProfilePicture(id);
-    }
-    return this.profilePictures.get(id) || null;
-  }
-
-  protected async refreshProfilePicture(id: string) {
-    this.logger.debug(`Refreshing profile picture for id "${id}"...`);
-    // Have no pictures
-    if (isNullJid(id)) {
-      return null;
-    } else if (isJidBroadcast(id)) {
+    if (isNullJid(id) || isJidBroadcast(id)) {
       return null;
     }
 
-    // Find the right method
     let fn: Promise<string>;
     if (isJidNewsletter(id)) {
       fn = this.channelsGetChannel(id).then(
@@ -881,14 +779,11 @@ export abstract class WhatsappSession {
     } else {
       fn = this.fetchContactProfilePicture(id);
     }
-    this.profilePictures.del(id);
-    const url = await fn.catch((err) => {
+    return fn.catch((err) => {
       this.logger.warn('Error fetching profile picture');
       this.logger.warn(err, err.stack);
       return null;
     });
-    this.profilePictures.set(id, url);
-    return url;
   }
 
   public blockContact(request: ContactRequest) {
@@ -979,19 +874,6 @@ export abstract class WhatsappSession {
     } else {
       await this.deleteGroupPicture(id);
     }
-
-    // Refresh picture after update
-    setTimeout(() => {
-      this.logger.debug('Refreshing group profile picture after update...');
-      this.refreshProfilePicture(id)
-        .then(() => {
-          this.logger.debug('Refreshed group profile picture after update');
-        })
-        .catch((err) => {
-          this.logger.error('Error refreshing my profile picture after update');
-          this.logger.error(err, err.stack);
-        });
-    }, 3_000);
 
     return true;
   }

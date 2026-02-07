@@ -11,7 +11,6 @@ import {
 } from '@waha/apps/app_sdk/services/IAppsService';
 import { EngineBootstrap } from '@waha/core/abc/EngineBootstrap';
 import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
-import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { WhatsappSessionGoWSCore } from '@waha/core/engines/gows/session.gows.core';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
@@ -41,8 +40,6 @@ import { WebhookConfig } from '../structures/webhooks.config.dto';
 import { populateSessionInfo, SessionManager } from './abc/manager.abc';
 import { SessionParams, WhatsappSession } from './abc/session.abc';
 import { EngineConfigService } from './config/EngineConfigService';
-import { WhatsappSessionNoWebCore } from './engines/noweb/session.noweb.core';
-import { WhatsappSessionWebJSCore } from './engines/webjs/session.webjs.core';
 import { DOCS_URL } from './exceptions';
 import { getProxyConfig } from './helpers.proxy';
 import { MediaManager } from './media/MediaManager';
@@ -83,7 +80,6 @@ export class SessionManagerCore extends SessionManager implements OnModuleInit {
   constructor(
     config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
-    private webjsEngineConfigService: WebJSEngineConfigService,
     gowsConfigService: GowsEngineConfigService,
     log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
@@ -112,11 +108,7 @@ export class SessionManagerCore extends SessionManager implements OnModuleInit {
   }
 
   protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
-    if (engine === WAHAEngine.WEBJS) {
-      return WhatsappSessionWebJSCore;
-    } else if (engine === WAHAEngine.NOWEB) {
-      return WhatsappSessionNoWebCore;
-    } else if (engine === WAHAEngine.GOWS) {
+    if (engine === WAHAEngine.GOWS) {
       return WhatsappSessionGoWSCore;
     } else {
       throw new NotFoundException(`Unknown whatsapp engine '${engine}'.`);
@@ -204,11 +196,7 @@ export class SessionManagerCore extends SessionManager implements OnModuleInit {
       sessionConfig: this.sessionConfig,
       ignore: this.ignoreChatsConfig(this.sessionConfig),
     };
-    if (this.EngineClass === WhatsappSessionWebJSCore) {
-      sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
-    } else if (this.EngineClass === WhatsappSessionGoWSCore) {
-      sessionConfig.engineConfig = this.gowsConfigService.getConfig();
-    }
+    sessionConfig.engineConfig = this.gowsConfigService.getConfig();
     await this.sessionAuthRepository.init(name);
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);

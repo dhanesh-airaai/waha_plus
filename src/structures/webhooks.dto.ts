@@ -156,7 +156,7 @@ export class WAHAWebhook<Payload = any> {
   metadata?: Record<string, string>;
 
   @ApiProperty({
-    example: WAHAEngine.WEBJS,
+    example: WAHAEngine.GOWS,
   })
   engine: WAHAEngine;
 

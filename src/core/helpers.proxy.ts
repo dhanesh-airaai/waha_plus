@@ -1,10 +1,16 @@
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { URL } from 'url';
 
+import { Agent } from 'https';
+
 import { WhatsappConfigService } from '../config.service';
 import { ProxyConfig } from '../structures/sessions.dto';
 import { WhatsappSession } from './abc/session.abc';
-import { Agents } from '@waha/core/engines/noweb/types';
+
+export interface Agents {
+  socket: Agent;
+  fetch: Agent;
+}
 
 export function getProxyConfig(
   config: WhatsappConfigService,

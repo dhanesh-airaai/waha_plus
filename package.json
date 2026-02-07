@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "@adiwajshing/baileys": "github:devlikeapro/Baileys#fork-master-2026-01-25",
-    "@adiwajshing/keyed-db": "^0.2.4",
     "@aws-sdk/client-s3": "^3.633.0",
     "@aws-sdk/s3-request-presigner": "^3.633.0",
     "@bull-board/api": "^6.9.1",
@@ -81,7 +80,6 @@
     "joi": "^17.13.3",
     "knex": "^3.1.0",
     "libphonenumber-js": "^1.10.36",
-    "libsignal": "github:WhiskeySockets/libsignal-node#master",
     "link-preview-js": "^3.0.4",
     "lodash": "^4.17.21",
     "long": "^5.3.2",
@@ -98,7 +96,6 @@
     "pino-pretty": "^11.2.1",
     "pretty-bytes": "5.6.0",
     "promise-retry": "^2.0.1",
-    "puppeteer": "^24.31.0",
     "qrcode": "^1.5.1",
     "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.1.13",
@@ -111,7 +108,6 @@
     "ulid": "^2.3.0",
     "undici": "^7.16.0",
     "uniqid": "^5.4.0",
-    "whatsapp-web.js": "github:devlikeapro/whatsapp-web.js#fork-main-2026-02-01",
     "write-file-atomic": "^6.0.0",
     "yaml": "^2.7.1"
   },
@@ -122,7 +118,6 @@
     "typescript": "5.9.2",
     "bufferutil": "^4.0.8",
     "ws": "^8.18.0",
-    "puppeteer": "^24.31.0",
     "whatwg-url": "13.0.0",
     "axios": "^1.9.0"
   },

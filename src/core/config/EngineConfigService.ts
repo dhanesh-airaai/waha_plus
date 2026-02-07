@@ -19,9 +19,9 @@ export class EngineConfigService {
       return WAHAEngine[value];
     }
     this.logger.warn(
-      `Unknown WhatsApp default engine WHATSAPP_DEFAULT_ENGINE=${value}. Using WEBJS`,
+      `Unknown WhatsApp default engine WHATSAPP_DEFAULT_ENGINE=${value}. Using GOWS`,
     );
-    return WAHAEngine.WEBJS;
+    return WAHAEngine.GOWS;
   }
 
   get shouldPrintQR(): boolean {

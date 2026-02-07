@@ -13,7 +13,7 @@ import { WAHASessionAPI } from '@waha/apps/app_sdk/waha/WAHASelf';
 import { SessionManager } from '@waha/core/abc/manager.abc';
 import { parseMessageIdSerialized } from '@waha/core/utils/ids';
 import { RMutexService } from '@waha/modules/rmutex/rmutex.service';
-import { WAHAEngine, WAHAEvents } from '@waha/structures/enums.dto';
+import { WAHAEvents } from '@waha/structures/enums.dto';
 import { WAMessageReaction, WAReaction } from '@waha/structures/responses.dto';
 import { WAHAWebhookMessageReaction } from '@waha/structures/webhooks.dto';
 import { Job } from 'bullmq';
@@ -32,12 +32,6 @@ export class WAHAMessageReactionConsumer extends ChatWootWAHABaseConsumer {
   }
 
   GetChatId(event: WAHAWebhookMessageReaction): string {
-    if (event.environment?.engine == WAHAEngine.WEBJS) {
-      // chat in "to" field for WEBJS for message.reaction
-      // probably we need to set it to "from"
-      // but for backward compatability we do this
-      return event.payload.to;
-    }
     return EngineHelper.ChatID(event.payload);
   }
 

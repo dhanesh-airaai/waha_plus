@@ -11,7 +11,6 @@ import {
 } from '@waha/apps/app_sdk/services/IAppsService';
 import { EngineBootstrap } from '@waha/core/abc/EngineBootstrap';
 import { GowsEngineConfigService } from '@waha/core/config/GowsEngineConfigService';
-import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { getProxyConfig } from '@waha/core/helpers.proxy';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaManager } from '@waha/core/media/MediaManager';
@@ -62,8 +61,6 @@ import {
   SessionInfo,
 } from '../structures/sessions.dto';
 import { WebhookConfig } from '../structures/webhooks.config.dto';
-import { WhatsappSessionNoWebPlus } from './engines/noweb/session.noweb.plus';
-import { WhatsappSessionWebJSPlus } from './engines/webjs/session.webjs.plus';
 import { MongoSessionAuthRepository } from './storage/mongo/MongoSessionAuthRepository';
 import { MongoSessionConfigRepository } from './storage/mongo/MongoSessionConfigRepository';
 import { MongoStore } from './storage/mongo/MongoStore';
@@ -79,6 +76,7 @@ export class SessionManagerPlus
   private SESSION_STOP_TIMEOUT = 3000;
   SESSION_UNPAIR_TIMEOUT = 1000;
   private readonly sessions: Record<string, WhatsappSession>;
+  private gowsSessionStore: any;
 
   protected readonly EngineClass: typeof WhatsappSession;
   protected readonly engineBootstrap: EngineBootstrap;
@@ -91,7 +89,6 @@ export class SessionManagerPlus
   constructor(
     config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
-    private webjsEngineConfigService: WebJSEngineConfigService,
     gowsConfigService: GowsEngineConfigService,
     log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
@@ -139,6 +136,10 @@ export class SessionManagerPlus
 
       this.store = new MongoStore(mongo, engineName);
       await this.store.init();
+
+      // GOWS auth requires SQLite3 or PostgreSQL, not MongoDB
+      this.gowsSessionStore = new LocalStoreCore(engineName);
+      await this.gowsSessionStore.init();
       this.sessionAuthRepository = new MongoSessionAuthRepository(this.store);
       this.sessionConfigRepository = new MongoSessionConfigRepository(
         this.store,
@@ -248,13 +249,7 @@ export class SessionManagerPlus
   }
 
   protected getEngine(engine: WAHAEngine): typeof WhatsappSession {
-    if (engine === WAHAEngine.WEBJS) {
-      this.SESSION_STOP_TIMEOUT = 3_000;
-      return WhatsappSessionWebJSPlus;
-    } else if (engine === WAHAEngine.NOWEB) {
-      this.SESSION_STOP_TIMEOUT = 1_000;
-      return WhatsappSessionNoWebPlus;
-    } else if (engine === WAHAEngine.GOWS) {
+    if (engine === WAHAEngine.GOWS) {
       this.SESSION_STOP_TIMEOUT = 10;
       return WhatsappSessionGoWSPlus;
     } else {
@@ -343,16 +338,12 @@ export class SessionManagerPlus
       mediaManager,
       loggerBuilder,
       printQR: this.engineConfigService.shouldPrintQR,
-      sessionStore: this.store,
+      sessionStore: this.gowsSessionStore || this.store,
       proxyConfig: proxyConfig,
       sessionConfig: config,
       ignore: this.ignoreChatsConfig(config),
     };
-    if (this.EngineClass === WhatsappSessionWebJSPlus) {
-      sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
-    } else if (this.EngineClass === WhatsappSessionGoWSPlus) {
-      sessionConfig.engineConfig = this.gowsConfigService.getConfig();
-    }
+    sessionConfig.engineConfig = this.gowsConfigService.getConfig();
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
     this.sessions[name] = session;

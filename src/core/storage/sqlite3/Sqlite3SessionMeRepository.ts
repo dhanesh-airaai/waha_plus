@@ -1,4 +1,4 @@
-import { Sqlite3SchemaValidation } from '@waha/core/engines/noweb/store/sqlite3/Sqlite3SchemaValidation';
+import { Sqlite3SchemaValidation } from '@waha/core/storage/sqlite3/Sqlite3SchemaValidation';
 import { ISessionMeRepository } from '@waha/core/storage/ISessionMeRepository';
 import { LocalStore } from '@waha/core/storage/LocalStore';
 import { SQLMeMigrations, SQLMeSchema } from '@waha/core/storage/sql/schemas';

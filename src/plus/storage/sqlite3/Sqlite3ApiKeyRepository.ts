@@ -1,4 +1,4 @@
-import { Sqlite3SchemaValidation } from '@waha/core/engines/noweb/store/sqlite3/Sqlite3SchemaValidation';
+import { Sqlite3SchemaValidation } from '@waha/core/storage/sqlite3/Sqlite3SchemaValidation';
 import {
   IApiKeyRepository,
   ApiKey,

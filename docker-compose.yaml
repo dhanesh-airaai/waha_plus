@@ -4,9 +4,10 @@ services:
     restart: always
     # https://waha.devlike.pro/docs/how-to/engines/#docker-images
     # https://portal.devlike.pro/docker-image
-    image: devlikeapro/waha-plus
-    # WAHA Core
-    # image: devlikeapro/waha:latest
+    # image: devlikeapro/waha-plus
+    build:
+      context: .
+      dockerfile: Dockerfile
 
     # Add "dns" if you have a problem with resolving "web.whatsapp.com"
     dns:
@@ -32,6 +33,10 @@ services:
 
     env_file:
       - .env
+
+    networks:
+      - default
+      - aira-api-local_app-network
 
 # NOTE: Only if you're using PostgreSQL to save sessions
 # https://waha.devlike.pro/docs/how-to/storages/#media---postgresql
@@ -97,6 +102,10 @@ services:
 #      options:
 #        max-size: "100m"
 #        max-file: "10"
+
+networks:
+  aira-api-local_app-network:
+    external: true
 
 volumes:
   mongodb_data: {}

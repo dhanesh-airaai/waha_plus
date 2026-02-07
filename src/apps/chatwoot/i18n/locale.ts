@@ -2,7 +2,7 @@ import * as Mustache from 'mustache';
 import * as lodash from 'lodash';
 import { TemplatePayloads, TKey } from '@waha/apps/chatwoot/i18n/templates';
 import Long from 'long';
-import { ensureNumber } from '@waha/core/engines/noweb/utils';
+import { ensureNumber } from '@waha/core/utils/numbers';
 import { EnsureMilliseconds } from '@waha/utils/timehelper';
 import { TZ } from '@waha/apps/chatwoot/env';
 import { isToday, isYesterday, isSameYear } from '@waha/utils/datehelper';
