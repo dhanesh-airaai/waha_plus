@@ -21,7 +21,7 @@ services:
         max-file: '10'
 
     ports:
-      - '127.0.0.1:3002:3000/tcp'
+      - '127.0.0.1:3000:3000/tcp'
 
     volumes:
       # Store sessions in the .sessions folder (comment it if you're using MongoDB)
@@ -34,14 +34,39 @@ services:
     env_file:
       - .env
 
-    container_name: waha-local
-
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
+    depends_on:
+      postgres:
+        condition: service_healthy
 
     networks:
       - default
-      - app-network
+      - aira-api-local_app-network
+
+  postgres:
+    image: postgres:17.6
+    restart: always
+    environment:
+      POSTGRES_USER: waha
+      POSTGRES_PASSWORD: waha
+      POSTGRES_DB: waha
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    command:
+      - postgres
+      - "-c"
+      - "max_connections=3000"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waha"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
 
 # NOTE: Only if you're using MongoDB
 # https://waha.devlike.pro/docs/how-to/storages/#sessions---mongodb
@@ -86,7 +111,7 @@ services:
 #        max-file: "10"
 
 networks:
-  app-network:
+  aira-api-local_app-network:
     external: true
 
 volumes:

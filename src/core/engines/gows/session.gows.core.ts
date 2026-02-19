@@ -45,6 +45,7 @@ import { parseMessageIdSerialized } from '@waha/core/utils/ids';
 import {
   isJidBroadcast,
   isJidGroup,
+  isPnUser,
   toCusFormat,
   toJID,
 } from '@waha/core/utils/jids';
@@ -1788,8 +1789,19 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
     if (chatId === 'all') {
       jid = null;
     } else {
+      let resolvedJid = toJID(this.ensureSuffix(chatId));
+      if (isPnUser(resolvedJid)) {
+        try {
+          const lidMapping = await this.findLIDByPhoneNumber(chatId);
+          if (lidMapping?.lid) {
+            resolvedJid = lidMapping.lid;
+          }
+        } catch {
+          // Fall through with original JID if LID resolution fails
+        }
+      }
       jid = new messages.OptionalString({
-        value: toJID(this.ensureSuffix(chatId)),
+        value: resolvedJid,
       });
     }
 
