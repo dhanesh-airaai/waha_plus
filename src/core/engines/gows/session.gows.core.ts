@@ -2382,6 +2382,19 @@ export class WhatsappSessionGoWSCore extends WhatsappSession {
 export class GOWSEngineMediaProcessor implements IMediaEngineProcessor<any> {
   constructor(public session: WhatsappSessionGoWSCore) {}
 
+  private getMediaDownloadTimeoutMs(): number {
+    const fallback = 600_000;
+    const raw = process.env.WAHA_GOWS_MEDIA_DOWNLOAD_TIMEOUT_MS;
+    if (!raw) {
+      return fallback;
+    }
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return fallback;
+    }
+    return parsed;
+  }
+
   hasMedia(message: any): boolean {
     return Boolean(extractMediaContent(message.Message));
   }
@@ -2400,7 +2413,7 @@ export class GOWSEngineMediaProcessor implements IMediaEngineProcessor<any> {
   }
 
   async getMediaBuffer(message: any): Promise<Buffer | null> {
-    const mediaDownloadTimeoutMs = 600_000; // 10 minutes
+    const mediaDownloadTimeoutMs = this.getMediaDownloadTimeoutMs();
 
     const data = JSON.stringify(message.Message);
     const tmpdir = new TmpDir(
@@ -2425,8 +2438,12 @@ export class GOWSEngineMediaProcessor implements IMediaEngineProcessor<any> {
         this.session.client.DownloadMedia.bind(this.session.client),
       );
       try {
+        const startedAt = Date.now();
         const response = await call(request, opts);
         const obj = response.toObject();
+        this.session.logger.debug(
+          `Downloaded media for message '${message?.Info?.ID}' in ${Date.now() - startedAt}ms`,
+        );
         if (!obj.contentPath) {
           // Read directly from grpc response
           return Buffer.from(obj.content);

@@ -33,6 +33,7 @@ import { MongoClient } from 'mongodb';
 import { PinoLogger } from 'nestjs-pino';
 import { merge, Observable, retry, share } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { promisify } from 'util';
 
 import { WhatsappConfigService } from '../config.service';
 import { populateSessionInfo, SessionManager } from '../core/abc/manager.abc';
@@ -57,6 +58,13 @@ import { MongoSessionAuthRepository } from './storage/mongo/MongoSessionAuthRepo
 import { MongoSessionConfigRepository } from './storage/mongo/MongoSessionConfigRepository';
 import { MongoStore } from './storage/mongo/MongoStore';
 import { Sqlite3ApiKeyRepository } from '@waha/plus/storage/sqlite3/Sqlite3ApiKeyRepository';
+
+// we need to talk to the GOWS engine when a session exists in the engine but
+// not in our own configuration store.  The easiest way is to use the same
+// gRPC client factories that the session engine uses.
+import * as grpc from '@grpc/grpc-js';
+import { BuildMessageServiceClient } from '@waha/core/engines/gows/clients';
+import { messages } from '@waha/core/engines/gows/grpc/gows';
 
 const ALL = '*';
 
@@ -257,7 +265,39 @@ export class SessionManagerPlus
   // API Methods
   //
   async exists(name: string): Promise<boolean> {
-    return await this.sessionConfigRepository.exists(name);
+    // first check whether we have a config record for the session
+    const configExists = await this.sessionConfigRepository.exists(name);
+    if (configExists) {
+      return true;
+    }
+
+    // if the config doesn't exist it might still be running in the
+    // underlying GOWS engine (for example if the engine was started
+    // directly or the service restarted).  In that case we treat the
+    // session as existing so that pipes/controllers won't reject the
+    // request prematurely; we'll also create an empty config record so
+    // subsequent operations behave normally.
+    try {
+      const addr = this.gowsConfigService.getConfig().connection;
+      const client: messages.MessageServiceClient = BuildMessageServiceClient(
+        addr,
+        grpc.credentials.createInsecure(),
+      );
+      const req = new messages.Session({ id: name });
+      const resp: messages.SessionStateResponse = await promisify(
+        client.GetSessionState,
+      )(req as any);
+      const info = resp.toObject();
+      if (info.found) {
+        // make sure a config record exists for future calls
+        await this.sessionConfigRepository.saveConfig(name, {});
+        return true;
+      }
+    } catch (err) {
+      // ignore – engine might be unreachable or session really doesn't
+      // exist.  We'll fall through and return false.
+    }
+    return false;
   }
 
   isRunning(name: string): boolean {

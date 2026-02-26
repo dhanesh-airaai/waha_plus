@@ -172,6 +172,22 @@ export abstract class SessionManager
         session: sessionName,
       });
     }
+    // if the session is known but not currently running, try to start it
+    // automatically.  this covers the case where the engine was started
+    // separately or the service restarted and the session still has a
+    // backing store.
+    if (!this.isRunning(sessionName)) {
+      const exists = await this.exists(sessionName);
+      if (exists) {
+        // start will be idempotent if the session is already active
+        try {
+          await this.start(sessionName as any);
+        } catch (e) {
+          // ignore errors here; waitUntil below will handle failure
+        }
+      }
+    }
+
     const running = await waitUntil(
       async () => this.isRunning(sessionName),
       this.WAIT_SESSION_RUNNING_INTERVAL,
