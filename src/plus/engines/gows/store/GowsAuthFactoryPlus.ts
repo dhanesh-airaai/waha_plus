@@ -2,17 +2,21 @@ import { DataStore } from '@waha/core/abc/DataStore';
 import { GowsAuth } from '@waha/core/engines/gows/store/GowsAuth';
 import { GowsAuthFactoryCore } from '@waha/core/engines/gows/store/GowsAuthFactoryCore';
 import { GowsAuthSimple } from '@waha/core/engines/gows/store/GowsAuthSimple';
-import { PsqlStore } from '@waha/plus/storage/psql/PsqlStore';
+import { MongoStore } from '@waha/plus/storage/mongo/MongoStore';
 
 export class GowsAuthFactoryPlus extends GowsAuthFactoryCore {
   buildAuth(store: DataStore, name: string): Promise<GowsAuth> {
-    if (store instanceof PsqlStore) return this.buildPsql(store, name);
+    if (store instanceof MongoStore) return this.buildMongo(store, name);
     return super.buildAuth(store, name);
   }
 
-  async buildPsql(store: PsqlStore, name: string): Promise<GowsAuth> {
-    await store.init(name);
+  /**
+   * Build GowsAuth using the GOWS MongoDB store.
+   * Passes dialect="mongodb" and the per-session MongoDB URL to the Go service,
+   * which is handled by the mongostore package in GOWS.
+   */
+  async buildMongo(store: MongoStore, name: string): Promise<GowsAuth> {
     const connection = store.getSessionDbURL(name);
-    return new GowsAuthSimple(connection, 'postgres');
+    return new GowsAuthSimple(connection, 'mongodb');
   }
 }

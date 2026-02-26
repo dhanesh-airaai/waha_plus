@@ -1,5 +1,5 @@
 ARG NODE_IMAGE_TAG=24.11-bookworm-slim
-ARG GOLANG_IMAGE_TAG=1.24-bookworm
+ARG GOLANG_IMAGE_TAG=1.25-bookworm
 
 #
 # Build
@@ -52,9 +52,6 @@ RUN \
 #
 FROM golang:${GOLANG_IMAGE_TAG} AS gows
 
-# jq to parse json
-RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
-
 # install protoc
 RUN apt-get update && \
     apt-get install protobuf-compiler -y
@@ -64,17 +61,22 @@ RUN apt-get update  \
     && apt-get install -y libvips-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY waha.config.json /tmp/waha.config.json
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.1 && \
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+ENV PATH="/root/go/bin:${PATH}"
+
 WORKDIR /go/gows
-RUN \
-    GOWS_GITHUB_REPO=$(jq -r '.waha.gows.repo' /tmp/waha.config.json) && \
-    GOWS_SHA=$(jq -r '.waha.gows.ref' /tmp/waha.config.json) && \
-    ARCH=$(uname -m) && \
-    if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; \
-    elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; \
-    else echo "Unsupported architecture: $ARCH" && exit 1; fi && \
-    mkdir -p /go/gows/bin && \
-    wget -O /go/gows/bin/gows https://github.com/${GOWS_GITHUB_REPO}/releases/download/${GOWS_SHA}/gows-${ARCH} && \
+COPY --from=gows_src proto ./proto
+COPY --from=gows_src src/go.mod src/go.sum ./src/
+RUN cd src && go mod download
+COPY --from=gows_src src ./src
+RUN mkdir -p /go/gows/src/proto /go/gows/bin && \
+    protoc \
+      -I=. \
+      --go_out=./src/proto \
+      --go-grpc_out=./src/proto \
+      ./proto/*.proto && \
+    cd src && go mod tidy && go build -o /go/gows/bin/gows main.go && \
     chmod +x /go/gows/bin/gows
 
 

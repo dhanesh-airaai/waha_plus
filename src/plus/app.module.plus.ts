@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
 import { ChannelsInfoServiceCore } from '@waha/core/services/ChannelsInfoServiceCore';
-import { MediaPsqlStorageModule } from '@waha/plus/media/psql/media.psql.storage.module';
 import { MediaS3StorageModule } from '@waha/plus/media/s3/media.s3.storage.module';
 import { ChannelsInfoServicePlus } from '@waha/plus/services/ChannelsInfoServicePlus';
 import { isDebugEnabled } from '@waha/utils/logging';
@@ -24,9 +23,7 @@ import { SessionManagerPlus } from './manager.plus';
 const IMPORTS_MEDIA = [
   ConfigModule.forRoot({
     validationSchema: Joi.object({
-      WAHA_MEDIA_STORAGE: Joi.string()
-        .valid('LOCAL', 'S3', 'POSTGRESQL')
-        .default('LOCAL'),
+      WAHA_MEDIA_STORAGE: Joi.string().valid('LOCAL', 'S3').default('LOCAL'),
     }),
   }),
   ConditionalModule.registerWhen(
@@ -38,11 +35,6 @@ const IMPORTS_MEDIA = [
   ConditionalModule.registerWhen(
     MediaS3StorageModule,
     (env: NodeJS.ProcessEnv) => env['WAHA_MEDIA_STORAGE'] == 'S3',
-    { debug: isDebugEnabled() },
-  ),
-  ConditionalModule.registerWhen(
-    MediaPsqlStorageModule,
-    (env: NodeJS.ProcessEnv) => env['WAHA_MEDIA_STORAGE'] == 'POSTGRESQL',
     { debug: isDebugEnabled() },
   ),
 ];

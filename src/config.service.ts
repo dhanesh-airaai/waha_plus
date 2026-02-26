@@ -128,13 +128,6 @@ export class WhatsappConfigService implements OnApplicationBootstrap {
     return this.configService.get('WHATSAPP_SESSIONS_MONGO_URL', undefined);
   }
 
-  getSessionPostgresUrl(): string | undefined {
-    return this.configService.get(
-      'WHATSAPP_SESSIONS_POSTGRESQL_URL',
-      undefined,
-    );
-  }
-
   get(name: string, defaultValue: any = undefined): any {
     return this.configService.get(name, defaultValue);
   }

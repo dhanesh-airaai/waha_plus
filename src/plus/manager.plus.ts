@@ -22,20 +22,12 @@ import { WhatsappSessionGoWSPlus } from '@waha/plus/engines/gows/session.gows.pl
 import { MongoSessionMeRepository } from '@waha/plus/storage/mongo/MongoSessionMeRepository';
 import { MongoSessionWorkerRepository } from '@waha/plus/storage/mongo/MongoSessionWorkerRepository';
 import { MongoApiKeyRepository } from '@waha/plus/storage/mongo/MongoApiKeyRepository';
-import { parsePsql } from '@waha/plus/storage/psql/PsqlConnectionConfig';
-import { PsqlApiKeyRepository } from '@waha/plus/storage/psql/PsqlApiKeyRepository';
-import { PsqlSessionAuthRepository } from '@waha/plus/storage/psql/PsqlSessionAuthRepository';
-import { PsqlSessionConfigRepository } from '@waha/plus/storage/psql/PsqlSessionConfigRepository';
-import { PsqlSessionMeRepository } from '@waha/plus/storage/psql/PsqlSessionMeRepository';
-import { PsqlSessionWorkerRepository } from '@waha/plus/storage/psql/PsqlSessionWorkerRepository';
-import { PsqlStore } from '@waha/plus/storage/psql/PsqlStore';
 import { WAHAWebhookSessionStatus } from '@waha/structures/webhooks.dto';
 import { DefaultMap } from '@waha/utils/DefaultMap';
 import { getPinoLogLevel, LoggerBuilder } from '@waha/utils/logging';
 import { promiseTimeout, sleep } from '@waha/utils/promiseTimeout';
 import { complete } from '@waha/utils/reactive/complete';
 import { SwitchObservable } from '@waha/utils/reactive/SwitchObservable';
-import { getEngineName, VERSION } from '@waha/version';
 import * as lodash from 'lodash';
 import { MongoClient } from 'mongodb';
 import { PinoLogger } from 'nestjs-pino';
@@ -126,7 +118,6 @@ export class SessionManagerPlus
       .getDefaultEngineName()
       .toLowerCase();
     const mongoUrl = this.config.getSessionMongoUrl();
-    const postgresUrl = this.config.getSessionPostgresUrl();
     if (mongoUrl) {
       this.log.info('Using mongo storage for session info.');
       const mongo = new MongoClient(mongoUrl);
@@ -134,12 +125,12 @@ export class SessionManagerPlus
       await mongo.connect();
       this.log.info(`Connected to mongo '${mongoUrl}'!`);
 
-      this.store = new MongoStore(mongo, engineName);
+      this.store = new MongoStore(mongo, engineName, mongoUrl);
       await this.store.init();
 
-      // GOWS auth requires SQLite3 or PostgreSQL, not MongoDB
-      this.gowsSessionStore = new LocalStoreCore(engineName);
-      await this.gowsSessionStore.init();
+      // GOWS now uses MongoDB directly for its whatsmeow session store.
+      // gowsSessionStore stays null — GowsAuthFactoryPlus will use this.store.
+      this.gowsSessionStore = null;
       this.sessionAuthRepository = new MongoSessionAuthRepository(this.store);
       this.sessionConfigRepository = new MongoSessionConfigRepository(
         this.store,
@@ -149,24 +140,6 @@ export class SessionManagerPlus
         this.store,
       );
       this.apiKeyRepository = new MongoApiKeyRepository(this.store);
-    } else if (postgresUrl) {
-      this.log.info('Using Postgres storage for session info.');
-      const config = parsePsql(postgresUrl);
-      const engine = getEngineName();
-      config.application_name = `WAHA(${engine}) ${VERSION.version} - Manager`;
-      this.store = new PsqlStore(config, engineName);
-      await this.store.init();
-      this.sessionAuthRepository = new PsqlSessionAuthRepository(this.store);
-      this.sessionConfigRepository = new PsqlSessionConfigRepository(
-        this.store,
-      );
-      this.sessionMeRepository = new PsqlSessionMeRepository(this.store);
-      this.sessionWorkerRepository = new PsqlSessionWorkerRepository(
-        this.store,
-      );
-      this.apiKeyRepository = new PsqlApiKeyRepository(this.store);
-      const knex = this.store.getWAHADatabase();
-      await this.appsService.migrate(knex);
     } else {
       this.log.info('Using local storage for session info.');
       this.store = new LocalStoreCore(engineName);
